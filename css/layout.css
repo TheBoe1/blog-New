@@ -1,0 +1,69 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: system-ui, -apple-system, sans-serif;
+	background-color: #f5f7fa;
+	color: #333;
+}
+
+.app-layout {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.global-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 2rem;
+	height: 60px;
+	background-color: #2c3e50;
+	color: white;
+}
+
+.global-nav .logo {
+	font-weight: bold;
+	font-size: 1.2rem;
+}
+
+.global-nav .nav-links a {
+	color: #bdd4e7;
+	text-decoration: none;
+	margin-left: 1.5rem;
+	transition: color 0.2s;
+}
+
+.global-nav .nav-links a:hover,
+.global-nav .nav-links a.router-link-active {
+	color: #ffffff;
+}
+
+.router-container {
+	flex: 1;
+	padding: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	width: 100%;
+}
+
+.card {
+	background: white;
+	padding: 1.5rem;
+	border-radius: 8px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+	margin-bottom: 1rem;
+}
+
+.tag {
+	display: inline-block;
+	padding: 0.2rem 0.5rem;
+	background: #eef2f5;
+	border-radius: 4px;
+	font-size: 0.85rem;
+	color: #5c6b77;
+}
