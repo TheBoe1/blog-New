@@ -21,11 +21,11 @@
         
         <div class="menu-divider">外部项目</div>
         
-        <a href="https://lianlab.top/index/" class="menu-item external">
+        <a href="https://lianlab.top/index/" class="menu-item external" target="_blank" rel="noopener noreferrer">
           <span class="icon">⚙️</span>
           <span class="label">管理系统</span>
         </a>
-        <a href="https://lianlab.top/Visual/" class="menu-item external">
+        <a href="https://lianlab.top/Visual/" class="menu-item external" target="_blank" rel="noopener noreferrer">
           <span class="icon">📊</span>
           <span class="label">可视化平台</span>
         </a>
@@ -41,7 +41,7 @@
       <!-- 顶部栏 - 仿美团简洁风格 -->
       <header class="top-header">
         <div class="header-left">
-          <div class="breadcrumb">LianLab 技术团队博客</div>
+          <div class="breadcrumb">怜言语记</div>
         </div>
         <div class="header-right">
           <div class="search-box">
@@ -59,7 +59,7 @@
       </main>
 
       <footer class="app-footer">
-        <p>© 2026 LianLab 技术团队. 助力技术成长与沉淀.</p>
+        <p>© 2026 怜言语记. 助力技术成长与沉淀.</p>
       </footer>
     </div>
   </div>

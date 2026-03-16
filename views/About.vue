@@ -72,9 +72,9 @@
             <span class="label">联系与反馈</span>
           </div>
           <div class="contact-links">
-            <a href="https://github.com/TheBoe1/LianLab-content" class="contact-link">GitHub仓库</a>
-            <a href="https://github.com/TheBoe1/terminal/issues" class="contact-link">问题反馈 (Issues)</a>
-            <a href="https://github.com/TheBoe1" class="contact-link">开发者主页</a>
+            <a href="https://github.com/TheBoe1/LianLab-content" class="contact-link" target="_blank" rel="noopener noreferrer">GitHub仓库</a>
+            <a href="https://github.com/TheBoe1/terminal/issues" class="contact-link" target="_blank" rel="noopener noreferrer">问题反馈 (Issues)</a>
+            <a href="https://github.com/TheBoe1" class="contact-link" target="_blank" rel="noopener noreferrer">开发者主页</a>
           </div>
           <p class="copyright">© 2026 怜言语记. Open sourced under MIT License.</p>
         </section>
