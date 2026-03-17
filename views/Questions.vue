@@ -40,7 +40,7 @@ const questions = ref(getQuestions());
 }
 
 .page-title {
-  color: #f8fafc;
+  color: #333;
   font-size: 1.8rem;
   font-weight: 800;
   margin-bottom: 32px;
@@ -54,27 +54,34 @@ const questions = ref(getQuestions());
 }
 
 .glass-panel {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 195, 255, 0.35);
 }
 
 .q-header {
   display: flex;
   gap: 16px;
   margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .q-icon {
-  background: #6366f1;
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  background: rgba(24, 144, 255, 0.12);
+  color: #1890ff;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,8 +90,8 @@ const questions = ref(getQuestions());
 }
 
 .q-title {
-  color: #f1f5f9;
-  font-size: 1.1rem;
+  color: #111827;
+  font-size: 1.15rem;
   font-weight: 700;
   margin: 0;
   line-height: 1.4;
@@ -93,10 +100,11 @@ const questions = ref(getQuestions());
 .a-body {
   display: flex;
   gap: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 20px;
+  background: #f8fafc;
+  padding: 16px 18px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #eef2f7;
+  border-left: 4px solid rgba(16, 185, 129, 0.6);
 }
 
 .a-icon {
@@ -104,10 +112,17 @@ const questions = ref(getQuestions());
   font-weight: 800;
   font-size: 1.1rem;
   flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
 }
 
 .a-text {
-  color: #cbd5e1;
+  color: #374151;
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
@@ -121,6 +136,6 @@ const questions = ref(getQuestions());
 
 .q-date {
   font-size: 0.8rem;
-  color: #64748b;
+  color: #9ca3af;
 }
 </style>

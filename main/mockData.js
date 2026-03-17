@@ -325,26 +325,3 @@ export const getQuestions = () => {
         { id: 2, title: 'MySQL 深度分页性能优化的常用手段？', answer: '使用 ID 范围查询、子查询优化或覆盖索引等方式，避免扫描过多行。', date: '2026-03-10' }
     ];
 };
-
-export const getSystemStats = () => {
-    return { 
-        uptime: '128 Days', 
-        logsCount: 42, 
-        projectsCount: 2, 
-        questionsCount: 2,
-        server: {
-            status: 'Online', // Online, High Load, Error
-            cpu: 45, // %
-            memory: 68, // %
-            disk: 32, // %
-            netIn: 1.2, // MB/s
-            netOut: 0.8, // MB/s
-            history: [30, 45, 42, 50, 48, 45], // for small line chart
-            logs: [
-                { time: '14:20:05', level: 'INFO', msg: 'System monitoring service started' },
-                { time: '14:25:12', level: 'WARN', msg: 'Memory usage exceeded 60%' },
-                { time: '15:01:45', level: 'INFO', msg: 'Backup task completed successfully' }
-            ]
-        }
-    };
-};
