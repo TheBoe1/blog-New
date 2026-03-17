@@ -5,7 +5,7 @@
         <div class="header-left">
           <h2 class="section-title">
             <span class="status-indicator" :class="server.status.toLowerCase().replace(' ', '-')"></span>
-            服务器实时监控1
+            服务器实时监控2
             <span class="status-badge">{{ server.status }}</span>
           </h2>
           <p class="meta-info">运行时间: {{ stats.uptime }} | 记录总数: {{ stats.logsCount }}</p>
