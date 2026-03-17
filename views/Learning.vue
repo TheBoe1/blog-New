@@ -29,6 +29,10 @@
           <div class="node-name">{{ node.name }}</div>
           <div class="node-sub">{{ nodeSubText(node.type) }}</div>
         </div>
+        <div v-if="isRoot" class="node-card deploy-card" @click="router.push('/deploy')">
+          <div class="node-name">系统部署</div>
+          <div class="node-sub">部署指南</div>
+        </div>
         <div v-if="currentNodes.length === 0" class="empty-state">
           暂无子分类
         </div>
@@ -56,6 +60,9 @@
         </div>
         <div v-if="pageData.items.length === 0" class="empty-state">
           暂无文章
+        </div>
+        <div v-if="route.params.slug" class="detail-container">
+          <router-view />
         </div>
       </div>
     </div>
@@ -141,6 +148,7 @@ const currentNodes = computed(() => getLearningChildren(currentNodePath.value));
 const searchQuery = computed(() => String(route.query.q ?? '').trim());
 const isSearching = computed(() => searchQuery.value.length > 0);
 const shouldShowNodes = computed(() => !isSearching.value && currentNodes.value.length > 0);
+const isRoot = computed(() => !route.params.big && !route.params.tech && !route.params.theme && !isSearching.value);
 
 const currentBigName = computed(() => {
   const big = route.params.big;
@@ -304,6 +312,11 @@ const pageData = computed(() => {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
 }
 
+.deploy-card {
+  background: linear-gradient(180deg, #ffffff, #f9fbff);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+}
+
 .node-name {
   font-size: 1.05rem;
   font-weight: 700;
@@ -338,6 +351,10 @@ const pageData = computed(() => {
 .logs-list {
   display: flex;
   flex-direction: column;
+}
+
+.detail-container {
+  margin-top: 16px;
 }
 
 .log-item {

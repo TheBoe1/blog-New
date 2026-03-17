@@ -18,6 +18,10 @@
           <span class="icon">📂</span>
           <span class="label">专题看板</span>
         </router-link>
+        <router-link to="/deploy" class="menu-item">
+          <span class="icon">🚀</span>
+          <span class="label">系统部署</span>
+        </router-link>
         
         <div class="menu-divider">外部项目</div>
         
