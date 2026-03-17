@@ -42,6 +42,8 @@ const CATEGORY_TO_TAXONOMY = {
     DevOps: { bigKey: 'practice', bigName: '工程实践', techKey: 'devops', techName: 'DevOps', themeKey: 'infra', themeName: '基础设施' }
 };
 
+CATEGORY_TO_TAXONOMY.Git = { bigKey: 'practice', bigName: '工程实践', techKey: 'git', techName: 'Git', themeKey: 'repo-clone', themeName: '仓库与克隆' };
+
 const buildLearningRoute = ({ bigKey, techKey, themeKey, slug }) => `/learning/${bigKey}/${techKey}/${themeKey}/${slug}`;
 const buildThemeRoute = ({ bigKey, techKey, themeKey }) => `/learning/${bigKey}/${techKey}/${themeKey}`;
 
@@ -77,6 +79,14 @@ const learningArticles = [
         tags: ['Java', '并发'],
         category: 'Java',
         date: '2026-03-01'
+    },
+    {
+        id: 5,
+        topic: 'Git 本地仓库与远程克隆实战',
+        content: '',
+        tags: ['Git', '远程仓库', '本地仓库', 'SSH'],
+        category: 'Git',
+        date: '2026-03-12'
     }
 ].map((a) => {
     const mapped = CATEGORY_TO_TAXONOMY[a.category] ?? { bigKey: 'practice', bigName: '工程实践', techKey: 'misc', techName: '综合', themeKey: 'general', themeName: '通用' };
@@ -314,6 +324,24 @@ export const getProjectList = () => {
                 '系统：OpenWrt (ImmortalWrt)',
                 '脚本：Shell, Python',
                 '网络：IPv6, QoS'
+            ]
+        },
+        { 
+            id: 3, 
+            name: 'Git 本地仓库与远程克隆实战', 
+            desc: '基于 Git 的本地与远程协作实践，涵盖初始化、克隆、分支合并与 SSH 配置。',
+            stack: 'Git / GitHub / SSH',
+            features: [
+                '初始化与配置本地仓库',
+                '生成并配置 SSH Key',
+                '远程仓库克隆与同步',
+                '分支管理与合并策略',
+                '常见冲突的处理流程'
+            ],
+            techStack: [
+                '工程实践：Git',
+                '平台：GitHub/GitLab',
+                '认证：SSH/HTTPS'
             ]
         }
     ];
