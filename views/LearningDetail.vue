@@ -2,7 +2,7 @@
   <div class="learning-detail">
     <div class="content-wrapper">
       <nav class="detail-nav">
-        <button @click="$router.back()" class="back-btn">
+        <button @click="goBack" class="back-btn">
           <span class="arrow">←</span> 返回列表
         </button>
       </nav>
@@ -10,7 +10,7 @@
       <div v-if="detail" class="section-card detail-container">
         <header class="detail-header">
           <div class="header-meta">
-            <span class="category-pill">{{ detail.category }}</span>
+            <span class="category-pill">{{ detail.bigName }} / {{ detail.techName }} / {{ detail.themeName }}</span>
             <span class="date-text">{{ detail.date }}</span>
           </div>
           <h2 class="detail-title">{{ detail.topic }}</h2>
@@ -52,17 +52,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { getLearningLogs } from '../main/mockData.js';
+import { ref, computed, watchEffect } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getLearningArticleByRoute, getLearningArticleById } from '../main/mockData.js';
 
 const route = useRoute();
+const router = useRouter();
 const detail = ref(null);
 
-onMounted(() => {
-  const logs = getLearningLogs();
-  detail.value = logs.find(item => item.id === parseInt(route.params.id));
+const routePath = computed(() => {
+  const id = route.params.id;
+  const big = route.params.big;
+  const tech = route.params.tech;
+  const theme = route.params.theme;
+  const slug = route.params.slug;
+  if (slug && big && tech && theme) return `/learning/${big}/${tech}/${theme}/${slug}`;
+  if (id) return null;
+  return null;
 });
+
+watchEffect(() => {
+  if (routePath.value) {
+    detail.value = getLearningArticleByRoute(routePath.value);
+    return;
+  }
+  const id = route.params.id;
+  if (id) {
+    detail.value = getLearningArticleById(id);
+    return;
+  }
+  detail.value = null;
+});
+
+const goBack = () => {
+  const target = detail.value?.themeRoute;
+  if (target) {
+    router.push(target);
+    return;
+  }
+  router.push('/learning');
+};
 </script>
 
 <style scoped>

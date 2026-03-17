@@ -1,66 +1,77 @@
 <template>
   <div class="page-learning">
     <div class="content-wrapper">
-      <!-- 只有在列表页才显示头部和分类过滤器 -->
-      <template v-if="!$route.params.id">
-        <div class="learning-header">
-          <h2 class="page-title">最近更新</h2>
-          <div class="category-filters">
-            <span 
-              v-for="cat in categories" 
-              :key="cat"
-              class="filter-item" 
-              :class="{ active: currentCategory === cat }"
-              @click="currentCategory = cat"
-            >
-              {{ categoryDisplayNames[cat] }}
-            </span>
-          </div>
+      <div class="learning-header">
+        <h2 class="page-title">文章分类</h2>
+        <div v-if="isSearching" class="search-hint">
+          搜索：{{ searchQuery }}
+          <span class="clear-search" @click="router.push({ path: '/learning' })">清除</span>
         </div>
-        
-        <div class="logs-list">
-          <div class="log-item" v-for="log in filteredLogs" :key="log.id" @click="$router.push(`/learning/${log.id}`)">
-            <div class="log-content">
-              <h3 class="log-topic">{{ log.topic }}</h3>
-              <p class="log-summary">这是一段关于 {{ log.topic }} 的技术实践总结，涵盖了核心原理解析以及在生产环境中的应用案例分享...</p>
-              <div class="log-meta">
-              <span class="category-tag">{{ categoryDisplayNames[log.category] }}</span>
+        <div class="breadcrumb">
+          <span class="crumb" @click="router.push(rootPath)">全部</span>
+          <template v-if="route.params.big">
+            <span class="sep">/</span>
+            <span class="crumb" @click="router.push(`${rootPath}/${route.params.big}`)">{{ currentBigName }}</span>
+          </template>
+          <template v-if="route.params.tech">
+            <span class="sep">/</span>
+            <span class="crumb" @click="router.push(`${rootPath}/${route.params.big}/${route.params.tech}`)">{{ currentTechName }}</span>
+          </template>
+          <template v-if="route.params.theme">
+            <span class="sep">/</span>
+            <span class="crumb active">{{ currentThemeName }}</span>
+          </template>
+        </div>
+      </div>
+
+      <div v-if="shouldShowNodes" class="node-grid">
+        <div v-for="node in currentNodes" :key="node.path" class="node-card" @click="router.push(node.path)">
+          <div class="node-name">{{ node.name }}</div>
+          <div class="node-sub">{{ nodeSubText(node.type) }}</div>
+        </div>
+        <div v-if="currentNodes.length === 0" class="empty-state">
+          暂无子分类
+        </div>
+      </div>
+
+      <div v-else class="logs-list">
+        <div class="log-item" v-for="log in pageData.items" :key="log.id" @click="router.push(log.route)">
+          <div class="log-content">
+            <h3 class="log-topic">{{ log.topic }}</h3>
+            <div class="log-summary">
+              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}`)">{{ log.bigName }}</span>
+              <span class="sep">/</span>
+              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}/${log.techKey}`)">{{ log.techName }}</span>
+              <span class="sep">/</span>
+              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}/${log.techKey}/${log.themeKey}`)">{{ log.themeName }}</span>
+            </div>
+            <div class="log-meta">
               <span class="log-date">{{ log.date }}</span>
               <span class="read-count">👁️ {{ getViewCount(log.id) }} 阅读</span>
             </div>
-            </div>
-            <div class="log-image" v-if="log.image">
-              <img :src="log.image" alt="topic cover" />
-            </div>
           </div>
-          <div v-if="filteredLogs.length === 0" class="empty-state">
-            暂无该分类下的文章
+          <div class="log-image" v-if="log.image">
+            <img :src="log.image" alt="topic cover" />
           </div>
         </div>
-      </template>
-      
-      <!-- 进入子路由（文章详情）时，直接显示内容容器 -->
-      <div v-else class="detail-container">
-        <router-view />
+        <div v-if="pageData.items.length === 0" class="empty-state">
+          暂无文章
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { getLearningLogs } from '../main/mockData.js';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getLearningLogs, getLearningChildren, getLearningRootPath, getLearningArticlesByNodePath, searchLearningArticles } from '../main/mockData.js';
+
+const route = useRoute();
+const router = useRouter();
 
 const allLogs = ref(getLearningLogs());
-const categories = ['全部', 'Cache', 'Middleware', 'Database', 'Java'];
-const categoryDisplayNames = {
-  '全部': '全部',
-  'Cache': '前端技术',
-  'Middleware': '后端架构',
-  'Database': '算法研究',
-  'Java': '工程实践'
-};
-const currentCategory = ref('全部');
+const rootPath = getLearningRootPath();
 
 // 真正持久化的阅读量记录逻辑
 const STORAGE_KEY = 'blog_view_counts_data_v2';
@@ -91,8 +102,6 @@ const getViewCount = (id) => {
   return count > 1000 ? (count / 1000).toFixed(1) + 'k' : count;
 };
 
-// 模拟阅读量真实增长
-import { onMounted, onUnmounted } from 'vue';
 let timer;
 onMounted(() => {
   timer = setInterval(() => {
@@ -118,11 +127,81 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
-const filteredLogs = computed(() => {
-  if (currentCategory.value === '全部') {
-    return allLogs.value;
+const currentNodePath = computed(() => {
+  const big = route.params.big;
+  const tech = route.params.tech;
+  const theme = route.params.theme;
+  if (big && tech && theme) return `${rootPath}/${big}/${tech}/${theme}`;
+  if (big && tech) return `${rootPath}/${big}/${tech}`;
+  if (big) return `${rootPath}/${big}`;
+  return rootPath;
+});
+
+const currentNodes = computed(() => getLearningChildren(currentNodePath.value));
+const searchQuery = computed(() => String(route.query.q ?? '').trim());
+const isSearching = computed(() => searchQuery.value.length > 0);
+const shouldShowNodes = computed(() => !isSearching.value && currentNodes.value.length > 0);
+
+const currentBigName = computed(() => {
+  const big = route.params.big;
+  if (!big) return '';
+  const found = getLearningChildren(rootPath).find(x => x.key === big);
+  return found?.name ?? String(big);
+});
+
+const currentTechName = computed(() => {
+  const big = route.params.big;
+  const tech = route.params.tech;
+  if (!big || !tech) return '';
+  const found = getLearningChildren(`${rootPath}/${big}`).find(x => x.key === tech);
+  return found?.name ?? String(tech);
+});
+
+const currentThemeName = computed(() => {
+  const big = route.params.big;
+  const tech = route.params.tech;
+  const theme = route.params.theme;
+  if (!big || !tech || !theme) return '';
+  const found = getLearningChildren(`${rootPath}/${big}/${tech}`).find(x => x.key === theme);
+  return found?.name ?? String(theme);
+});
+
+const nodeSubText = (type) => {
+  if (type === 'big') return '进入技术栈';
+  if (type === 'tech') return '进入主题';
+  if (type === 'theme') return '查看文章';
+  return '';
+};
+
+const page = ref(1);
+const pageSize = ref(10);
+
+watch(currentNodePath, () => {
+  page.value = 1;
+});
+
+watch(searchQuery, () => {
+  page.value = 1;
+});
+
+const searchResults = computed(() => searchLearningArticles(searchQuery.value, 50));
+
+const pageData = computed(() => {
+  if (isSearching.value) {
+    const list = searchResults.value;
+    const p = Math.max(1, Number(page.value) || 1);
+    const size = Math.max(1, Number(pageSize.value) || 10);
+    const start = (p - 1) * size;
+    const end = start + size;
+    return {
+      items: list.slice(start, end),
+      total: list.length,
+      page: p,
+      pageSize: size,
+      totalPages: Math.ceil(list.length / size)
+    };
   }
-  return allLogs.value.filter(log => log.category === currentCategory.value);
+  return getLearningArticlesByNodePath(currentNodePath.value, page.value, pageSize.value);
 });
 </script>
 
@@ -157,9 +236,84 @@ const filteredLogs = computed(() => {
   margin-bottom: 15px;
 }
 
-.category-filters {
+.breadcrumb {
   display: flex;
-  gap: 20px;
+  gap: 8px;
+  align-items: center;
+  color: #71777c;
+  font-size: 0.95rem;
+}
+
+.search-hint {
+  margin-bottom: 10px;
+  color: #71777c;
+  font-size: 0.9rem;
+}
+
+.clear-search {
+  margin-left: 10px;
+  color: #00c3ff;
+  cursor: pointer;
+}
+
+.clear-search:hover {
+  text-decoration: underline;
+}
+
+.crumb {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.crumb:hover {
+  background: rgba(0, 195, 255, 0.1);
+  color: #00c3ff;
+}
+
+.crumb.active {
+  cursor: default;
+  background: rgba(0, 195, 255, 0.1);
+  color: #00c3ff;
+  font-weight: 600;
+}
+
+.sep {
+  color: #c0c4cc;
+}
+
+.node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.node-card {
+  background: #fff;
+  border: 1px solid #f1f1f1;
+  border-radius: 8px;
+  padding: 18px;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.node-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 195, 255, 0.5);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+}
+
+.node-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.node-sub {
+  font-size: 0.85rem;
+  color: #909090;
 }
 
 .filter-item {
@@ -212,14 +366,24 @@ const filteredLogs = computed(() => {
 }
 
 .log-summary {
-  color: #909090;
-  font-size: 0.9rem;
-  line-height: 1.6;
   margin-bottom: 15px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #71777c;
+  font-size: 0.9rem;
+}
+
+.path-link {
+  color: #00c3ff;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.path-link:hover {
+  background: rgba(0, 195, 255, 0.1);
 }
 
 .log-meta {

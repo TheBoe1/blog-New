@@ -46,7 +46,27 @@
         <div class="header-right">
           <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" placeholder="搜索技术文章..." />
+            <input
+              v-model="q"
+              type="text"
+              placeholder="搜索技术文章..."
+              @focus="openSuggest"
+              @blur="closeSuggest"
+              @keydown.enter="goSearch"
+              @keydown.esc="hideSuggest"
+            />
+            <div v-if="showSuggest && suggestions.length" class="suggest-panel">
+              <div
+                v-for="item in suggestions"
+                :key="item.route"
+                class="suggest-item"
+                @mousedown="goDetail(item)"
+              >
+                <div class="suggest-title">{{ item.title }}</div>
+                <div class="suggest-meta">{{ item.bigName }} / {{ item.techName }} / {{ item.themeName }}</div>
+              </div>
+              <div class="suggest-footer" @mousedown="goSearch">查看全部结果</div>
+            </div>
           </div>
         </div>
       </header>
@@ -64,6 +84,60 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { searchLearningArticles } from '../main/mockData.js';
+
+const router = useRouter();
+const q = ref('');
+const showSuggest = ref(false);
+let blurTimer = null;
+
+const suggestions = computed(() => {
+  const keyword = q.value.trim();
+  if (!keyword) return [];
+  return searchLearningArticles(keyword, 8);
+});
+
+watch(q, (val) => {
+  if (val && val.trim()) {
+    showSuggest.value = true;
+  } else {
+    showSuggest.value = false;
+  }
+});
+
+const hideSuggest = () => {
+  showSuggest.value = false;
+};
+
+const openSuggest = () => {
+  if (blurTimer) clearTimeout(blurTimer);
+  if (q.value.trim() && suggestions.value.length) showSuggest.value = true;
+};
+
+const closeSuggest = () => {
+  if (blurTimer) clearTimeout(blurTimer);
+  blurTimer = setTimeout(() => {
+    showSuggest.value = false;
+  }, 120);
+};
+
+const goDetail = (item) => {
+  q.value = '';
+  showSuggest.value = false;
+  router.push(item.route);
+};
+
+const goSearch = () => {
+  const keyword = q.value.trim();
+  if (!keyword) return;
+  showSuggest.value = false;
+  router.push({ path: '/learning', query: { q: keyword } });
+};
+</script>
 
 <style scoped>
 /* 整体布局 */
@@ -197,6 +271,7 @@
   padding: 6px 16px;
   border-radius: 20px;
   border: 1px solid #eee;
+  position: relative;
 }
 
 .search-box input {
@@ -206,6 +281,55 @@
   margin-left: 8px;
   width: 200px;
   font-size: 0.9rem;
+}
+
+.suggest-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #f1f1f1;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.suggest-item {
+  padding: 12px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f6f6f6;
+}
+
+.suggest-item:hover {
+  background: #fafafa;
+}
+
+.suggest-title {
+  color: #333;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.suggest-meta {
+  color: #909090;
+  font-size: 0.8rem;
+}
+
+.suggest-footer {
+  padding: 10px 14px;
+  text-align: center;
+  color: #00c3ff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.suggest-footer:hover {
+  background: rgba(0, 195, 255, 0.06);
 }
 
 /* 内容区容器布局 */

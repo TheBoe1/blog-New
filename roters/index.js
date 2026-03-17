@@ -2,14 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
   { path: '/', name: 'Home', component: () => import('../views/Home.vue') },
-  { 
-    path: '/learning', 
-    name: 'Learning', 
-    component: () => import('../views/Learning.vue'),
-    children: [
-      { path: ':id', name: 'LearningDetail', component: () => import('../views/LearningDetail.vue') }
-    ]
-  },
+  { path: '/learning', name: 'Learning', component: () => import('../views/Learning.vue') },
+  { path: '/learning/:big', name: 'LearningBig', component: () => import('../views/Learning.vue') },
+  { path: '/learning/:big/:tech', name: 'LearningTech', component: () => import('../views/Learning.vue') },
+  { path: '/learning/:big/:tech/:theme', name: 'LearningTheme', component: () => import('../views/Learning.vue') },
+  { path: '/learning/:big/:tech/:theme/:slug', name: 'LearningArticle', component: () => import('../views/LearningDetail.vue') },
+  { path: '/learning/detail/:id', name: 'LearningDetailById', component: () => import('../views/LearningDetail.vue') },
   { 
     path: '/projects', 
     name: 'Projects', 
