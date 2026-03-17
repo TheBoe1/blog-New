@@ -350,6 +350,12 @@ export const getProjectList = () => {
 export const getQuestions = () => {
     return [
         { id: 1, title: '如何解决 Redis 分布式锁的过期续期问题？', answer: '可以使用 Redisson 提供的看门狗机制，或者通过 Lua 脚本实现定时续期。', date: '2026-03-11' },
-        { id: 2, title: 'MySQL 深度分页性能优化的常用手段？', answer: '使用 ID 范围查询、子查询优化或覆盖索引等方式，避免扫描过多行。', date: '2026-03-10' }
+        { id: 2, title: 'MySQL 深度分页性能优化的常用手段？', answer: '使用 ID 范围查询、子查询优化或覆盖索引等方式，避免扫描过多行。', date: '2026-03-10' },
+        { 
+            id: 3, 
+            title: 'Webhook 不生效：误把 Website 当 Webhook 如何排查？', 
+            answer: '常见误区：1）把 http://59.110.41.235:3000/webhook 填在 GitHub 仓库的 Website 字段。Website 仅用于展示项目信息，不会触发 webhook；2）用浏览器/GET 测试返回 “Cannot GET /webhook”。GitHub 发送的是 POST 请求并携带 JSON payload。正确做法：到 Settings → Webhooks → Add webhook 配置，将 Payload URL 填写为 http://59.110.41.235:3000/webhook，Content-Type 选择 application/json，事件选择 push。保存后，从本地 push 到 GitHub，服务器才能收到 POST 并触发部署脚本（例如 /srv/deploy1.sh prod）。', 
+            date: '2026-03-17' 
+        }
     ];
 };
