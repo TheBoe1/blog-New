@@ -54,7 +54,7 @@
           <router-link class="section-link" to="/learning">进入列表</router-link>
         </div>
         <div class="latest-list">
-          <div v-for="a in latestArticles" :key="a.id" class="latest-item" @click="$router.push(a.route)">
+          <div v-for="a in latestArticles" :key="a.id" class="latest-item" @click="openArticle(a)">
             <div class="latest-main">
               <div class="latest-title">{{ a.topic }}</div>
               <div class="latest-meta">{{ a.bigName }} / {{ a.techName }} / {{ a.themeName }}</div>
@@ -68,9 +68,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { getLearningChildren, getLearningArticlesByNodePath } from '../main/mockData.js';
 
+const router = useRouter();
+
+onMounted(() => {
+  document.title = '怜言语记';
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
 const rootPath = '/learning';
 const totalArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 1).total);
 
@@ -91,6 +101,11 @@ const totalTechStacks = computed(() => {
 });
 
 const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 6).items);
+
+const openArticle = (article) => {
+  const href = router.resolve(article.detailRoute || article.route).href;
+  window.open(href, '_blank', 'noopener,noreferrer');
+};
 </script>
 
 <style scoped>

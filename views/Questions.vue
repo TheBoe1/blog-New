@@ -22,10 +22,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { getQuestions } from '../main/mockData.js';
 
 const questions = ref(getQuestions());
+
+onMounted(() => {
+  document.title = '常见问题';
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
 </script>
 
 <style scoped>

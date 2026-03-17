@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getProjectList } from '../main/mockData.js';
 
@@ -63,6 +63,13 @@ const project = ref(null);
 onMounted(() => {
   const projects = getProjectList();
   project.value = projects.find(item => item.id === parseInt(route.params.id));
+  if (project.value) {
+    document.title = project.value.name;
+  }
+});
+
+onUnmounted(() => {
+  document.title = '专题看板';
 });
 </script>
 

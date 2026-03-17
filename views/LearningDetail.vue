@@ -11,33 +11,19 @@
         <header class="detail-header">
           <div class="header-meta">
             <span class="category-pill">{{ detail.bigName }} / {{ detail.techName }} / {{ detail.themeName }}</span>
-            <span class="date-text">{{ detail.date }}</span>
+            <span class="date-text">发布于 {{ detail.date }}</span>
+            <span v-if="Array.isArray(detail.tags) && detail.tags.length" class="tag-row">
+              <span class="tag" v-for="t in detail.tags" :key="t">{{ t }}</span>
+            </span>
           </div>
           <h2 class="detail-title">{{ detail.topic }}</h2>
         </header>
 
         <main class="detail-body">
           <section class="content-section">
-            <h3 class="section-title">学习摘要</h3>
-            <p class="summary-text">
-              这里是关于 <strong>{{ detail.topic }}</strong> 的深度学习笔记。在这一章节中，我们探讨了核心原理、实际应用场景以及在生产环境中的最佳实践。
-            </p>
-          </section>
-
-          <section class="content-section">
-            <h3 class="section-title">核心要点</h3>
-            <ul class="points-list">
-              <li>深入理解底层数据结构与算法实现</li>
-              <li>掌握在分布式系统中的应用与一致性保证</li>
-              <li>学习如何进行性能调优与故障排查</li>
-            </ul>
-          </section>
-
-          <section class="content-section">
-            <h3 class="section-title">详细内容</h3>
-            <div class="placeholder-content">
-        
-              <p class="empty-hint">（子路由详情内容正在持续更新中...）</p>
+            <div v-if="detail?.content" class="article-content">{{ detail.content }}</div>
+            <div v-else class="placeholder-content">
+              <p class="empty-hint">（详情内容正在持续更新中...）</p>
             </div>
           </section>
         </main>
@@ -52,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getLearningArticleByRoute, getLearningArticleById } from '../main/mockData.js';
 
@@ -60,14 +46,35 @@ const route = useRoute();
 const router = useRouter();
 const detail = ref(null);
 
+onMounted(() => {
+  if (detail.value) {
+    document.title = detail.value.topic;
+  }
+});
+
+watchEffect(() => {
+  if (detail.value) {
+    document.title = detail.value.topic;
+  }
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
+
 const routePath = computed(() => {
   const id = route.params.id;
   const big = route.params.big;
   const tech = route.params.tech;
   const theme = route.params.theme;
   const slug = route.params.slug;
-  if (slug && big && tech && theme) return `/learning/${big}/${tech}/${theme}/${slug}`;
-  if (id) return null;
+  
+  if (slug && big && tech && theme) {
+    return `/learning/${big}/${tech}/${theme}/${slug}`;
+  }
+  if (id) {
+    return null;
+  }
   return null;
 });
 
@@ -85,12 +92,13 @@ watchEffect(() => {
 });
 
 const goBack = () => {
-  const target = detail.value?.themeRoute;
-  if (target) {
-    router.push(target);
+  if (window.history.length > 1) {
+    router.back();
     return;
   }
-  router.push('/learning');
+  const target = detail.value?.themeRoute;
+  if (target) router.push(target);
+  else router.push('/learning');
 };
 </script>
 
@@ -101,7 +109,7 @@ const goBack = () => {
 }
 
 .content-wrapper {
-  max-width: 800px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -134,22 +142,23 @@ const goBack = () => {
 .section-card {
   background: #fff;
   border-radius: 8px;
-  padding: 40px;
+  padding: 28px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f1f1;
 }
 
 .detail-header {
-  margin-bottom: 40px;
+  margin-bottom: 18px;
   border-bottom: 1px solid #f1f1f1;
-  padding-bottom: 32px;
+  padding-bottom: 16px;
 }
 
 .header-meta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .category-pill {
@@ -167,66 +176,34 @@ const goBack = () => {
   font-size: 0.85rem;
 }
 
+.tag-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 0.78rem;
+  color: #555;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .detail-title {
-  color: #333;
-  font-size: 1.8rem;
-  font-weight: 700;
+  color: #111827;
+  font-size: 2rem;
+  font-weight: 900;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .detail-body {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-}
-
-.section-title {
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-title::before {
-  content: "";
-  width: 4px;
-  height: 18px;
-  background: #1890ff;
-  border-radius: 2px;
-}
-
-.summary-text {
-  color: #666;
-  line-height: 1.8;
-  font-size: 1rem;
-}
-
-.points-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.points-list li {
-  color: #666;
-  padding-left: 24px;
-  position: relative;
-  font-size: 0.95rem;
-}
-
-.points-list li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: #52c41a;
-  font-weight: 800;
+  gap: 18px;
 }
 
 .placeholder-content {
@@ -234,6 +211,19 @@ const goBack = () => {
   padding: 24px;
   border-radius: 8px;
   border: 1px dashed #eee;
+}
+
+.article-content {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.95;
+  font-size: 1rem;
+  color: #111827;
+  margin: 0;
 }
 
 .empty-hint {

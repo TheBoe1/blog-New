@@ -137,6 +137,11 @@ const goSearch = () => {
   showSuggest.value = false;
   router.push({ path: '/learning', query: { q: keyword } });
 };
+
+const openInNewTab = (path) => {
+  const href = router.resolve(path).href;
+  window.open(href, '_blank', 'noopener,noreferrer');
+};
 </script>
 
 <style scoped>

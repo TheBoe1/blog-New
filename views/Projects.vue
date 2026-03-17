@@ -14,7 +14,6 @@
               <h3 class="project-name">{{ project.name }}</h3>
               <span class="project-status">进行中</span>
             </div>
-            <p class="project-desc">{{ project.desc }}</p>
             
             <div class="project-section">
               <h4 class="section-label">核心要点</h4>
@@ -46,10 +45,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { getProjectList } from '../main/mockData.js';
 
+const route = useRoute();
 const projects = ref(getProjectList());
+
+onMounted(() => {
+  if (route.params.id) {
+    const project = projects.value.find(p => p.id === parseInt(route.params.id));
+    if (project) {
+      document.title = project.name;
+    }
+  } else {
+    document.title = '专题看板';
+  }
+});
+
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    const project = projects.value.find(p => p.id === parseInt(newId));
+    if (project) {
+      document.title = project.name;
+    }
+  } else {
+    document.title = '专题看板';
+  }
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
 </script>
 
 <style scoped>
@@ -128,18 +155,6 @@ const projects = ref(getProjectList());
   padding: 2px 8px;
   border-radius: 4px;
   border: 1px solid #91d5ff;
-}
-
-.project-desc {
-  color: #666;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  height: 45px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .project-section {

@@ -2,44 +2,24 @@
   <div class="page-learning">
     <div class="content-wrapper">
       <div class="learning-header">
-        <h2 class="page-title">文章分类</h2>
+        <h2 class="page-title">{{ pageTitle }}</h2>
         <div v-if="isSearching" class="search-hint">
           搜索：{{ searchQuery }}
           <span class="clear-search" @click="router.push({ path: '/learning' })">清除</span>
         </div>
-        <div class="breadcrumb">
-          <span class="crumb" @click="router.push(rootPath)">全部</span>
-          <template v-if="route.params.big">
-            <span class="sep">/</span>
-            <span class="crumb" @click="router.push(`${rootPath}/${route.params.big}`)">{{ currentBigName }}</span>
-          </template>
-          <template v-if="route.params.tech">
-            <span class="sep">/</span>
-            <span class="crumb" @click="router.push(`${rootPath}/${route.params.big}/${route.params.tech}`)">{{ currentTechName }}</span>
-          </template>
-          <template v-if="route.params.theme">
-            <span class="sep">/</span>
-            <span class="crumb active">{{ currentThemeName }}</span>
-          </template>
-        </div>
       </div>
 
-      <div v-if="shouldShowNodes" class="node-grid">
+      <div v-if="!isSearching && (currentNodes.length > 0 || isRoot)" class="node-grid">
         <div v-for="node in currentNodes" :key="node.path" class="node-card" @click="router.push(node.path)">
-          <div class="node-name">{{ node.name }}</div>
-          <div class="node-sub">{{ nodeSubText(node.type) }}</div>
+          {{ node.name }}
         </div>
         <div v-if="isRoot" class="node-card deploy-card" @click="router.push('/deploy')">
-          <div class="node-name">系统部署</div>
-          <div class="node-sub">部署指南</div>
-        </div>
-        <div v-if="currentNodes.length === 0" class="empty-state">
-          暂无子分类
+          系统部署
         </div>
       </div>
 
-      <div v-else class="logs-list">
-        <div class="log-item" v-for="log in pageData.items" :key="log.id" @click="router.push(log.route)">
+      <div v-if="!hasArticleDetail" class="logs-list">
+        <div class="log-item" v-for="log in pageData.items" :key="log.id" @click="openArticle(log)">
           <div class="log-content">
             <h3 class="log-topic">{{ log.topic }}</h3>
             <div class="log-summary">
@@ -61,13 +41,9 @@
         <div v-if="pageData.items.length === 0" class="empty-state">
           暂无文章
         </div>
-        <div v-if="route.params.slug" class="drawer-mask" @click="closeDetail"></div>
-        <div v-if="route.params.slug" class="detail-drawer">
-          <button class="drawer-close" @click="closeDetail">×</button>
-          <div class="drawer-content">
-            <router-view />
-          </div>
-        </div>
+      </div>
+      <div v-else class="article-detail-container">
+        <router-view />
       </div>
     </div>
   </div>
@@ -151,8 +127,21 @@ const currentNodePath = computed(() => {
 const currentNodes = computed(() => getLearningChildren(currentNodePath.value));
 const searchQuery = computed(() => String(route.query.q ?? '').trim());
 const isSearching = computed(() => searchQuery.value.length > 0);
-const shouldShowNodes = computed(() => !isSearching.value && currentNodes.value.length > 0);
 const isRoot = computed(() => !route.params.big && !route.params.tech && !route.params.theme && !isSearching.value);
+
+const hasArticleDetail = computed(() => {
+  const pathSegments = route.path.split('/').filter(Boolean);
+  
+  if (route.params.id) {
+    return true;
+  }
+  
+  if (route.params.slug && route.params.big && route.params.tech && route.params.theme) {
+    return true;
+  }
+  
+  return false;
+});
 
 const currentBigName = computed(() => {
   const big = route.params.big;
@@ -178,12 +167,21 @@ const currentThemeName = computed(() => {
   return found?.name ?? String(theme);
 });
 
-const nodeSubText = (type) => {
-  if (type === 'big') return '进入技术栈';
-  if (type === 'tech') return '进入主题';
-  if (type === 'theme') return '查看文章';
-  return '';
-};
+const pageTitle = computed(() => {
+  if (isSearching.value) {
+    return `搜索：${searchQuery.value}`;
+  }
+  if (route.params.theme) {
+    return currentThemeName.value;
+  }
+  if (route.params.tech) {
+    return currentTechName.value;
+  }
+  if (route.params.big) {
+    return currentBigName.value;
+  }
+  return '文章分类';
+});
 
 const page = ref(1);
 const pageSize = ref(10);
@@ -194,6 +192,14 @@ watch(currentNodePath, () => {
 
 watch(searchQuery, () => {
   page.value = 1;
+});
+
+watch(pageTitle, (newTitle) => {
+  document.title = newTitle;
+}, { immediate: true });
+
+onUnmounted(() => {
+  document.title = '文章分类';
 });
 
 const searchResults = computed(() => searchLearningArticles(searchQuery.value, 50));
@@ -215,15 +221,10 @@ const pageData = computed(() => {
   }
   return getLearningArticlesByNodePath(currentNodePath.value, page.value, pageSize.value);
 });
-const closeDetail = () => {
-  const big = route.params.big;
-  const tech = route.params.tech;
-  const theme = route.params.theme;
-  if (big && tech && theme) {
-    router.push(`${rootPath}/${big}/${tech}/${theme}`);
-    return;
-  }
-  router.push(rootPath);
+
+const openArticle = (log) => {
+  const href = router.resolve(log.detailRoute || log.route).href;
+  window.open(href, '_blank', 'noopener,noreferrer');
 };
 </script>
 
@@ -307,28 +308,32 @@ const closeDetail = () => {
 
 .node-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0;
+  border-top: 1px solid #f1f1f1;
+  border-left: 1px solid #f1f1f1;
 }
 
 .node-card {
-  background: #fff;
-  border: 1px solid #f1f1f1;
-  border-radius: 8px;
-  padding: 18px;
+  background: transparent;
+  border-right: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f1f1;
+  border-radius: 0;
+  padding: 16px;
   cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
 }
 
 .node-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(0, 195, 255, 0.5);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  background: rgba(0, 195, 255, 0.08);
+  color: #00c3ff;
 }
 
 .deploy-card {
-  background: linear-gradient(180deg, #ffffff, #f9fbff);
-  border: 1px solid rgba(24, 144, 255, 0.2);
+  background: transparent;
+  border-right: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f1f1;
 }
 
 .node-name {
@@ -367,56 +372,10 @@ const closeDetail = () => {
   flex-direction: column;
 }
 
-.drawer-mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.2);
-  z-index: 90;
-}
-
-.detail-drawer {
-  position: fixed;
-  top: 70px;
-  right: 20px;
-  bottom: 20px;
-  width: 520px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #f1f1f1;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  z-index: 99;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.drawer-close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #fff;
-  color: #666;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-}
-
-.drawer-close:hover {
-  background: #f8f8f8;
-}
-
-.drawer-content {
-  padding: 16px;
-  overflow: auto;
-  height: 100%;
-}
-
 .log-item {
   background: #fff;
   padding: 20px;
+  border-top: 1px solid #f1f1f1;
   border-bottom: 1px solid #f1f1f1;
   display: flex;
   gap: 20px;
@@ -485,5 +444,9 @@ const closeDetail = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.article-detail-container {
+  padding: 20px 0;
 }
 </style>

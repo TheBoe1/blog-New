@@ -83,7 +83,15 @@
 </template>
 
 <script setup>
-// Logic-free for now, purely informational
+import { onMounted, onUnmounted } from 'vue';
+
+onMounted(() => {
+  document.title = '关于本系统';
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
 </script>
 
 <style scoped>

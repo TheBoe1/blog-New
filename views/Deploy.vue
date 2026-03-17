@@ -31,6 +31,15 @@
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from 'vue';
+
+onMounted(() => {
+  document.title = '系统部署';
+});
+
+onUnmounted(() => {
+  document.title = '文章分类';
+});
 </script>
 
 <style scoped>
