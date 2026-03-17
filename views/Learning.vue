@@ -61,8 +61,12 @@
         <div v-if="pageData.items.length === 0" class="empty-state">
           暂无文章
         </div>
-        <div v-if="route.params.slug" class="detail-container">
-          <router-view />
+        <div v-if="route.params.slug" class="drawer-mask" @click="closeDetail"></div>
+        <div v-if="route.params.slug" class="detail-drawer">
+          <button class="drawer-close" @click="closeDetail">×</button>
+          <div class="drawer-content">
+            <router-view />
+          </div>
         </div>
       </div>
     </div>
@@ -211,6 +215,16 @@ const pageData = computed(() => {
   }
   return getLearningArticlesByNodePath(currentNodePath.value, page.value, pageSize.value);
 });
+const closeDetail = () => {
+  const big = route.params.big;
+  const tech = route.params.tech;
+  const theme = route.params.theme;
+  if (big && tech && theme) {
+    router.push(`${rootPath}/${big}/${tech}/${theme}`);
+    return;
+  }
+  router.push(rootPath);
+};
 </script>
 
 <style scoped>
@@ -353,8 +367,51 @@ const pageData = computed(() => {
   flex-direction: column;
 }
 
-.detail-container {
-  margin-top: 16px;
+.drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 90;
+}
+
+.detail-drawer {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  bottom: 20px;
+  width: 520px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drawer-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #fff;
+  color: #666;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.drawer-close:hover {
+  background: #f8f8f8;
+}
+
+.drawer-content {
+  padding: 16px;
+  overflow: auto;
+  height: 100%;
 }
 
 .log-item {
