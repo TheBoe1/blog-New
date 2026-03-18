@@ -17,8 +17,21 @@
         </header>
 
         <main class="detail-body">
+          <section v-if="project.problem" class="detail-section">
+            <h3 class="section-title">解决了什么问题</h3>
+            <div class="content-box">
+              <p class="content-text">{{ project.problem }}</p>
+            </div>
+          </section>
+
+          <section v-if="project.architecture" class="detail-section">
+            <h3 class="section-title">架构/思路</h3>
+            <div class="content-box">
+              <p class="content-text">{{ project.architecture }}</p>
+            </div>
+          </section>
+
           <div class="detail-grid">
-            <!-- Features Section -->
             <section class="detail-section">
               <h3 class="section-title">核心功能特点</h3>
               <div class="features-box">
@@ -29,7 +42,6 @@
               </div>
             </section>
 
-            <!-- Tech Stack Section -->
             <section class="detail-section">
               <h3 class="section-title">技术实现方案</h3>
               <div class="tech-grid">
@@ -39,6 +51,16 @@
               </div>
             </section>
           </div>
+
+          <section v-if="project.decisions && project.decisions.length" class="detail-section">
+            <h3 class="section-title">为什么这样做</h3>
+            <div class="decisions-box">
+              <div v-for="(decision, i) in project.decisions" :key="i" class="decision-item">
+                <div class="decision-number">{{ i + 1 }}</div>
+                <p class="decision-text">{{ decision }}</p>
+              </div>
+            </div>
+          </section>
         </main>
 
         <footer class="detail-footer">
@@ -109,7 +131,6 @@ onUnmounted(() => {
   background: rgba(24, 144, 255, 0.05);
 }
 
-/* 适配美团/若依背景色的卡片容器 */
 .section-card {
   background: #fff;
   border-radius: 8px;
@@ -151,6 +172,20 @@ onUnmounted(() => {
   gap: 40px;
 }
 
+.content-box {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
+}
+
+.content-text {
+  margin: 0;
+  color: #374151;
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -181,7 +216,6 @@ onUnmounted(() => {
   border-radius: 2px;
 }
 
-/* Features */
 .features-box {
   display: flex;
   flex-direction: column;
@@ -205,7 +239,6 @@ onUnmounted(() => {
   font-weight: bold;
 }
 
-/* Tech Stack */
 .tech-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -222,7 +255,39 @@ onUnmounted(() => {
   font-size: 0.9rem;
 }
 
-/* Footer Actions */
+.decisions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.decision-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.decision-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1890ff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.decision-text {
+  margin: 0;
+  color: #374151;
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
 .footer-divider {
   height: 1px;
   background: #f1f1f1;

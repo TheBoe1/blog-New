@@ -51,6 +51,15 @@ CATEGORY_TO_TAXONOMY.GitRemote = { bigKey: 'practice', bigName: '工程实践', 
 CATEGORY_TO_TAXONOMY.DeployFrontend = { bigKey: 'deploy', bigName: '系统部署', techKey: 'frontend', techName: '前端部署', themeKey: 'vite', themeName: 'Vite 构建' };
 CATEGORY_TO_TAXONOMY.DeployBackend = { bigKey: 'deploy', bigName: '系统部署', techKey: 'backend', techName: '后端联动', themeKey: 'nginx', themeName: 'Nginx 配置' };
 
+CATEGORY_TO_TAXONOMY.ServerPrepare = { bigKey: 'deploy', bigName: '系统部署', techKey: 'server', techName: '服务器准备', themeKey: 'choose', themeName: '云服务器选择' };
+CATEGORY_TO_TAXONOMY.ServerConnect = { bigKey: 'deploy', bigName: '系统部署', techKey: 'server', techName: '服务器准备', themeKey: 'connect', themeName: 'SSH 远程连接' };
+CATEGORY_TO_TAXONOMY.ServerInit = { bigKey: 'deploy', bigName: '系统部署', techKey: 'server', techName: '服务器准备', themeKey: 'init', themeName: '服务器初始化' };
+CATEGORY_TO_TAXONOMY.NginxInstall = { bigKey: 'deploy', bigName: '系统部署', techKey: 'nginx', techName: 'Nginx', themeKey: 'install', themeName: 'Nginx 安装' };
+CATEGORY_TO_TAXONOMY.NginxConfig = { bigKey: 'deploy', bigName: '系统部署', techKey: 'nginx', techName: 'Nginx', themeKey: 'config', themeName: 'Nginx 配置' };
+CATEGORY_TO_TAXONOMY.DomainDNS = { bigKey: 'deploy', bigName: '系统部署', techKey: 'domain', techName: '域名配置', themeKey: 'dns', themeName: '域名与 DNS' };
+CATEGORY_TO_TAXONOMY.SSLHTTPS = { bigKey: 'deploy', bigName: '系统部署', techKey: 'domain', techName: '域名配置', themeKey: 'ssl', themeName: 'SSL 与 HTTPS' };
+CATEGORY_TO_TAXONOMY.AutoDeploy = { bigKey: 'deploy', bigName: '系统部署', techKey: 'auto', techName: '自动化部署', themeKey: 'webhook', themeName: 'Webhook 自动部署' };
+
 const buildLearningRoute = ({ bigKey, techKey, themeKey, slug }) => `/learning/${bigKey}/${techKey}/${themeKey}/${slug}`;
 const buildArticleRoute = ({ bigKey, techKey, themeKey, slug }) => `/article/${bigKey}/${techKey}/${themeKey}/${slug}`;
 const buildThemeRoute = ({ bigKey, techKey, themeKey }) => `/learning/${bigKey}/${techKey}/${themeKey}`;
@@ -323,6 +332,519 @@ location /prod-api/ {
         tags: ['部署', '后端', 'Nginx'],
         category: 'DeployBackend',
         date: '2026-03-15'
+    },
+    {
+        id: 14,
+        topic: '从零搭建自己的服务器',
+        content: `# 从零搭建自己的服务器
+
+本教程将带你完整走完从购买服务器到自动部署的全过程。
+
+---
+
+## 第一步：选择合适的云服务器
+
+### 厂商选择
+- **阿里云**：国内生态完善，文档齐全
+- **腾讯云**：性价比高，活动力度大
+- **华为云**：企业级服务，稳定可靠
+- **国外**：AWS、Vultr、DigitalOcean（需要科学上网）
+
+### 配置选择（新手推荐）
+- CPU：1核 或 2核
+- 内存：1GB 或 2GB
+- 带宽：1Mbps - 3Mbps
+- 系统盘：40GB SSD
+
+### 操作系统选择
+- 推荐：Ubuntu 20.04/22.04 LTS（长期支持版）
+- 备选：CentOS 7/8（国内使用较多）
+
+### 区域选择
+- 国内用户：选离自己最近的区域（如华东、华南）
+- 网站访客：选目标用户集中的区域
+
+### 购买建议
+- 新用户通常有首购优惠（年付更划算）
+- 先买最低配试水，后期可升级配置
+- 记得设置自动续费或续费提醒
+
+---
+
+## 第二步：通过 SSH 远程连接服务器
+
+### 连接准备
+拿到服务器后，你需要：
+- 服务器公网 IP
+- root 密码（或 SSH Key）
+- 本地终端软件
+
+### Windows 用户
+**方案1：使用 PowerShell 或 CMD**
+\`\`\`bash
+ssh root@你的服务器IP
+\`\`\`
+
+**方案2：使用 PuTTY（图形化工具）**
+- 下载 PuTTY
+- 输入 IP 和端口（默认22）
+- 点击连接，输入密码
+
+**方案3：VS Code Remote SSH（推荐开发用）**
+- 安装 Remote - SSH 扩展
+- 配置 SSH 配置文件
+- 直接在 VS Code 中操作服务器
+
+### Mac / Linux 用户
+直接使用终端：
+\`\`\`bash
+ssh root@你的服务器IP
+\`\`\`
+
+第一次连接会提示：
+\`Are you sure you want to continue connecting (yes/no)?\`
+输入 yes 回车，然后输入密码（输入时不显示）
+
+连接成功后会看到类似：
+\`root@your-server:~#\`
+
+### 常用 SSH 技巧
+1. 配置免密登录（使用 SSH Key）
+2. 修改默认端口（提高安全性）
+3. 使用 tmux/screen 保持会话
+
+### 如果连接失败
+- 检查安全组是否开放22端口
+- 确认 IP 和密码正确
+- 尝试重启服务器
+
+---
+
+## 第三步：服务器初始化配置
+
+刚拿到服务器，先做这些安全配置！
+
+### 1. 修改 root 密码
+\`\`\`bash
+passwd
+\`\`\`
+输入两次新密码（复杂一点）
+
+### 2. 创建普通用户（不建议一直用 root）
+\`\`\`bash
+adduser deploy
+usermod -aG sudo deploy
+\`\`\`
+
+### 3. 更新系统软件包
+**Ubuntu/Debian:**
+\`\`\`bash
+apt update && apt upgrade -y
+\`\`\`
+
+**CentOS:**
+\`\`\`bash
+yum update -y
+\`\`\`
+
+### 4. 配置防火墙（ufw）
+\`\`\`bash
+apt install ufw -y
+ufw allow 22
+ufw allow 80
+ufw allow 443
+ufw enable
+\`\`\`
+
+### 5. 安装常用工具
+\`\`\`bash
+apt install -y vim git curl wget net-tools htop
+\`\`\`
+
+### 6. 设置时区
+\`\`\`bash
+timedatectl set-timezone Asia/Shanghai
+\`\`\`
+
+### 7. 配置 SSH 安全（可选）
+编辑 \`/etc/ssh/sshd_config\`：
+- 禁止 root 直接登录：\`PermitRootLogin no\`
+- 修改默认端口：\`Port 2222\`
+
+然后重启 sshd：
+\`\`\`bash
+systemctl restart sshd
+\`\`\`
+
+### 8. 安装 Fail2Ban（防暴力破解）
+\`\`\`bash
+apt install fail2ban -y
+systemctl enable fail2ban
+systemctl start fail2ban
+\`\`\`
+
+初始化完成后，用新用户重新登录测试！
+
+---
+
+## 第四步：安装 Nginx Web 服务器
+
+Nginx 是最流行的 Web 服务器之一，用来托管网站。
+
+### Ubuntu/Debian 安装
+\`\`\`bash
+apt update
+apt install nginx -y
+\`\`\`
+
+### CentOS 安装
+\`\`\`bash
+yum install nginx -y
+\`\`\`
+
+### 验证安装
+\`\`\`bash
+nginx -v
+\`\`\`
+显示版本号即安装成功
+
+### 启动 Nginx
+\`\`\`bash
+systemctl start nginx
+systemctl enable nginx  # 设置开机自启
+\`\`\`
+
+### 检查状态
+\`\`\`bash
+systemctl status nginx
+\`\`\`
+
+此时在浏览器访问你的服务器 IP，应该能看到 Nginx 欢迎页！
+
+### 常用命令
+- 启动：\`systemctl start nginx\`
+- 停止：\`systemctl stop nginx\`
+- 重启：\`systemctl restart nginx\`
+- 重新加载配置：\`systemctl reload nginx\`（平滑重启）
+- 测试配置：\`nginx -t\`
+
+### 配置文件位置
+- 主配置：\`/etc/nginx/nginx.conf\`
+- 站点配置：\`/etc/nginx/sites-available/\`
+- 启用站点：\`/etc/nginx/sites-enabled/\`
+- 默认网页：\`/var/www/html/\`
+
+### 防火墙配置
+确保 80 和 443 端口已开放：
+\`\`\`bash
+ufw allow 'Nginx Full'
+\`\`\`
+
+---
+
+## 第五步：配置 Nginx 托管静态网站
+
+现在我们来把网站部署到 Nginx 上。
+
+### 1. 创建网站目录
+\`\`\`bash
+mkdir -p /var/www/myblog
+chown -R $USER:$USER /var/www/myblog
+\`\`\`
+
+### 2. 上传网站文件
+**方式1：使用 scp 本地上传**
+\`\`\`bash
+scp -r ./dist/* root@你的IP:/var/www/myblog/
+\`\`\`
+
+**方式2：服务器上 git clone**
+\`\`\`bash
+cd /var/www/myblog
+git clone 你的仓库地址 .
+\`\`\`
+
+**方式3：使用 SFTP 工具（如 FileZilla）**
+
+### 3. 配置 Nginx 站点
+\`\`\`bash
+cd /etc/nginx/sites-available/
+vim myblog
+\`\`\`
+
+写入以下配置：
+\`\`\`nginx
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name 你的域名或IP;
+
+    root /var/www/myblog;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+\`\`\`
+
+### 4. 启用站点
+\`\`\`bash
+ln -s /etc/nginx/sites-available/myblog /etc/nginx/sites-enabled/
+\`\`\`
+
+### 5. 测试配置
+\`\`\`bash
+nginx -t
+\`\`\`
+
+### 6. 重启 Nginx
+\`\`\`bash
+systemctl reload nginx
+\`\`\`
+
+### 7. 访问网站
+在浏览器打开 http://你的IP 或 http://你的域名
+
+### 常见问题
+- 403 Forbidden：检查文件权限
+- 404 Not Found：检查 root 路径是否正确
+- 500 Error：查看 Nginx 错误日志 \`/var/log/nginx/error.log\`
+
+---
+
+## 第六步：购买域名与配置 DNS 解析
+
+有了域名，你的网站才像个样子！
+
+### 1. 购买域名
+**推荐平台：**
+- 阿里云（万网）
+- 腾讯云
+- Namecheap（国外）
+
+**选择域名：**
+- .com / .cn / .net / .org
+- 简短好记，尽量与品牌相关
+- .com 最通用，但好的可能被注册了
+
+### 2. 配置 DNS 解析
+在域名服务商控制台找到 DNS 管理：
+
+**添加记录：**
+| 类型 | 主机记录 | 记录值 |
+|------|----------|--------|
+| A | @ | 你的服务器IP |
+| A | www | 你的服务器IP |
+
+**说明：**
+- @ 表示直接访问域名（example.com）
+- www 表示访问 www.example.com
+- TTL 可以设为 600（10分钟）
+
+### 3. 验证解析是否生效
+本地终端执行：
+\`\`\`bash
+ping 你的域名
+\`\`\`
+
+或使用在线工具：
+- ping.chinaz.com
+- dnschecker.org
+
+**注意：**
+- DNS 解析生效需要时间，通常几分钟到几小时
+- 如果国内访问慢，可能需要备案（.cn 域名必须备案）
+
+### 4. 更新 Nginx 配置
+修改 \`server_name\`：
+\`\`\`nginx
+server_name example.com www.example.com;
+\`\`\`
+
+重启 Nginx：
+\`\`\`bash
+systemctl reload nginx
+\`\`\`
+
+现在可以通过域名访问你的网站了！
+
+---
+
+## 第七步：配置 SSL 证书开启 HTTPS
+
+HTTPS 让你的网站更安全，浏览器也会显示小锁！
+
+### 使用 Let's Encrypt 免费证书
+我们用 Certbot 工具一键申请和续期。
+
+### 1. 安装 Certbot
+**Ubuntu/Debian:**
+\`\`\`bash
+apt install certbot python3-certbot-nginx -y
+\`\`\`
+
+**CentOS:**
+\`\`\`bash
+yum install certbot python3-certbot-nginx -y
+\`\`\`
+
+### 2. 申请证书
+\`\`\`bash
+certbot --nginx -d 你的域名 -d www.你的域名
+\`\`\`
+
+按照提示：
+- 输入邮箱（用于续期提醒）
+- 同意服务条款
+- 是否自动重定向 HTTP 到 HTTPS：选 2（Redirect）
+
+### 3. 验证配置
+访问 https://你的域名，应该能看到小锁图标！
+
+查看 Nginx 配置，Certbot 已经自动帮你添加了 SSL 配置。
+
+### 4. 自动续期
+Let's Encrypt 证书有效期 90 天，Certbot 会自动续期。
+
+测试续期：
+\`\`\`bash
+certbot renew --dry-run
+\`\`\`
+
+查看定时任务：
+\`\`\`bash
+systemctl list-timers | grep certbot
+\`\`\`
+
+### 5. 常用 Certbot 命令
+- 查看证书：\`certbot certificates\`
+- 续期证书：\`certbot renew\`
+- 撤销证书：\`certbot revoke\`
+
+证书配置完成！你的网站现在是 HTTPS 了。
+
+---
+
+## 第八步：配置 Webhook 实现自动部署
+
+每次手动上传太麻烦？让 Git push 自动触发部署！
+
+### 原理
+本地 push → GitHub/GitLab → 服务器 Webhook → 执行部署脚本
+
+### 1. 服务器端准备
+创建部署目录：
+\`\`\`bash
+mkdir -p /srv/deploy
+cd /srv/deploy
+\`\`\`
+
+克隆仓库：
+\`\`\`bash
+git clone 你的仓库地址 myblog
+\`\`\`
+
+创建部署脚本 \`deploy.sh\`：
+\`\`\`bash
+#!/bin/bash
+cd /srv/deploy/myblog
+git pull origin main
+npm install
+npm run build
+cp -r dist/* /var/www/myblog/
+echo "部署完成：$(date)" >> /var/log/deploy.log
+\`\`\`
+
+给脚本执行权限：
+\`\`\`bash
+chmod +x deploy.sh
+\`\`\`
+
+测试脚本：
+\`\`\`bash
+./deploy.sh
+\`\`\`
+
+### 2. 创建 Webhook 接收服务
+用 Node.js 写个简单的服务：
+\`\`\`bash
+mkdir -p /srv/webhook
+cd /srv/webhook
+npm init -y
+npm install express
+\`\`\`
+
+创建 \`index.js\`：
+\`\`\`javascript
+const express = require('express');
+const { exec } = require('child_process');
+const app = express();
+
+app.use(express.json());
+
+app.post('/webhook', (req, res) => {
+  console.log('收到 Webhook 请求');
+  exec('/srv/deploy/deploy.sh', (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('部署失败');
+    }
+    console.log(stdout);
+    res.send('部署成功');
+  });
+});
+
+app.listen(3000, () => console.log('Webhook 服务运行在 3000 端口'));
+\`\`\`
+
+### 3. 配置 Nginx 转发 Webhook
+在 Nginx 配置中添加：
+\`\`\`nginx
+location /webhook {
+    proxy_pass http://localhost:3000;
+    proxy_set_header Content-Type application/json;
+}
+\`\`\`
+
+### 4. 使用 PM2 管理 Webhook 服务
+\`\`\`bash
+npm install -g pm2
+pm2 start index.js --name webhook
+pm2 save
+pm2 startup
+\`\`\`
+
+### 5. GitHub 配置 Webhook
+仓库 → Settings → Webhooks → Add webhook：
+- Payload URL: https://你的域名/webhook
+- Content type: application/json
+- Secret: 设置一个密钥
+- Which events: Just the push event
+- Active: ✅
+
+测试一下：本地 push 代码，看服务器是否自动部署！
+
+---
+
+## 总结
+
+恭喜你！现在你已经拥有了一个完整的个人网站服务器：
+✅ 云服务器已购买并配置
+✅ 可以通过 SSH 远程连接
+✅ Nginx Web 服务器运行中
+✅ 网站可以通过域名访问
+✅ HTTPS 加密已开启
+✅ 支持 Git push 自动部署
+
+接下来，你可以：
+- 发布更多内容到你的网站
+- 学习更多服务器运维知识
+- 尝试部署后端服务和数据库`,
+        tags: ['服务器部署', 'Nginx', 'SSL', 'Webhook', '完整教程'],
+        category: 'ServerPrepare',
+        date: '2026-03-18'
     }
 ].map((a) => {
     const mapped = CATEGORY_TO_TAXONOMY[a.category] ?? { bigKey: 'practice', bigName: '工程实践', techKey: 'misc', techName: '综合', themeKey: 'general', themeName: '通用' };
@@ -534,6 +1056,14 @@ export const getProjectList = () => {
             id: 1, 
             name: '汽车销售管理系统', 
             desc: '面向中小型销售业务的后台系统，包含完整的用户下单与发货管理流程。',
+            problem: '中小型销售业务普遍面临客户信息零散、价值密度低、实时跟进不及时、销售过程不透明、团队协作低效、缺乏实时数据分析等痛点。之前主要依赖 Excel 报表记录数据，存在数据密度大、管理混乱、难以追溯等问题。通过引入数据库统一管理数据，解决了信息分散、不便管理的问题；通过数据可视化大屏，让企业管理者能够实时观察数据并调整营销策略。',
+            architecture: '整体采用分层架构设计：前端使用 Vue3 + Element Plus 保证页面的可用性和用户体验；可视化大屏部分使用 ECharts 做核心图表渲染，Data-v（Vue3 分支）做全屏容器；通过 RESTful API 实现前后端解耦，支持移动端和 PC 端多端通用。后端使用 Spring Boot + Java8，利用 @Transactional 事务机制确保操作的原子性；使用 Redis 作为中间件做数据库缓存，MySQL 作为持久化存储。核心业务流程：用户下单 → Redis 库存锁定 → 订单创建 → 发货管理。',
+            decisions: [
+                '极高的交付性价比：选择 Vue3 + Spring Boot 是因为这是目前市场上开发者储备最广的技术栈，招人容易、上手快、文档齐全，能够快速响应中小型业务频繁变化的需求，降低开发和维护成本。',
+                '为什么选择 Spring Boot：使用 IOC 容器统一管理对象，实现控制反转，避免手动 new 对象的繁琐和容易出错的问题；通过 AOP 面向切面编程和依赖注入实现松耦合，使系统具备高度的可测试性和灵活性，方便后期功能的动态替换和扩展。',
+                '为什么用 Redis 做库存锁定：Redis 是内存操作，响应速度非常快，相比 MySQL 的 IO 磁盘操作，Redis 更适合高并发多线程场景，能够保证系统稳定性，防止接口超时；同时利用 Redis 的单线程模型确保操作的原子性，防止商品超卖；使用 Redisson 解决 Redis 锁过期和续约问题，避免 30 秒未支付导致锁过期、另一个用户下单触发重复扣减超卖的问题。',
+                'RBAC 权限模型的优势：采用 RBAC 实现权限解耦，不直接给用户分配权限，而是先创建角色（如销售员、销售经理、管理员），再给角色分配权限。当公司入职 50 个销售时，只需给他们统一挂上销售员角色，而不需要逐一勾选权限点，极大地降低了维护成本；灵活性极强，如果业务调整，规定销售员以后不能删除客户，只需要在后台修改销售员角色的权限表，所有关联的 50 个人会立即同步生效，无需修改代码或逐个调整用户。'
+            ],
             stack: 'Java / Spring Boot / Vue 3',
             features: [
                 '用户权限管理与 RBAC 权限模型',

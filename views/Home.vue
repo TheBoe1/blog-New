@@ -1,49 +1,70 @@
 <template>
   <div class="page-home">
     <div class="home-content">
-      <section class="hero">
-        <div class="hero-bg"></div>
-        <div class="hero-card">
-          <div class="hero-top">
-            <div class="avatar">L</div>
-            <div class="hero-text">
-              <h2 class="title">怜言语记</h2>
-              <p class="subtitle">技术成长与沉淀的个人知识库</p>
+      <section class="section-card hero-section">
+        <div class="hero-top">
+          <div class="avatar">L</div>
+          <div class="hero-text">
+            <h2 class="title">怜言语记</h2>
+            <p class="subtitle">技术成长与沉淀的个人知识库</p>
+          </div>
+        </div>
+        
+        <div class="intro-section">
+          <p class="intro-text">专注后端开发，熟悉 Spring Boot / Redis / MySQL</p>
+          <p class="intro-text">具备基础系统设计能力，实践过自动化部署流程</p>
+          <p class="intro-text">关注系统稳定性与工程效率</p>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-head">
+          <h3 class="section-title">技术栈</h3>
+        </div>
+        
+        <div class="tech-stack-section">
+          <div class="tech-category">
+            <span class="tech-label">核心</span>
+            <div class="tech-tags">
+              <span class="tech-tag primary">Java</span>
+              <span class="tech-tag primary">Spring Boot</span>
+              <span class="tech-tag primary">MySQL</span>
+              <span class="tech-tag primary">Redis</span>
             </div>
           </div>
-          <div class="stats-row">
-            <div class="stat">
-              <div class="stat-val">{{ totalArticles }}</div>
-              <div class="stat-key">文章</div>
-            </div>
-            <div class="stat">
-              <div class="stat-val">{{ bigCategories.length }}</div>
-              <div class="stat-key">大类</div>
-            </div>
-            <div class="stat">
-              <div class="stat-val">{{ totalTechStacks }}</div>
-              <div class="stat-key">技术栈</div>
+          
+          <div class="tech-category">
+            <span class="tech-label">前端</span>
+            <div class="tech-tags">
+              <span class="tech-tag">Vue 3</span>
+              <span class="tech-tag">Element Plus</span>
             </div>
           </div>
-          <div class="quick-actions">
-            <router-link class="action primary" to="/learning">文章列表</router-link>
-            <router-link class="action" to="/projects">专题看板</router-link>
-            <router-link class="action" to="/deploy">系统部署</router-link>
-            <router-link class="action" to="/questions">常见问题</router-link>
-            <router-link class="action" to="/about">关于系统</router-link>
+          
+          <div class="tech-category">
+            <span class="tech-label">工具</span>
+            <div class="tech-tags">
+              <span class="tech-tag">Git</span>
+              <span class="tech-tag">Docker</span>
+              <span class="tech-tag">Nginx</span>
+              <span class="tech-tag">Linux</span>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="section-card">
         <div class="section-head">
-          <h3 class="section-title">文章分类</h3>
-          <router-link class="section-link" to="/learning">查看全部</router-link>
+          <h3 class="section-title">项目展示</h3>
+          <router-link class="section-link" to="/projects">查看全部</router-link>
         </div>
-        <div class="category-grid">
-          <div v-for="c in bigCategories" :key="c.key" class="cat-card" @click="$router.push(`/learning/${c.key}`)">
-            <div class="cat-name">{{ c.name }}</div>
-            <div class="cat-meta">{{ c.count }} 篇</div>
+        <div class="projects-preview">
+          <div class="project-card" v-for="p in previewProjects" :key="p.id" @click="$router.push(`/projects/${p.id}`)">
+            <div class="project-name">{{ p.name }}</div>
+            <div class="project-desc">{{ p.desc }}</div>
+            <div class="project-tags">
+              <span class="tag" v-for="(t, idx) in p.techStack.slice(0, 3)" :key="idx">{{ t.split('：')[1] || t }}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -70,7 +91,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getLearningChildren, getLearningArticlesByNodePath } from '../main/mockData.js';
+import { getLearningChildren, getLearningArticlesByNodePath, getProjectList } from '../main/mockData.js';
 
 const router = useRouter();
 
@@ -81,6 +102,7 @@ onMounted(() => {
 onUnmounted(() => {
   document.title = '文章分类';
 });
+
 const rootPath = '/learning';
 const totalArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 1).total);
 
@@ -100,7 +122,9 @@ const totalTechStacks = computed(() => {
   return cnt;
 });
 
-const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 6).items);
+const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 5).items);
+
+const previewProjects = computed(() => getProjectList().slice(0, 3));
 
 const openArticle = (article) => {
   const href = router.resolve(article.detailRoute || article.route).href;
@@ -127,28 +151,8 @@ const openArticle = (article) => {
   border: 1px solid #f1f1f1;
 }
 
-.hero {
-  position: relative;
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(900px 240px at 20% 0%, rgba(0, 195, 255, 0.18), transparent 60%),
-    radial-gradient(900px 240px at 80% 0%, rgba(114, 46, 209, 0.14), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
-  border: 1px solid #f1f1f1;
-}
-
-.hero-card {
-  position: relative;
+.hero-section {
   padding: 28px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
 .hero-top {
@@ -184,62 +188,19 @@ const openArticle = (article) => {
   color: #6b7280;
 }
 
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 16px 0 18px;
+.intro-section {
+  margin-bottom: 0;
 }
 
-.stat {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid #f1f1f1;
-  border-radius: 12px;
-  padding: 12px 14px;
+.intro-text {
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.6;
 }
 
-.stat-val {
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: #111827;
-  margin-bottom: 4px;
-}
-
-.stat-key {
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #f1f1f1;
-  background: #fff;
-  color: #333;
-  text-decoration: none;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-}
-
-.action:hover {
-  transform: translateY(-1px);
-  border-color: rgba(0, 195, 255, 0.5);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-}
-
-.action.primary {
-  background: rgba(0, 195, 255, 0.1);
-  border-color: rgba(0, 195, 255, 0.35);
-  color: #00a7d6;
-  font-weight: 700;
+.intro-text:last-child {
+  margin-bottom: 0;
 }
 
 .section-head {
@@ -266,36 +227,95 @@ const openArticle = (article) => {
   text-decoration: underline;
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
+.tech-stack-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.cat-card {
-  padding: 16px;
-  border-radius: 12px;
+.tech-category {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tech-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6b7280;
+  width: 44px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tech-tag {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.tech-tag.primary {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+  border: 1px solid rgba(24, 144, 255, 0.2);
+}
+
+.projects-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  padding: 18px;
+  border-radius: 10px;
   border: 1px solid #f1f1f1;
   background: #fff;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 
-.cat-card:hover {
+.project-card:hover {
   transform: translateY(-2px);
   border-color: rgba(0, 195, 255, 0.35);
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
 }
 
-.cat-name {
+.project-name {
   font-weight: 800;
   color: #111827;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  font-size: 1rem;
 }
 
-.cat-meta {
-  color: #9ca3af;
-  font-size: 0.85rem;
+.project-desc {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .latest-list {
@@ -335,11 +355,8 @@ const openArticle = (article) => {
 }
 
 @media (max-width: 520px) {
-  .hero-card {
-    padding: 20px;
-  }
-  .stats-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .projects-preview {
+    grid-template-columns: 1fr;
   }
 }
 </style>
