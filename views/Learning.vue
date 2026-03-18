@@ -9,12 +9,36 @@
         </div>
       </div>
 
-      <div v-if="!isSearching && (currentNodes.length > 0 || isRoot)" class="node-grid">
-        <div v-for="node in currentNodes" :key="node.path" class="node-card" @click="router.push(node.path)">
+      <div v-if="!isSearching" class="node-grid">
+        <div 
+          v-for="node in rootNodes" 
+          :key="node.path" 
+          :class="['node-card', { active: isActiveNode(node.path) }]"
+          @click="navigateToNode(node.path)"
+        >
           {{ node.name }}
         </div>
-        <div v-if="isRoot" class="node-card deploy-card" @click="router.push('/deploy')">
-          系统部署
+      </div>
+
+      <div v-if="!isSearching && hasBigCategory" class="node-grid sub-grid">
+        <div 
+          v-for="node in currentNodes" 
+          :key="node.path" 
+          :class="['node-card', { active: isActiveNode(node.path) }]"
+          @click="navigateToNode(node.path)"
+        >
+          {{ node.name }}
+        </div>
+      </div>
+
+      <div v-if="!isSearching && hasTechCategory" class="node-grid sub-grid tech-grid">
+        <div 
+          v-for="node in currentTechNodes" 
+          :key="node.path" 
+          :class="['node-card', { active: isActiveNode(node.path) }]"
+          @click="navigateToNode(node.path)"
+        >
+          {{ node.name }}
         </div>
       </div>
 
@@ -124,10 +148,34 @@ const currentNodePath = computed(() => {
   return rootPath;
 });
 
-const currentNodes = computed(() => getLearningChildren(currentNodePath.value));
+const currentNodes = computed(() => {
+  const big = route.params.big;
+  if (!big) return [];
+  return getLearningChildren(`${rootPath}/${big}`);
+});
+const rootNodes = computed(() => getLearningChildren(rootPath));
+
+const currentTechNodes = computed(() => {
+  const big = route.params.big;
+  if (!big) return [];
+  const tech = route.params.tech;
+  if (!tech) return [];
+  return getLearningChildren(`${rootPath}/${big}/${tech}`);
+});
+
 const searchQuery = computed(() => String(route.query.q ?? '').trim());
 const isSearching = computed(() => searchQuery.value.length > 0);
 const isRoot = computed(() => !route.params.big && !route.params.tech && !route.params.theme && !isSearching.value);
+const hasBigCategory = computed(() => !!route.params.big);
+const hasTechCategory = computed(() => !!route.params.big && !!route.params.tech);
+
+const isActiveNode = (path) => {
+  return route.path === path || route.path.startsWith(path + '/');
+};
+
+const navigateToNode = (path) => {
+  router.push(path);
+};
 
 const hasArticleDetail = computed(() => {
   const pathSegments = route.path.split('/').filter(Boolean);
@@ -308,10 +356,18 @@ const openArticle = (log) => {
 
 .node-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 0;
   border-top: 1px solid #f1f1f1;
   border-left: 1px solid #f1f1f1;
+}
+
+.sub-grid {
+  margin-top: 16px;
+}
+
+.tech-grid {
+  margin-top: 16px;
 }
 
 .node-card {
@@ -319,21 +375,32 @@ const openArticle = (log) => {
   border-right: 1px solid #f1f1f1;
   border-bottom: 1px solid #f1f1f1;
   border-radius: 0;
-  padding: 16px;
+  padding: 10px 8px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s;
   text-align: center;
+  position: relative;
+  font-size: 0.9rem;
 }
 
 .node-card:hover {
-  background: rgba(0, 195, 255, 0.08);
   color: #00c3ff;
 }
 
-.deploy-card {
-  background: transparent;
-  border-right: 1px solid #f1f1f1;
-  border-bottom: 1px solid #f1f1f1;
+.node-card.active {
+  color: #00c3ff;
+  font-weight: 600;
+}
+
+.node-card.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: #00c3ff;
 }
 
 .node-name {

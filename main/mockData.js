@@ -11,7 +11,8 @@ const BIG_CATEGORIES = [
     { key: 'frontend', name: '前端技术' },
     { key: 'backend', name: '后端架构' },
     { key: 'algorithm', name: '算法研究' },
-    { key: 'practice', name: '工程实践' }
+    { key: 'practice', name: '工程实践' },
+    { key: 'deploy', name: '系统部署' }
 ];
 
 const BIG_CATEGORY_BY_NAME = BIG_CATEGORIES.reduce((acc, cur) => {
@@ -46,6 +47,9 @@ CATEGORY_TO_TAXONOMY.Git = { bigKey: 'practice', bigName: '工程实践', techKe
 CATEGORY_TO_TAXONOMY.GitInstall = { bigKey: 'practice', bigName: '工程实践', techKey: 'git', techName: 'Git', themeKey: 'install', themeName: '安装' };
 CATEGORY_TO_TAXONOMY.GitLocal = { bigKey: 'practice', bigName: '工程实践', techKey: 'git', techName: 'Git', themeKey: 'local-repo', themeName: '本地仓库' };
 CATEGORY_TO_TAXONOMY.GitRemote = { bigKey: 'practice', bigName: '工程实践', techKey: 'git', techName: 'Git', themeKey: 'remote-repo', themeName: '远程仓库' };
+
+CATEGORY_TO_TAXONOMY.DeployFrontend = { bigKey: 'deploy', bigName: '系统部署', techKey: 'frontend', techName: '前端部署', themeKey: 'vite', themeName: 'Vite 构建' };
+CATEGORY_TO_TAXONOMY.DeployBackend = { bigKey: 'deploy', bigName: '系统部署', techKey: 'backend', techName: '后端联动', themeKey: 'nginx', themeName: 'Nginx 配置' };
 
 const buildLearningRoute = ({ bigKey, techKey, themeKey, slug }) => `/learning/${bigKey}/${techKey}/${themeKey}/${slug}`;
 const buildArticleRoute = ({ bigKey, techKey, themeKey, slug }) => `/article/${bigKey}/${techKey}/${themeKey}/${slug}`;
@@ -285,6 +289,40 @@ git push -u origin main
         tags: ['Git', '推送', 'git push'],
         category: 'GitRemote',
         date: '2026-03-12'
+    },
+    {
+        id: 12,
+        topic: '前端部署（Vite 构建）',
+        content: `核心步骤
+1. 构建项目
+npm run build
+
+2. 部署目录
+构建后的 dist 目录内容需要部署到 /index/ 路径下
+
+3. 路由配置
+当前路由基座为 /index/，确保服务器配置正确`,
+        tags: ['部署', '前端', 'Vite'],
+        category: 'DeployFrontend',
+        date: '2026-03-15'
+    },
+    {
+        id: 13,
+        topic: '后端联动配置（Nginx）',
+        content: `接口转发
+通过 Nginx 将 /prod-api 转发到后端服务：
+
+location /prod-api/ {
+    proxy_pass http://localhost:8080/;
+}
+
+注意事项
+- 确保后端服务已启动
+- 配置 CORS 允许跨域访问
+- 同域部署可避免跨域问题`,
+        tags: ['部署', '后端', 'Nginx'],
+        category: 'DeployBackend',
+        date: '2026-03-15'
     }
 ].map((a) => {
     const mapped = CATEGORY_TO_TAXONOMY[a.category] ?? { bigKey: 'practice', bigName: '工程实践', techKey: 'misc', techName: '综合', themeKey: 'general', themeName: '通用' };
@@ -554,7 +592,7 @@ export const getQuestions = () => {
         { 
             id: 3, 
             title: 'Webhook 不生效：误把 Website 当 Webhook 如何排查？', 
-            answer: '常见误区：1）把 http://59.110.41.235:3000/webhook 填在 GitHub 仓库的 Website 字段。Website 仅用于展示项目信息，不会触发 webhook；2）用浏览器/GET 测试返回 “Cannot GET /webhook”。GitHub 发送的是 POST 请求并携带 JSON payload。正确做法：到 Settings → Webhooks → Add webhook 配置，将 Payload URL 填写为 http://59.110.41.235:3000/webhook，Content-Type 选择 application/json，事件选择 push。保存后，从本地 push 到 GitHub，服务器才能收到 POST 并触发部署脚本（例如 /srv/deploy1.sh prod）。', 
+            answer: '常见误区：1）把 http://your-domain.com:3000/webhook 填在 GitHub 仓库的 Website 字段。Website 仅用于展示项目信息，不会触发 webhook；2）用浏览器/GET 测试返回 "Cannot GET /webhook"。GitHub 发送的是 POST 请求并携带 JSON payload。正确做法：到 Settings → Webhooks → Add webhook 配置，将 Payload URL 填写为 http://your-domain.com:3000/webhook，Content-Type 选择 application/json，事件选择 push。保存后，从本地 push 到 GitHub，服务器才能收到 POST 并触发部署脚本（例如 /srv/deploy1.sh prod）。', 
             date: '2026-03-17' 
         },
         {
