@@ -271,7 +271,7 @@ const pageData = computed(() => {
 });
 
 const openArticle = (log) => {
-  router.push(log.detailRoute || log.route);
+  router.push(log.route);
 };
 </script>
 

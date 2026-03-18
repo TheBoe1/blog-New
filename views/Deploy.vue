@@ -88,13 +88,13 @@ const stepDescriptions = [
 
 const openArticle = () => {
   if (article.value) {
-    router.push(article.value.detailRoute || article.value.route);
+    router.push(article.value.route);
   }
 };
 
 const openStep = (index) => {
   if (article.value) {
-    router.push(article.value.detailRoute || article.value.route);
+    router.push(article.value.route);
   }
 };
 </script>

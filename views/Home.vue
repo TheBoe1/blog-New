@@ -127,8 +127,7 @@ const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1,
 const previewProjects = computed(() => getProjectList().slice(0, 3));
 
 const openArticle = (article) => {
-  const href = router.resolve(article.detailRoute || article.route).href;
-  window.open(href, '_blank', 'noopener,noreferrer');
+  router.push(article.route);
 };
 </script>
 
