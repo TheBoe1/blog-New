@@ -26,6 +26,7 @@ const routes = [
     ]
   },
   { path: '/deploy', name: 'Deploy', component: () => import('../views/Deploy.vue') },
+  { path: '/git', name: 'Git', component: () => import('../views/Git.vue') },
   { path: '/questions', name: 'Questions', component: () => import('../views/Questions.vue') },
   { path: '/about', name: 'About', component: () => import('../views/About.vue') }
 ];

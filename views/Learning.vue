@@ -271,8 +271,7 @@ const pageData = computed(() => {
 });
 
 const openArticle = (log) => {
-  const href = router.resolve(log.detailRoute || log.route).href;
-  window.open(href, '_blank', 'noopener,noreferrer');
+  router.push(log.detailRoute || log.route);
 };
 </script>
 

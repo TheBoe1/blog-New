@@ -845,6 +845,281 @@ pm2 startup
         tags: ['服务器部署', 'Nginx', 'SSL', 'Webhook', '完整教程'],
         category: 'ServerPrepare',
         date: '2026-03-18'
+    },
+    {
+        id: 15,
+        topic: 'Git 完整教程：从安装到协作',
+        content: `# Git 完整教程：从安装到协作
+
+本教程将带你完整学习 Git 版本控制系统，从安装到团队协作。
+
+---
+
+## 第一步：Git 安装与配置
+
+### Windows 安装
+1. 访问 https://git-scm.com/downloads
+2. 下载 Windows 版本并安装
+3. 安装时一路使用默认选项即可
+
+### Mac 安装
+**方案1：使用 Homebrew**
+\`\`\`bash
+brew install git
+\`\`\`
+
+**方案2：使用 Xcode Command Line Tools**
+\`\`\`bash
+xcode-select --install
+\`\`\`
+
+### Linux 安装
+**Ubuntu / Debian 系列：**
+\`\`\`bash
+sudo apt update
+sudo apt install git
+\`\`\`
+
+**CentOS / RHEL 系列：**
+\`\`\`bash
+sudo yum install git
+\`\`\`
+
+### 验证安装
+\`\`\`bash
+git --version
+\`\`\`
+
+### 初始配置
+设置用户名和邮箱（重要！每次提交都会用到）：
+\`\`\`bash
+git config --global user.name "你的名字"
+git config --global user.email "你的邮箱@example.com"
+\`\`\`
+
+查看配置：
+\`\`\`bash
+git config --global --list
+\`\`\`
+
+---
+
+## 第二步：创建与初始化本地仓库
+
+### 初始化新仓库
+在一个空目录中：
+\`\`\`bash
+git init
+\`\`\`
+
+效果：目录下生成 .git 文件夹，开始记录版本历史。
+
+### 克隆现有仓库
+\`\`\`bash
+git clone <仓库地址>
+\`\`\`
+
+例如：
+\`\`\`bash
+git clone https://github.com/username/my-project.git
+\`\`\`
+
+---
+
+## 第三步：添加文件到暂存区
+
+### 基本用法
+添加单个文件：
+\`\`\`bash
+git add <文件名>
+\`\`\`
+
+添加所有文件：
+\`\`\`bash
+git add .
+\`\`\`
+
+添加特定类型文件：
+\`\`\`bash
+git add *.js
+\`\`\`
+
+### 查看状态
+\`\`\`bash
+git status
+\`\`\`
+
+### 示例工作流
+\`\`\`bash
+# 创建一个新文件
+echo "# 我的项目" > README.md
+
+# 添加到暂存区
+git add README.md
+
+# 查看状态
+git status
+\`\`\`
+
+---
+
+## 第四步：提交到本地仓库
+
+### 基本提交
+\`\`\`bash
+git commit -m "提交说明"
+\`\`\`
+
+### 提交信息规范
+好的提交信息应该简明描述修改内容：
+- ✅ "添加用户登录功能"
+- ✅ "修复首页加载缓慢问题"
+- ❌ "更新了一些东西"
+
+### 添加并提交（快捷方式）
+\`\`\`bash
+git add . && git commit -m "提交说明"
+\`\`\`
+
+### 修改最后一次提交
+\`\`\`bash
+git commit --amend
+\`\`\`
+
+---
+
+## 第五步：查看提交历史与差异
+
+### 查看提交历史
+\`\`\`bash
+git log
+\`\`\`
+
+### 简洁版历史
+\`\`\`bash
+git log --oneline
+\`\`\`
+
+### 查看特定文件的历史
+\`\`\`bash
+git log -- <文件名>
+\`\`\`
+
+### 查看工作区与暂存区的差异
+\`\`\`bash
+git diff
+\`\`\`
+
+### 查看暂存区与上次提交的差异
+\`\`\`bash
+git diff --staged
+\`\`\`
+
+---
+
+## 第六步：关联远程仓库
+
+### 添加远程仓库
+\`\`\`bash
+git remote add origin <仓库地址>
+\`\`\`
+
+### 查看远程仓库
+\`\`\`bash
+git remote -v
+\`\`\`
+
+### 修改远程仓库地址
+\`\`\`bash
+git remote set-url origin <新地址>
+\`\`\`
+
+---
+
+## 第七步：推送与拉取代码
+
+### 推送到远程
+首次推送（建立关联）：
+\`\`\`bash
+git push -u origin main
+\`\`\`
+
+后续推送：
+\`\`\`bash
+git push
+\`\`\`
+
+### 从远程拉取
+\`\`\`bash
+git pull
+\`\`\`
+
+### 只拉取不合并
+\`\`\`bash
+git fetch
+\`\`\`
+
+---
+
+## 第八步：分支管理与合并
+
+### 查看分支
+\`\`\`bash
+git branch
+\`\`\`
+
+### 创建新分支
+\`\`\`bash
+git branch <分支名>
+\`\`\`
+
+### 切换分支
+\`\`\`bash
+git checkout <分支名>
+\`\`\`
+
+或使用新语法：
+\`\`\`bash
+git switch <分支名>
+\`\`\`
+
+### 创建并切换分支
+\`\`\`bash
+git checkout -b <分支名>
+\`\`\`
+
+### 合并分支
+先切换到目标分支（通常是 main）：
+\`\`\`bash
+git checkout main
+git merge <分支名>
+\`\`\`
+
+### 删除分支
+\`\`\`bash
+git branch -d <分支名>
+\`\`\`
+
+---
+
+## 总结
+
+恭喜你！现在你已经掌握了 Git 的核心用法：
+✅ Git 安装与配置
+✅ 创建和初始化仓库
+✅ 添加和提交文件
+✅ 查看历史和差异
+✅ 关联远程仓库
+✅ 推送和拉取代码
+✅ 分支管理与合并
+
+接下来，你可以：
+- 学习 Git 进阶操作（变基、贮藏、标签等）
+- 参与开源项目的协作
+- 使用 Git Flow 等工作流规范团队开发`,
+        tags: ['Git', '版本控制', 'GitHub', '完整教程'],
+        category: 'Git',
+        date: '2026-03-18'
     }
 ].map((a) => {
     const mapped = CATEGORY_TO_TAXONOMY[a.category] ?? { bigKey: 'practice', bigName: '工程实践', techKey: 'misc', techName: '综合', themeKey: 'general', themeName: '通用' };

@@ -1,9 +1,9 @@
 <template>
-  <div class="page-deploy">
+  <div class="page-git">
     <div class="content-wrapper">
       <div class="article-header">
-        <h2 class="page-title">从零搭建自己的服务器</h2>
-        <p class="page-subtitle">完整的服务器部署教程，从零开始搭建你的个人网站</p>
+        <h2 class="page-title">Git 完整教程：从安装到协作</h2>
+        <p class="page-subtitle">完整的 Git 版本控制教程，从零开始掌握版本管理</p>
         <div class="article-tags">
           <span v-for="tag in article?.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
@@ -33,14 +33,25 @@
       </section>
 
       <section class="section-card">
-        <h3 class="section-title">📌 当前项目部署</h3>
+        <h3 class="section-title">📌 Git 常用命令速查</h3>
         <div class="block">
-          <div class="k">构建命令</div>
-          <pre class="code">npm run build</pre>
+          <div class="k">初始化与配置</div>
+          <pre class="code">git init
+git config --global user.name "你的名字"
+git config --global user.email "你的邮箱"</pre>
         </div>
         <div class="block">
-          <div class="k">部署说明</div>
-          <div class="v">当前路由基座为 /index/，部署时建议将 dist 内容放到 /var/www/myblog/ 目录，并参考教程第五步配置 Nginx。</div>
+          <div class="k">基本操作</div>
+          <pre class="code">git add .
+git commit -m "提交说明"
+git status
+git log</pre>
+        </div>
+        <div class="block">
+          <div class="k">远程操作</div>
+          <pre class="code">git remote add origin &lt;仓库地址&gt;
+git push -u origin main
+git pull</pre>
         </div>
       </section>
     </div>
@@ -55,35 +66,35 @@ import { getLearningArticleById } from '../main/mockData.js';
 const router = useRouter();
 
 onMounted(() => {
-  document.title = '从零搭建服务器 - 教程';
+  document.title = 'Git 完整教程 - 教程';
 });
 
 onUnmounted(() => {
   document.title = '文章分类';
 });
 
-const article = computed(() => getLearningArticleById(14));
+const article = computed(() => getLearningArticleById(15));
 
 const outline = [
-  '选择合适的云服务器',
-  '通过 SSH 远程连接服务器',
-  '服务器初始化配置',
-  '安装 Nginx Web 服务器',
-  '配置 Nginx 托管静态网站',
-  '购买域名与配置 DNS 解析',
-  '配置 SSL 证书开启 HTTPS',
-  '配置 Webhook 实现自动部署'
+  'Git 安装与配置',
+  '创建与初始化本地仓库',
+  '添加文件到暂存区',
+  '提交到本地仓库',
+  '查看提交历史与差异',
+  '关联远程仓库',
+  '推送与拉取代码',
+  '分支管理与合并'
 ];
 
 const stepDescriptions = [
-  '了解云厂商选择和配置推荐',
-  '学习 Windows/Mac/Linux 连接方法',
-  '安全配置、软件安装与防火墙',
-  'Web 服务器安装与基本操作',
-  '站点配置与文件上传',
-  '域名购买与 DNS 解析设置',
-  '免费证书申请与 HTTPS 开启',
-  'Git push 自动触发部署'
+  'Windows/Mac/Linux 多平台安装指南',
+  'git init 和 git clone 两种方式',
+  'git add 基本用法和状态查看',
+  'git commit 提交信息规范',
+  'git log、git diff 查看变更',
+  'git remote 关联远程仓库',
+  'git push 和 git pull 同步代码',
+  'git branch 分支创建、切换与合并'
 ];
 
 const openArticle = () => {
@@ -100,7 +111,7 @@ const openStep = (index) => {
 </script>
 
 <style scoped>
-.page-deploy {
+.page-git {
   padding: 0;
   min-height: 100%;
 }
@@ -311,4 +322,3 @@ const openStep = (index) => {
   }
 }
 </style>
-
