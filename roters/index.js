@@ -32,6 +32,6 @@ const routes = [
 ];
 
 export const router = createRouter({
-  history: createWebHistory('/index/'),
+  history: createWebHistory('/carbon/'),
   routes
 });
