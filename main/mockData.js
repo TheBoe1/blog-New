@@ -307,10 +307,10 @@ git push -u origin main
 npm run build
 
 2. 部署目录
-构建后的 dist 目录内容需要部署到 /index/ 路径下
+构建后的 dist 目录内容需要部署到根路径 / 下
 
 3. 路由配置
-当前路由基座为 /index/，确保服务器配置正确`,
+当前路由基座为 /，确保服务器配置正确`,
         tags: ['部署', '前端', 'Vite'],
         category: 'DeployFrontend',
         date: '2026-03-15'

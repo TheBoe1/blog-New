@@ -21,7 +21,7 @@
         
         <div class="menu-divider">外部项目</div>
         
-        <a href="https://lianlab.top/index/" class="menu-item external" target="_blank" rel="noopener noreferrer">
+        <a href="https://lianlab.top/carbon/" class="menu-item external" target="_blank" rel="noopener noreferrer">
           <span class="icon">⚙️</span>
           <span class="label">管理系统</span>
         </a>

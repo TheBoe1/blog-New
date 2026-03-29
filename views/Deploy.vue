@@ -40,7 +40,7 @@
         </div>
         <div class="block">
           <div class="k">部署说明</div>
-          <div class="v">当前路由基座为 /index/，部署时建议将 dist 内容放到 /var/www/myblog/ 目录，并参考教程第五步配置 Nginx。</div>
+          <div class="v">当前路由基座为 /，部署时建议将 dist 内容放到服务器根目录下，并配置 Nginx 支持 History 模式。</div>
         </div>
       </section>
     </div>

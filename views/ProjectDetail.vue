@@ -66,7 +66,7 @@
         <footer class="detail-footer">
           <div class="footer-divider"></div>
           <div class="footer-actions">
-            <a href="https://lianlab.top/index" class="action-link primary" target="_blank" rel="noopener noreferrer">在线预览演示</a>
+            <a href="https://lianlab.top/carbon" class="action-link primary" target="_blank" rel="noopener noreferrer">在线预览演示</a>
           </div>
         </footer>
       </div>
