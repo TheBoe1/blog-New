@@ -101,11 +101,24 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'element-plus': ['element-plus'],
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('element-plus') || id.includes('@element-plus') || 
+                id.includes('vue') || id.includes('pinia') || id.includes('@vueuse') ||
+                id.includes('vue-router')) {
+              return 'vue-vendor'
+            }
+            if (id.includes('axios') || id.includes('dayjs')) {
+              return 'utils'
+            }
+            if (id.includes('@iconify') || id.includes('unplugin-icons')) {
+              return 'icons'
+            }
+            return 'vendor'
+          }
         },
       },
     },
