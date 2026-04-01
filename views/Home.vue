@@ -1,108 +1,117 @@
 <template>
   <div class="page-home">
-    <div class="home-content">
-      <section class="section-card hero-section">
-        <div class="hero-top">
-          <div class="avatar">L</div>
-          <div class="hero-text">
-            <h2 class="title">怜言语记</h2>
-            <p class="subtitle">技术成长与沉淀的个人知识库</p>
-          </div>
-        </div>
-        
-        <div class="intro-section">
-          <p class="intro-text">专注后端开发，熟悉 Spring Boot / Redis / MySQL</p>
-          <p class="intro-text">具备基础系统设计能力，实践过自动化部署流程</p>
-          <p class="intro-text">关注系统稳定性与工程效率</p>
-        </div>
-      </section>
+    <a-row :gutter="[16, 16]">
+      <a-col :span="24">
+        <a-card class="hero-card" :bordered="false">
+          <a-row :gutter="24" align="middle">
+            <a-col :xs="24" :sm="24" :md="16">
+              <div class="hero-content">
+                <a-avatar :size="64" class="hero-avatar">L</a-avatar>
+                <div class="hero-text">
+                  <a-typography-title :level="2" class="hero-title">怜言语记</a-typography-title>
+                  <a-typography-text type="secondary">技术成长与沉淀的个人知识库</a-typography-text>
+                </div>
+              </div>
+            </a-col>
+            <a-col :xs="24" :sm="24" :md="8">
+              <a-row :gutter="16">
+                <a-col :span="8">
+                  <a-statistic title="文章" :value="totalArticles" class="stat-item" />
+                </a-col>
+                <a-col :span="8">
+                  <a-statistic title="大类" :value="bigCategories.length" class="stat-item" />
+                </a-col>
+                <a-col :span="8">
+                  <a-statistic title="技术栈" :value="totalTechStacks" class="stat-item" />
+                </a-col>
+              </a-row>
+            </a-col>
+          </a-row>
+          <a-divider style="margin: 16px 0" />
+          <a-space wrap>
+            <a-button type="primary" @click="router.push('/learning')">
+              <template #icon><FileTextOutlined /></template>
+              文章列表
+            </a-button>
+            <a-button @click="router.push('/projects')">
+              <template #icon><AppstoreOutlined /></template>
+              专题看板
+            </a-button>
+            <a-button @click="router.push('/deploy')">
+              <template #icon><CloudServerOutlined /></template>
+              系统部署
+            </a-button>
+            <a-button @click="router.push('/questions')">
+              <template #icon><QuestionCircleOutlined /></template>
+              常见问题
+            </a-button>
+            <a-button @click="router.push('/about')">
+              <template #icon><InfoCircleOutlined /></template>
+              关于系统
+            </a-button>
+          </a-space>
+        </a-card>
+      </a-col>
+    </a-row>
 
-      <section class="section-card">
-        <div class="section-head">
-          <h3 class="section-title">技术栈</h3>
-        </div>
-        
-        <div class="tech-stack-section">
-          <div class="tech-category">
-            <span class="tech-label">核心</span>
-            <div class="tech-tags">
-              <span class="tech-tag primary">Java</span>
-              <span class="tech-tag primary">Spring Boot</span>
-              <span class="tech-tag primary">MySQL</span>
-              <span class="tech-tag primary">Redis</span>
-            </div>
-          </div>
-          
-          <div class="tech-category">
-            <span class="tech-label">前端</span>
-            <div class="tech-tags">
-              <span class="tech-tag">Vue 3</span>
-              <span class="tech-tag">Element Plus</span>
-            </div>
-          </div>
-          
-          <div class="tech-category">
-            <span class="tech-label">工具</span>
-            <div class="tech-tags">
-              <span class="tech-tag">Git</span>
-              <span class="tech-tag">Docker</span>
-              <span class="tech-tag">Nginx</span>
-              <span class="tech-tag">Linux</span>
-            </div>
-          </div>
-        </div>
-      </section>
+    <a-row :gutter="[16, 16]" style="margin-top: 16px">
+      <a-col :span="24">
+        <a-card title="文章分类" :bordered="false" :extra="renderExtra('/learning', '查看全部')">
+          <a-row :gutter="[16, 16]">
+            <a-col v-for="c in bigCategories" :key="c.key" :xs="12" :sm="8" :md="6" :lg="4">
+              <a-card hoverable class="category-card" @click="router.push(`/learning/${c.key}`)">
+                <a-statistic :title="c.name" :value="c.count" suffix="篇">
+                  <template #formatter="{ value }">
+                    <span class="category-count">{{ value }}</span>
+                  </template>
+                </a-statistic>
+              </a-card>
+            </a-col>
+          </a-row>
+        </a-card>
+      </a-col>
+    </a-row>
 
-      <section class="section-card">
-        <div class="section-head">
-          <h3 class="section-title">项目展示</h3>
-          <router-link class="section-link" to="/projects">查看全部</router-link>
-        </div>
-        <div class="projects-preview">
-          <div class="project-card" v-for="p in previewProjects" :key="p.id" @click="$router.push(`/projects/${p.id}`)">
-            <div class="project-name">{{ p.name }}</div>
-            <div class="project-desc">{{ p.desc }}</div>
-            <div class="project-tags">
-              <span class="tag" v-for="(t, idx) in p.techStack.slice(0, 3)" :key="idx">{{ t.split('：')[1] || t }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-card">
-        <div class="section-head">
-          <h3 class="section-title">最新文章</h3>
-          <router-link class="section-link" to="/learning">进入列表</router-link>
-        </div>
-        <div class="latest-list">
-          <div v-for="a in latestArticles" :key="a.id" class="latest-item" @click="openArticle(a)">
-            <div class="latest-main">
-              <div class="latest-title">{{ a.topic }}</div>
-              <div class="latest-meta">{{ a.bigName }} / {{ a.techName }} / {{ a.themeName }}</div>
-            </div>
-            <div class="latest-date">{{ a.date }}</div>
-          </div>
-        </div>
-      </section>
-    </div>
+    <a-row :gutter="[16, 16]" style="margin-top: 16px">
+      <a-col :span="24">
+        <a-card title="最新文章" :bordered="false" :extra="renderExtra('/learning', '进入列表')">
+          <a-list
+            :data-source="latestArticles"
+            item-layout="horizontal"
+          >
+            <template #renderItem="{ item }">
+              <a-list-item @click="openArticle(item)" class="article-item">
+                <a-list-item-meta :description="`${item.bigName} / ${item.techName} / ${item.themeName}`">
+                  <template #title>
+                    <span class="article-title">{{ item.topic }}</span>
+                  </template>
+                </a-list-item-meta>
+                <template #actions>
+                  <span class="article-date">{{ item.date }}</span>
+                </template>
+              </a-list-item>
+            </template>
+          </a-list>
+        </a-card>
+      </a-col>
+    </a-row>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, h } from 'vue';
 import { useRouter } from 'vue-router';
-import { getLearningChildren, getLearningArticlesByNodePath, getProjectList } from '../main/mockData.js';
+import { getLearningChildren, getLearningArticlesByNodePath } from '../main/mockData.js';
+import {
+  FileTextOutlined,
+  AppstoreOutlined,
+  CloudServerOutlined,
+  QuestionCircleOutlined,
+  InfoCircleOutlined,
+  RightOutlined
+} from '@ant-design/icons-vue';
 
 const router = useRouter();
-
-onMounted(() => {
-  document.title = '怜言语记';
-});
-
-onUnmounted(() => {
-  document.title = '文章分类';
-});
-
 const rootPath = '/learning';
 const totalArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 1).total);
 
@@ -122,240 +131,258 @@ const totalTechStacks = computed(() => {
   return cnt;
 });
 
-const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 5).items);
-
-const previewProjects = computed(() => getProjectList().slice(0, 3));
+const latestArticles = computed(() => getLearningArticlesByNodePath(rootPath, 1, 6).items);
 
 const openArticle = (article) => {
-  router.push(article.route);
+  router.push(article.detailRoute || article.route);
+};
+
+const renderExtra = (path, text) => {
+  return h('a', { onClick: () => router.push(path), class: 'card-extra-link' }, [
+    text,
+    h(RightOutlined, { style: { marginLeft: '4px', fontSize: '12px' } })
+  ]);
 };
 </script>
 
 <style scoped>
 .page-home {
-  min-height: 100%;
+  padding: 0;
 }
 
-.home-content {
+.hero-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+}
+
+.hero-card :deep(.ant-card-body) {
+  padding: 32px;
+}
+
+.hero-content {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 20px;
 }
 
-.section-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f1f1;
-}
-
-.hero-section {
-  padding: 28px;
-}
-
-.hero-top {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-.avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hero-avatar {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
   font-weight: 900;
-  color: #1890ff;
-  background: rgba(24, 144, 255, 0.12);
-  border: 1px solid rgba(24, 144, 255, 0.18);
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.title {
-  margin: 0 0 4px 0;
-  font-size: 1.7rem;
-  font-weight: 900;
-  color: #111827;
-  letter-spacing: 0.2px;
+.hero-text {
+  color: #fff;
 }
 
-.subtitle {
-  margin: 0;
-  color: #6b7280;
+.hero-title {
+  margin: 0 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
 }
 
-.intro-section {
-  margin-bottom: 0;
+.hero-text :deep(.ant-typography) {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
 }
 
-.intro-text {
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
-  color: #374151;
-  line-height: 1.6;
+.stat-item :deep(.ant-statistic-title) {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
 }
 
-.intro-text:last-child {
-  margin-bottom: 0;
-}
-
-.section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.section-link {
-  color: #00a7d6;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.section-link:hover {
-  text-decoration: underline;
-}
-
-.tech-stack-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tech-category {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.tech-label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #6b7280;
-  width: 44px;
-  flex-shrink: 0;
-  padding-top: 4px;
-}
-
-.tech-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tech-tag {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
+.stat-item :deep(.ant-statistic-content) {
+  color: #fff;
   font-weight: 600;
-  background: #f3f4f6;
-  color: #4b5563;
 }
 
-.tech-tag.primary {
-  background: rgba(24, 144, 255, 0.1);
-  color: #1890ff;
-  border: 1px solid rgba(24, 144, 255, 0.2);
-}
-
-.projects-preview {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.project-card {
-  padding: 18px;
-  border-radius: 10px;
-  border: 1px solid #f1f1f1;
-  background: #fff;
+.category-card {
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 
-.project-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(0, 195, 255, 0.35);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+.category-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.18);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
-.project-name {
-  font-weight: 800;
-  color: #111827;
+.category-count {
+  font-size: 28px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.article-item {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 16px 20px;
+  border-radius: 12px;
   margin-bottom: 8px;
-  font-size: 1rem;
 }
 
-.project-desc {
-  color: #6b7280;
-  font-size: 0.9rem;
-  margin-bottom: 12px;
-  line-height: 1.5;
+.article-item:hover {
+  background: rgba(102, 126, 234, 0.06);
+  transform: translateX(4px);
 }
 
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.article-title {
+  font-weight: 500;
+  color: #202124;
+  font-size: 15px;
 }
 
-.tag {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  background: #f3f4f6;
-  color: #6b7280;
+.article-date {
+  color: #5f6368;
+  font-size: 12px;
 }
 
-.latest-list {
-  display: flex;
-  flex-direction: column;
+.hero-card :deep(.ant-btn) {
+  border-radius: 24px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.latest-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-top: 1px solid #f3f4f6;
+.hero-card :deep(.ant-btn-primary) {
+  background: #fff;
+  color: #1a73e8;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hero-card :deep(.ant-btn-primary:hover) {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero-card :deep(.ant-btn-primary:active) {
+  transform: translateY(0);
+}
+
+.hero-card :deep(.ant-btn-default) {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.hero-card :deep(.ant-btn-default:hover) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.hero-card :deep(.ant-btn-default:active) {
+  transform: translateY(0);
+}
+
+.card-extra-link {
+  color: #1a73e8;
   cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.latest-item:first-child {
-  border-top: none;
+.card-extra-link:hover {
+  color: #1557b0;
+  transform: translateX(2px);
 }
 
-.latest-title {
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 6px;
+.page-home :deep(.ant-card) {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.latest-meta {
-  color: #9ca3af;
-  font-size: 0.85rem;
+.page-home :deep(.ant-card:hover) {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.latest-date {
-  color: #9ca3af;
-  font-size: 0.85rem;
-  flex-shrink: 0;
+.page-home :deep(.ant-card-head) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 24px;
 }
 
-@media (max-width: 520px) {
-  .projects-preview {
-    grid-template-columns: 1fr;
+.page-home :deep(.ant-card-head-title) {
+  font-weight: 600;
+  font-size: 16px;
+  color: #202124;
+}
+
+.page-home :deep(.ant-card-body) {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .hero-card :deep(.ant-card-body) {
+    padding: 20px;
+  }
+  
+  .hero-content {
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  
+  .stat-item {
+    text-align: center;
+  }
+  
+  .category-count {
+    font-size: 22px;
+  }
+  
+  .hero-card :deep(.ant-btn) {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 13px;
+  }
+  
+  .page-home :deep(.ant-card-body) {
+    padding: 16px;
+  }
+  
+  .page-home :deep(.ant-card-head) {
+    padding: 12px 16px;
+  }
+  
+  .article-item {
+    padding: 12px 16px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 20px !important;
+  }
+  
+  .hero-title {
+    font-size: 20px !important;
+  }
+  
+  .category-card {
+    border-radius: 12px;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-4px) scale(1.01);
   }
 }
 </style>

@@ -1,75 +1,148 @@
 <template>
   <div class="page-learning">
-    <div class="content-wrapper">
-      <div class="learning-header">
-        <h2 class="page-title">{{ pageTitle }}</h2>
-        <div v-if="isSearching" class="search-hint">
-          搜索：{{ searchQuery }}
-          <span class="clear-search" @click="router.push({ path: '/learning' })">清除</span>
+    <a-card :bordered="false" class="header-card">
+      <div class="header-content">
+        <div class="header-left">
+          <a-typography-title :level="4" style="margin: 0">文章分类</a-typography-title>
+          <template v-if="isSearching">
+            <a-tag color="blue" closable @close="router.push({ path: '/learning' })">
+              搜索：{{ searchQuery }}
+            </a-tag>
+          </template>
+        </div>
+        <div class="header-right">
+          <a-breadcrumb v-if="!isSearching">
+            <a-breadcrumb-item>
+              <a @click="router.push(rootPath)">全部</a>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item v-if="route.params.big">
+              <a @click="router.push(`${rootPath}/${route.params.big}`)">{{ currentBigName }}</a>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item v-if="route.params.tech">
+              <a @click="router.push(`${rootPath}/${route.params.big}/${route.params.tech}`)">{{ currentTechName }}</a>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item v-if="route.params.theme">
+              {{ currentThemeName }}
+            </a-breadcrumb-item>
+          </a-breadcrumb>
         </div>
       </div>
+    </a-card>
 
-      <div v-if="!isSearching" class="node-grid">
-        <div 
-          v-for="node in rootNodes" 
-          :key="node.path" 
-          :class="['node-card', { active: isActiveNode(node.path) }]"
-          @click="navigateToNode(node.path)"
-        >
-          {{ node.name }}
-        </div>
-      </div>
-
-      <div v-if="!isSearching && hasBigCategory" class="node-grid sub-grid">
-        <div 
-          v-for="node in currentNodes" 
-          :key="node.path" 
-          :class="['node-card', { active: isActiveNode(node.path) }]"
-          @click="navigateToNode(node.path)"
-        >
-          {{ node.name }}
-        </div>
-      </div>
-
-      <div v-if="!isSearching && hasTechCategory" class="node-grid sub-grid tech-grid">
-        <div 
-          v-for="node in currentTechNodes" 
-          :key="node.path" 
-          :class="['node-card', { active: isActiveNode(node.path) }]"
-          @click="navigateToNode(node.path)"
-        >
-          {{ node.name }}
-        </div>
-      </div>
-
-      <div v-if="!hasArticleDetail" class="logs-list">
-        <div class="log-item" v-for="log in pageData.items" :key="log.id" @click="openArticle(log)">
-          <div class="log-content">
-            <h3 class="log-topic">{{ log.topic }}</h3>
-            <div class="log-summary">
-              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}`)">{{ log.bigName }}</span>
-              <span class="sep">/</span>
-              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}/${log.techKey}`)">{{ log.techName }}</span>
-              <span class="sep">/</span>
-              <span class="path-link" @click.stop="router.push(`${rootPath}/${log.bigKey}/${log.techKey}/${log.themeKey}`)">{{ log.themeName }}</span>
-            </div>
-            <div class="log-meta">
-              <span class="log-date">{{ log.date }}</span>
-              <span class="read-count">👁️ {{ getViewCount(log.id) }} 阅读</span>
-            </div>
-          </div>
-          <div class="log-image" v-if="log.image">
-            <img :src="log.image" alt="topic cover" />
-          </div>
-        </div>
-        <div v-if="pageData.items.length === 0" class="empty-state">
-          暂无文章
-        </div>
-      </div>
-      <div v-else class="article-detail-container">
-        <router-view />
-      </div>
+    <div v-if="!isSearching && (currentNodes.length > 0 || isRoot)" class="node-grid">
+      <a-row :gutter="[16, 16]">
+        <a-col v-for="(node, index) in currentNodes" :key="node.path" :xs="12" :sm="8" :md="6" :lg="4">
+          <a-card 
+            hoverable 
+            class="node-card" 
+            @click="router.push(node.path)"
+            :bodyStyle="{ padding: '20px 16px' }"
+          >
+            <a-space direction="vertical" :size="12" style="width: 100%; align-items: center">
+              <a-avatar 
+                :size="48" 
+                :style="{ backgroundColor: categoryColors[index % categoryColors.length] }"
+              >
+                <template #icon>
+                  <component :is="categoryIcons[index % categoryIcons.length]" />
+                </template>
+              </a-avatar>
+              <a-typography-text strong style="font-size: 14px">{{ node.name }}</a-typography-text>
+              <a-typography-text type="secondary" style="font-size: 12px">
+                {{ getNodeArticleCount(node.path) }} 篇文章
+              </a-typography-text>
+            </a-space>
+          </a-card>
+        </a-col>
+        <a-col v-if="isRoot" :xs="12" :sm="8" :md="6" :lg="4">
+          <a-card 
+            hoverable 
+            class="node-card deploy-card" 
+            @click="router.push('/deploy')"
+            :bodyStyle="{ padding: '20px 16px' }"
+          >
+            <a-space direction="vertical" :size="12" style="width: 100%; align-items: center">
+              <a-avatar :size="48" style="background-color: #722ed1">
+                <template #icon><CloudServerOutlined /></template>
+              </a-avatar>
+              <a-typography-text strong style="font-size: 14px; color: #fff">系统部署</a-typography-text>
+              <a-typography-text style="font-size: 12px; color: rgba(255,255,255,0.85)">
+                部署指南
+              </a-typography-text>
+            </a-space>
+          </a-card>
+        </a-col>
+      </a-row>
     </div>
+
+    <a-card v-if="hasArticleDetail" :bordered="false" class="detail-card">
+      <router-view />
+    </a-card>
+
+    <a-card v-else :bordered="false" class="list-card" style="margin-top: 16px">
+      <template #title v-if="pageData.items.length > 0">
+        <a-space>
+          <FileTextOutlined />
+          <span>文章列表</span>
+          <a-tag color="blue">{{ pageData.total }} 篇</a-tag>
+        </a-space>
+      </template>
+      
+      <a-list
+        :data-source="pageData.items"
+        item-layout="horizontal"
+      >
+        <template #renderItem="{ item, index }">
+          <a-list-item @click="openArticle(item)" class="log-item">
+            <a-list-item-meta>
+              <template #title>
+                <a-space :size="8">
+                  <span class="article-index">{{ String(index + 1).padStart(2, '0') }}</span>
+                  <a-typography-text strong class="log-topic">{{ item.topic }}</a-typography-text>
+                </a-space>
+              </template>
+              <template #description>
+                <a-space :size="4" wrap>
+                  <a-tag color="processing" @click.stop="router.push(`${rootPath}/${item.bigKey}`)">
+                    <FolderOutlined /> {{ item.bigName }}
+                  </a-tag>
+                  <RightOutlined style="font-size: 10px; color: #d9d9d9" />
+                  <a-tag @click.stop="router.push(`${rootPath}/${item.bigKey}/${item.techKey}`)">
+                    {{ item.techName }}
+                  </a-tag>
+                  <RightOutlined style="font-size: 10px; color: #d9d9d9" />
+                  <a-tag color="success" @click.stop="router.push(`${rootPath}/${item.bigKey}/${item.techKey}/${item.themeKey}`)">
+                    {{ item.themeName }}
+                  </a-tag>
+                </a-space>
+              </template>
+            </a-list-item-meta>
+            <template #actions>
+              <a-space direction="vertical" :size="4" align="end">
+                <a-typography-text type="secondary" style="font-size: 12px">
+                  <CalendarOutlined /> {{ item.date }}
+                </a-typography-text>
+                <a-typography-text type="secondary" style="font-size: 12px">
+                  <EyeOutlined /> {{ getViewCount(item.id) }} 阅读
+                </a-typography-text>
+              </a-space>
+            </template>
+          </a-list-item>
+        </template>
+      </a-list>
+      
+      <a-empty v-if="pageData.items.length === 0" description="暂无文章" />
+      
+      <div v-if="pageData.totalPages > 1" class="pagination-container">
+        <a-pagination
+          v-model:current="page"
+          :total="pageData.total"
+          :page-size="pageSize"
+          show-less-items
+          :show-total="total => `共 ${total} 篇`"
+        />
+      </div>
+    </a-card>
   </div>
 </template>
 
@@ -77,6 +150,24 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getLearningLogs, getLearningChildren, getLearningRootPath, getLearningArticlesByNodePath, searchLearningArticles } from '../main/mockData.js';
+import { 
+  EyeOutlined, 
+  FileTextOutlined, 
+  FolderOutlined,
+  CalendarOutlined,
+  RightOutlined,
+  CloudServerOutlined,
+  CodeOutlined,
+  DatabaseOutlined,
+  CalculatorOutlined,
+  ToolOutlined,
+  RocketOutlined,
+  ApiOutlined,
+  SafetyOutlined,
+  MobileOutlined,
+  DesktopOutlined,
+  CloudOutlined
+} from '@ant-design/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -84,10 +175,25 @@ const router = useRouter();
 const allLogs = ref(getLearningLogs());
 const rootPath = getLearningRootPath();
 
-// 真正持久化的阅读量记录逻辑
+const categoryColors = [
+  '#1890ff', '#52c41a', '#722ed1', '#fa8c16', '#eb2f96', '#13c2c2'
+];
+
+const categoryIcons = [
+  CodeOutlined,
+  DatabaseOutlined, 
+  CalculatorOutlined,
+  ToolOutlined,
+  RocketOutlined,
+  ApiOutlined
+];
+
+const getNodeArticleCount = (nodePath) => {
+  return getLearningArticlesByNodePath(nodePath, 1, 1).total;
+};
+
 const STORAGE_KEY = 'blog_view_counts_data_v2';
 
-// 初始数据加载
 const initialCounts = (() => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
@@ -100,11 +206,9 @@ const initialCounts = (() => {
   return {};
 })();
 
-// 使用 ref 包裹，并立即保存初始状态
 const viewCounts = ref(initialCounts);
 
 const getViewCount = (id) => {
-  // 如果当前 ID 还没有记录，则生成一个固定的初始随机数
   if (viewCounts.value[id] === undefined) {
     viewCounts.value[id] = Math.floor(Math.random() * 500) + 200;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(viewCounts.value));
@@ -127,7 +231,6 @@ onMounted(() => {
       }
     });
     if (hasChanged) {
-      // 强制更新并保存，确保响应式和持久化同步
       viewCounts.value = { ...viewCounts.value };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(viewCounts.value));
     }
@@ -148,46 +251,18 @@ const currentNodePath = computed(() => {
   return rootPath;
 });
 
-const currentNodes = computed(() => {
-  const big = route.params.big;
-  if (!big) return [];
-  return getLearningChildren(`${rootPath}/${big}`);
-});
-const rootNodes = computed(() => getLearningChildren(rootPath));
-
-const currentTechNodes = computed(() => {
-  const big = route.params.big;
-  if (!big) return [];
-  const tech = route.params.tech;
-  if (!tech) return [];
-  return getLearningChildren(`${rootPath}/${big}/${tech}`);
-});
-
+const currentNodes = computed(() => getLearningChildren(currentNodePath.value));
 const searchQuery = computed(() => String(route.query.q ?? '').trim());
 const isSearching = computed(() => searchQuery.value.length > 0);
 const isRoot = computed(() => !route.params.big && !route.params.tech && !route.params.theme && !isSearching.value);
-const hasBigCategory = computed(() => !!route.params.big);
-const hasTechCategory = computed(() => !!route.params.big && !!route.params.tech);
-
-const isActiveNode = (path) => {
-  return route.path === path || route.path.startsWith(path + '/');
-};
-
-const navigateToNode = (path) => {
-  router.push(path);
-};
 
 const hasArticleDetail = computed(() => {
-  const pathSegments = route.path.split('/').filter(Boolean);
-  
   if (route.params.id) {
     return true;
   }
-  
   if (route.params.slug && route.params.big && route.params.tech && route.params.theme) {
     return true;
   }
-  
   return false;
 });
 
@@ -215,22 +290,6 @@ const currentThemeName = computed(() => {
   return found?.name ?? String(theme);
 });
 
-const pageTitle = computed(() => {
-  if (isSearching.value) {
-    return `搜索：${searchQuery.value}`;
-  }
-  if (route.params.theme) {
-    return currentThemeName.value;
-  }
-  if (route.params.tech) {
-    return currentTechName.value;
-  }
-  if (route.params.big) {
-    return currentBigName.value;
-  }
-  return '文章分类';
-});
-
 const page = ref(1);
 const pageSize = ref(10);
 
@@ -240,14 +299,6 @@ watch(currentNodePath, () => {
 
 watch(searchQuery, () => {
   page.value = 1;
-});
-
-watch(pageTitle, (newTitle) => {
-  document.title = newTitle;
-}, { immediate: true });
-
-onUnmounted(() => {
-  document.title = '文章分类';
 });
 
 const searchResults = computed(() => searchLearningArticles(searchQuery.value, 50));
@@ -271,248 +322,271 @@ const pageData = computed(() => {
 });
 
 const openArticle = (log) => {
-  router.push(log.route);
+  router.push(log.detailRoute || log.route);
 };
 </script>
 
 <style scoped>
-.empty-state {
-  text-align: center;
-  padding: 60px 0;
-  color: #999;
-  font-size: 0.95rem;
-}
-
 .page-learning {
   padding: 0;
-  min-height: 100%;
 }
 
-.content-wrapper {
-  max-width: 800px; /* 文章列表通常窄一点，方便阅读 */
-  margin: 0 auto;
+.header-card {
+  margin-bottom: 16px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.learning-header {
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f1f1;
-  margin-bottom: 20px;
+.header-card :deep(.ant-card-body) {
+  padding: 16px 24px;
 }
 
-.page-title {
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-.breadcrumb {
+.header-content {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
   align-items: center;
-  color: #71777c;
-  font-size: 0.95rem;
+  gap: 16px;
 }
 
-.search-hint {
-  margin-bottom: 10px;
-  color: #71777c;
-  font-size: 0.9rem;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.clear-search {
-  margin-left: 10px;
-  color: #00c3ff;
-  cursor: pointer;
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
-.clear-search:hover {
-  text-decoration: underline;
+.header-right :deep(.ant-breadcrumb) {
+  font-size: 13px;
 }
 
-.crumb {
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background 0.2s, color 0.2s;
+.header-right :deep(.ant-breadcrumb a) {
+  color: #5f6368;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.crumb:hover {
-  background: rgba(0, 195, 255, 0.1);
-  color: #00c3ff;
-}
-
-.crumb.active {
-  cursor: default;
-  background: rgba(0, 195, 255, 0.1);
-  color: #00c3ff;
-  font-weight: 600;
-}
-
-.sep {
-  color: #c0c4cc;
+.header-right :deep(.ant-breadcrumb a:hover) {
+  color: #1a73e8;
 }
 
 .node-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0;
-  border-top: 1px solid #f1f1f1;
-  border-left: 1px solid #f1f1f1;
-}
-
-.sub-grid {
-  margin-top: 16px;
-}
-
-.tech-grid {
-  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 .node-card {
-  background: transparent;
-  border-right: 1px solid #f1f1f1;
-  border-bottom: 1px solid #f1f1f1;
-  border-radius: 0;
-  padding: 10px 8px;
-  cursor: pointer;
-  transition: color 0.15s;
   text-align: center;
-  position: relative;
-  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .node-card:hover {
-  color: #00c3ff;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(26, 115, 232, 0.15);
+  border-color: rgba(26, 115, 232, 0.3);
 }
 
-.node-card.active {
-  color: #00c3ff;
-  font-weight: 600;
+.node-card:active {
+  transform: translateY(-4px) scale(1.01);
 }
 
-.node-card.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 2px;
-  background: #00c3ff;
+.deploy-card {
+  background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+  border: none;
 }
 
-.node-name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
+.deploy-card:hover {
+  box-shadow: 0 16px 32px rgba(26, 115, 232, 0.3);
 }
 
-.node-sub {
-  font-size: 0.85rem;
-  color: #909090;
+.deploy-card :deep(.ant-typography) {
+  color: #fff;
 }
 
-.filter-item {
-  font-size: 0.95rem;
-  color: #71777c;
-  cursor: pointer;
-  transition: color 0.2s;
-  padding: 4px 8px;
-  border-radius: 4px;
+.detail-card {
+  min-height: 400px;
 }
 
-.filter-item.active {
-  color: #00c3ff;
-  background: rgba(0, 195, 255, 0.1);
-  font-weight: 600;
+.list-card :deep(.ant-card-body) {
+  padding: 0;
 }
 
-.filter-item:hover {
-  color: #00c3ff;
-}
-
-.logs-list {
-  display: flex;
-  flex-direction: column;
+.list-card :deep(.ant-card-head) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .log-item {
-  background: #fff;
-  padding: 20px;
-  border-top: 1px solid #f1f1f1;
-  border-bottom: 1px solid #f1f1f1;
-  display: flex;
-  gap: 20px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 20px 24px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.log-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1a73e8;
+  transform: scaleY(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .log-item:hover {
-  background: #fafafa;
+  background: rgba(26, 115, 232, 0.04);
 }
 
-.log-content {
-  flex: 1;
+.log-item:hover::before {
+  transform: scaleY(1);
+}
+
+.log-item:active {
+  background: rgba(26, 115, 232, 0.08);
 }
 
 .log-topic {
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 10px;
+  font-size: 15px;
+  color: #202124;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.log-summary {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #71777c;
-  font-size: 0.9rem;
+.log-topic:hover {
+  color: #1a73e8;
 }
 
-.path-link {
-  color: #00c3ff;
+.log-item :deep(.ant-tag) {
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background 0.2s;
 }
 
-.path-link:hover {
-  background: rgba(0, 195, 255, 0.1);
+.log-item :deep(.ant-tag:hover) {
+  transform: scale(1.05);
 }
 
-.log-meta {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 0.85rem;
-  color: #909090;
-}
-
-.category-tag {
-  color: #00c3ff;
+.article-index {
+  display: inline-block;
+  min-width: 24px;
+  font-size: 12px;
   font-weight: 600;
+  color: #bfbfbf;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  text-align: right;
+  margin-right: 4px;
 }
 
-.log-image {
-  width: 120px;
-  height: 80px;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #eee;
+.pagination-container {
+  padding: 20px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.log-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.pagination-container :deep(.ant-pagination-item) {
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.article-detail-container {
-  padding: 20px 0;
+.pagination-container :deep(.ant-pagination-item:hover) {
+  border-color: #1a73e8;
+}
+
+.pagination-container :deep(.ant-pagination-item a) {
+  color: #5f6368;
+}
+
+.pagination-container :deep(.ant-pagination-item:hover a) {
+  color: #1a73e8;
+}
+
+.pagination-container :deep(.ant-pagination-item-active) {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+}
+
+.pagination-container :deep(.ant-pagination-item-active a) {
+  color: #fff;
+}
+
+.list-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 768px) {
+  .header-card :deep(.ant-card-body) {
+    padding: 12px 16px;
+  }
+  
+  .log-item {
+    padding: 12px 16px !important;
+  }
+  
+  .pagination-container {
+    padding: 12px 16px;
+  }
+  
+  .node-card :deep(.ant-card-body) {
+    padding: 16px 12px !important;
+  }
+  
+  .node-card {
+    border-radius: 12px;
+  }
+  
+  .node-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .header-right :deep(.ant-breadcrumb) {
+    font-size: 12px;
+  }
+  
+  .log-item :deep(.ant-tag) {
+    font-size: 11px;
+    padding: 1px 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .article-index {
+    font-size: 11px;
+    min-width: 20px;
+  }
+  
+  .log-topic {
+    font-size: 14px;
+  }
+  
+  .pagination-container :deep(.ant-pagination) {
+    font-size: 12px;
+  }
+  
+  .pagination-container :deep(.ant-pagination-item) {
+    min-width: 28px;
+    height: 28px;
+    line-height: 26px;
+  }
 }
 </style>

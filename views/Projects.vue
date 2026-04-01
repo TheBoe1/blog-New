@@ -1,222 +1,160 @@
 <template>
   <div class="page-projects">
-    <div class="content-wrapper">
-      <!-- 只有在专题列表页才显示头部 -->
-      <template v-if="!$route.params.id">
-        <div class="projects-header">
-          <h2 class="page-title">专题看板</h2>
-          <p class="page-subtitle">技术专题归档与深度解析</p>
-        </div>
-        
-        <div class="projects-grid">
-          <div class="project-card section-card" v-for="project in projects" :key="project.id" @click="$router.push(`/projects/${project.id}`)">
-            <div class="project-header">
-              <h3 class="project-name">{{ project.name }}</h3>
-              <span class="project-status">进行中</span>
-            </div>
-            
-            <div class="project-section">
-              <h4 class="section-label">核心要点</h4>
-              <ul class="feature-list">
-                <li v-for="(feat, idx) in project.features.slice(0, 3)" :key="idx">{{ feat }}</li>
-              </ul>
-            </div>
+    <template v-if="!$route.params.id">
+      <a-card title="专题看板" :bordered="false" class="header-card">
+        <template #extra>
+          <a-typography-text type="secondary">技术专题归档与深度解析</a-typography-text>
+        </template>
+      </a-card>
 
-            <div class="project-section">
-              <h4 class="section-label">涉及技术</h4>
-              <div class="tech-tags">
-                <span class="tech-tag" v-for="(stack, idx) in project.techStack" :key="idx">{{ stack }}</span>
-              </div>
-            </div>
+      <a-row :gutter="[16, 16]" style="margin-top: 16px">
+        <a-col v-for="project in projects" :key="project.id" :xs="24" :sm="12" :md="8" :lg="8">
+          <a-card hoverable class="project-card" @click="router.push(`/projects/${project.id}`)">
+            <template #title>
+              <a-space>
+                <a-typography-text strong>{{ project.name }}</a-typography-text>
+                <a-tag color="processing">进行中</a-tag>
+              </a-space>
+            </template>
+            <template #extra>
+              <RightOutlined />
+            </template>
             
-            <div class="project-footer">
-              <span class="view-detail">查看专题详情</span>
-            </div>
-          </div>
-        </div>
-      </template>
+            <a-typography-text type="secondary" class="project-desc">
+              {{ project.desc }}
+            </a-typography-text>
+            
+            <a-divider style="margin: 12px 0" />
+            
+            <a-typography-title :level="5" style="margin-bottom: 8px">核心要点</a-typography-title>
+            <a-list :data-source="project.features.slice(0, 3)" size="small">
+              <template #renderItem="{ item }">
+                <a-list-item style="padding: 4px 0; border: none">
+                  <CheckCircleOutlined style="color: #52c41a; margin-right: 8px" />
+                  <span>{{ item }}</span>
+                </a-list-item>
+              </template>
+            </a-list>
+            
+            <a-divider style="margin: 12px 0" />
+            
+            <a-typography-title :level="5" style="margin-bottom: 8px">涉及技术</a-typography-title>
+            <a-space wrap>
+              <a-tag v-for="(stack, idx) in project.techStack.slice(0, 3)" :key="idx" color="blue">
+                {{ stack }}
+              </a-tag>
+            </a-space>
+          </a-card>
+        </a-col>
+      </a-row>
+    </template>
 
-      <!-- 进入专题详情（子路由）时，直接显示内容容器 -->
-      <div v-else class="detail-container">
-        <router-view />
-      </div>
+    <div v-else class="detail-container">
+      <router-view />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { getProjectList } from '../main/mockData.js';
+import { RightOutlined, CheckCircleOutlined } from '@ant-design/icons-vue';
 
-const route = useRoute();
+const router = useRouter();
 const projects = ref(getProjectList());
-
-onMounted(() => {
-  if (route.params.id) {
-    const project = projects.value.find(p => p.id === parseInt(route.params.id));
-    if (project) {
-      document.title = project.name;
-    }
-  } else {
-    document.title = '专题看板';
-  }
-});
-
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    const project = projects.value.find(p => p.id === parseInt(newId));
-    if (project) {
-      document.title = project.name;
-    }
-  } else {
-    document.title = '专题看板';
-  }
-});
-
-onUnmounted(() => {
-  document.title = '文章分类';
-});
 </script>
 
 <style scoped>
 .page-projects {
   padding: 0;
-  min-height: 100%;
 }
 
-.content-wrapper {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.projects-header {
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f1f1;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-  color: #999;
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-/* 仿美团/若依卡片风格 */
-.section-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f1f1;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-}
-
-.section-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  border-color: #1890ff;
-}
-
-.project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.header-card {
   margin-bottom: 16px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.project-name {
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.project-status {
-  font-size: 0.75rem;
-  background: #e6f7ff;
-  color: #1890ff;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid #91d5ff;
-}
-
-.project-section {
-  margin-bottom: 16px;
-}
-
-.section-label {
-  font-size: 0.8rem;
+.header-card :deep(.ant-card-head-title) {
   font-weight: 600;
-  color: #999;
-  margin-bottom: 10px;
+  font-size: 18px;
+  color: #202124;
 }
 
-.feature-list {
-  list-style: none;
+.project-card {
+  height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.project-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(26, 115, 232, 0.15);
+  border-color: rgba(26, 115, 232, 0.3);
+}
+
+.project-card:active {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.project-card :deep(.ant-card-head-title) {
+  font-weight: 600;
+  color: #202124;
+}
+
+.project-card :deep(.ant-tag) {
+  border-radius: 12px;
+  border: none;
+}
+
+.project-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #5f6368;
+  line-height: 1.6;
+}
+
+.project-card :deep(.ant-list-item) {
+  padding: 4px 0;
+}
+
+.project-card :deep(.anticon-check-circle) {
+  color: #34a853;
+}
+
+.detail-container {
   padding: 0;
-  margin: 0;
 }
 
-.feature-list li {
-  color: #666;
-  font-size: 0.85rem;
-  padding-left: 15px;
-  position: relative;
-  margin-bottom: 6px;
+@media (max-width: 768px) {
+  .project-card {
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+  
+  .project-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+  
+  .header-card {
+    border-radius: 12px;
+  }
 }
 
-.feature-list li::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  background: #1890ff;
-  border-radius: 50%;
-  position: absolute;
-  left: 0;
-  top: 7px;
-}
-
-.tech-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tech-tag {
-  background: #f5f5f5;
-  color: #666;
-  padding: 2px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.project-footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid #f5f5f5;
-  text-align: right;
-}
-
-.view-detail {
-  font-size: 0.85rem;
-  color: #1890ff;
-  font-weight: 600;
+@media (max-width: 576px) {
+  .project-card :deep(.ant-card-head-title) {
+    font-size: 14px;
+  }
+  
+  .project-card :deep(.ant-tag) {
+    font-size: 11px;
+    padding: 1px 8px;
+  }
 }
 </style>

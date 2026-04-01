@@ -1,365 +1,629 @@
 <template>
-  <div class="app-layout">
-    <!-- 侧边栏 - 仿若依风格 -->
-    <aside class="sidebar">
+  <a-layout class="app-layout">
+    <a-layout-sider
+      v-model:collapsed="collapsed"
+      :trigger="null"
+      collapsible
+      :width="220"
+      :collapsedWidth="80"
+      class="app-sider"
+      breakpoint="lg"
+      @collapse="onCollapse"
+    >
       <div class="logo-container">
-        <div class="logo">LianLab <span class="v-tag">v1.2</span></div>
+        <div class="logo">
+          <span v-if="!collapsed">LianLab</span>
+          <span v-else>L</span>
+          <a-tag v-if="!collapsed" color="blue" class="v-tag">v1.2</a-tag>
+        </div>
+        <a-tooltip v-if="!collapsed" :title="collapsed ? '展开专栏' : '收起专栏'">
+          <span class="collapse-btn" @click="toggleSidebar">
+            <MenuFoldOutlined v-if="!collapsed" />
+            <MenuUnfoldOutlined v-else />
+          </span>
+        </a-tooltip>
       </div>
-      <div class="menu-list">
-        <router-link to="/" class="menu-item">
-          <span class="icon">🏠</span>
-          <span class="label">首页</span>
-        </router-link>
-        <router-link to="/learning" class="menu-item">
-          <span class="icon">📄</span>
-          <span class="label">文章列表</span>
-        </router-link>
-        <router-link to="/projects" class="menu-item">
-          <span class="icon">📂</span>
-          <span class="label">专题看板</span>
-        </router-link>
+      <a-menu
+        v-model:selectedKeys="selectedKeys"
+        mode="inline"
+        :theme="theme"
+        class="app-menu"
+        :inlineIndent="16"
+      >
+        <a-menu-item key="/" @click="navigateTo('/')">
+          <template #icon><HomeOutlined /></template>
+          <span>首页</span>
+        </a-menu-item>
+        <a-menu-item key="/learning" @click="navigateTo('/learning')">
+          <template #icon>
+            <a-badge :count="0" :offset="[10, 0]" size="small">
+              <FileTextOutlined />
+            </a-badge>
+          </template>
+          <span>文章列表</span>
+        </a-menu-item>
+        <a-menu-item key="/projects" @click="navigateTo('/projects')">
+          <template #icon><AppstoreOutlined /></template>
+          <span>专题看板</span>
+        </a-menu-item>
         
-        <div class="menu-divider">外部项目</div>
+        <a-menu-divider />
+        <a-menu-item-group v-if="!collapsed" title="外部项目">
+          <a-menu-item key="carbon" class="external-menu-item" @click="openExternal('https://lianlab.top/carbon/')">
+            <template #icon><SettingOutlined /></template>
+            <span>管理系统</span>
+            <ExportOutlined class="external-icon" />
+          </a-menu-item>
+          <a-menu-item key="visual" class="external-menu-item" @click="openExternal('https://lianlab.top/Visual/')">
+            <template #icon><BarChartOutlined /></template>
+            <span>可视化平台</span>
+            <ExportOutlined class="external-icon" />
+          </a-menu-item>
+        </a-menu-item-group>
         
-        <a href="https://lianlab.top/carbon/" class="menu-item external" target="_blank" rel="noopener noreferrer">
-          <span class="icon">⚙️</span>
-          <span class="label">管理系统</span>
-        </a>
-        <a href="https://lianlab.top/Visual/" class="menu-item external" target="_blank" rel="noopener noreferrer">
-          <span class="icon">📊</span>
-          <span class="label">可视化平台</span>
-        </a>
+        <a-menu-divider v-if="collapsed" />
+        <a-tooltip v-if="collapsed" placement="right" title="管理系统">
+          <a-menu-item key="carbon-collapsed" @click="openExternal('https://lianlab.top/carbon/')">
+            <template #icon><SettingOutlined /></template>
+          </a-menu-item>
+        </a-tooltip>
+        <a-tooltip v-if="collapsed" placement="right" title="可视化平台">
+          <a-menu-item key="visual-collapsed" @click="openExternal('https://lianlab.top/Visual/')">
+            <template #icon><BarChartOutlined /></template>
+          </a-menu-item>
+        </a-tooltip>
+        
+        <a-menu-item key="/about" class="bottom-menu" @click="navigateTo('/about')">
+          <template #icon><InfoCircleOutlined /></template>
+          <span>关于系统</span>
+        </a-menu-item>
+      </a-menu>
+    </a-layout-sider>
 
-        <router-link to="/about" class="menu-item bottom">
-          <span class="icon">ℹ️</span>
-          <span class="label">关于系统</span>
-        </router-link>
-      </div>
-    </aside>
-
-    <div class="main-wrapper">
-      <!-- 顶部栏 - 仿美团简洁风格 -->
-      <header class="top-header">
+    <a-layout class="main-layout">
+      <a-layout-header class="app-header">
         <div class="header-left">
-          <div class="breadcrumb">怜言语记</div>
+          <a-tooltip :title="collapsed ? '展开菜单' : '收起菜单'">
+            <span class="trigger" @click="collapsed = !collapsed">
+              <MenuUnfoldOutlined v-if="collapsed" />
+              <MenuFoldOutlined v-else />
+            </span>
+          </a-tooltip>
+          <a-breadcrumb class="header-breadcrumb">
+            <a-breadcrumb-item>
+              <router-link to="/"><HomeOutlined /> 怜言语记</router-link>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item v-if="currentRouteName">
+              {{ currentRouteName }}
+            </a-breadcrumb-item>
+          </a-breadcrumb>
         </div>
         <div class="header-right">
-          <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input
-              v-model="q"
-              type="text"
-              placeholder="搜索技术文章..."
-              @focus="openSuggest"
-              @blur="closeSuggest"
-              @keydown.enter="goSearch"
-              @keydown.esc="hideSuggest"
-            />
-            <div v-if="showSuggest && suggestions.length" class="suggest-panel">
-              <div
-                v-for="item in suggestions"
-                :key="item.route"
-                class="suggest-item"
-                @mousedown="goDetail(item)"
-              >
-                <div class="suggest-title">{{ item.title }}</div>
-                <div class="suggest-meta">{{ item.bigName }} / {{ item.techName }} / {{ item.themeName }}</div>
-              </div>
-              <div class="suggest-footer" @mousedown="goSearch">查看全部结果</div>
-            </div>
+          <a-input-search
+            v-model:value="searchValue"
+            placeholder="搜索技术文章..."
+            style="width: 280px"
+            @search="onSearchSelect"
+            @focus="showSearchDropdown = true"
+            @blur="hideSearchDropdown"
+            allow-clear
+          >
+            <template #prefix>
+              <SearchOutlined style="color: #bfbfbf" />
+            </template>
+          </a-input-search>
+          <div v-if="showSearchDropdown && searchOptions.length > 0" class="search-dropdown">
+            <a-list :data-source="searchOptions" size="small">
+              <template #renderItem="{ item }">
+                <a-list-item @click="selectSearchItem(item)" class="search-item">
+                  <a-list-item-meta :description="item.meta">
+                    <template #title>
+                      <span v-html="highlightText(item.title, searchValue)"></span>
+                    </template>
+                  </a-list-item-meta>
+                </a-list-item>
+              </template>
+            </a-list>
           </div>
         </div>
-      </header>
+      </a-layout-header>
 
-      <!-- 内容区 - 美团背景色与容器布局 -->
-      <main class="content-area">
+      <a-layout-content class="app-content">
         <div class="content-container">
-          <router-view />
+          <router-view v-slot="{ Component }">
+            <transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
         </div>
-      </main>
+      </a-layout-content>
 
-      <footer class="app-footer">
-        <p>© 2026 怜言语记. 助力技术成长与沉淀.</p>
-      </footer>
-    </div>
-  </div>
+      <a-layout-footer class="app-footer">
+        <a-space split>
+          <span>&copy; 2026 怜言语记</span>
+          <a href="https://github.com/TheBoe1" rel="noopener noreferrer">
+            <GithubOutlined /> GitHub
+          </a>
+        </a-space>
+      </a-layout-footer>
+    </a-layout>
+  </a-layout>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { searchLearningArticles } from '../main/mockData.js';
+import {
+  HomeOutlined,
+  FileTextOutlined,
+  AppstoreOutlined,
+  SettingOutlined,
+  BarChartOutlined,
+  InfoCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SearchOutlined,
+  ExportOutlined,
+  GithubOutlined
+} from '@ant-design/icons-vue';
 
 const router = useRouter();
-const q = ref('');
-const showSuggest = ref(false);
-let blurTimer = null;
+const route = useRoute();
 
-const suggestions = computed(() => {
-  const keyword = q.value.trim();
-  if (!keyword) return [];
-  return searchLearningArticles(keyword, 8);
+const collapsed = ref(false);
+const selectedKeys = ref(['/']);
+const theme = ref('light');
+const searchValue = ref('');
+const searchOptions = ref([]);
+const showSearchDropdown = ref(false);
+
+const routeNameMap = {
+  '/': '首页',
+  '/learning': '文章列表',
+  '/projects': '专题看板',
+  '/about': '关于系统',
+  '/deploy': '系统部署',
+  '/git': 'Git教程',
+  '/questions': '常见问题'
+};
+
+const currentRouteName = computed(() => {
+  const path = route.path;
+  if (path.startsWith('/learning')) return '文章列表';
+  if (path.startsWith('/projects')) return '专题看板';
+  return routeNameMap[path] || '';
 });
 
-watch(q, (val) => {
-  if (val && val.trim()) {
-    showSuggest.value = true;
-  } else {
-    showSuggest.value = false;
+const navigateTo = (path) => {
+  selectedKeys.value = [path];
+  router.push(path);
+};
+
+const openExternal = (url) => {
+  window.location.href = url;
+};
+
+const toggleSidebar = () => {
+  collapsed.value = !collapsed.value;
+};
+
+const onCollapse = (collapsedValue) => {
+  collapsed.value = collapsedValue;
+};
+
+const onSearch = (value) => {
+  if (!value.trim()) {
+    searchOptions.value = [];
+    return;
   }
+  const results = searchLearningArticles(value, 8);
+  searchOptions.value = results.map(item => ({
+    value: item.route,
+    title: item.title,
+    meta: `${item.bigName} / ${item.techName} / ${item.themeName}`
+  }));
+};
+
+watch(searchValue, (value) => {
+  onSearch(value);
 });
 
-const hideSuggest = () => {
-  showSuggest.value = false;
+const onSearchSelect = (value) => {
+  if (value && searchOptions.value.length > 0) {
+    selectSearchItem(searchOptions.value[0]);
+  }
 };
 
-const openSuggest = () => {
-  if (blurTimer) clearTimeout(blurTimer);
-  if (q.value.trim() && suggestions.value.length) showSuggest.value = true;
+const selectSearchItem = (item) => {
+  searchValue.value = '';
+  searchOptions.value = [];
+  showSearchDropdown.value = false;
+  router.push(item.value);
 };
 
-const closeSuggest = () => {
-  if (blurTimer) clearTimeout(blurTimer);
-  blurTimer = setTimeout(() => {
-    showSuggest.value = false;
-  }, 120);
+const hideSearchDropdown = () => {
+  setTimeout(() => {
+    showSearchDropdown.value = false;
+  }, 200);
 };
 
-const goDetail = (item) => {
-  q.value = '';
-  showSuggest.value = false;
-  router.push(item.route);
+const highlightText = (text, keyword) => {
+  if (!keyword) return text;
+  const regex = new RegExp(`(${keyword})`, 'gi');
+  return text.replace(regex, '<span style="color: #667eea; font-weight: 600">$1</span>');
 };
 
-const goSearch = () => {
-  const keyword = q.value.trim();
-  if (!keyword) return;
-  showSuggest.value = false;
-  router.push({ path: '/learning', query: { q: keyword } });
+watch(() => route.path, (newPath) => {
+  if (newPath.startsWith('/learning/')) {
+    selectedKeys.value = ['/learning'];
+  } else if (newPath.startsWith('/projects/')) {
+    selectedKeys.value = ['/projects'];
+  } else {
+    selectedKeys.value = [newPath];
+  }
+}, { immediate: true });
+
+const handleResize = () => {
+  if (window.innerWidth < 992) {
+    collapsed.value = true;
+  }
 };
 
-const openInNewTab = (path) => {
-  const href = router.resolve(path).href;
-  window.open(href, '_blank', 'noopener,noreferrer');
-};
+onMounted(() => {
+  handleResize();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style scoped>
-/* 整体布局 */
 .app-layout {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  background-color: #f4f5f5; /* 美团背景色 */
+  min-height: 100vh;
 }
 
-/* 侧边栏 - 调整为浅色风格以适配美团/若依整体背景 */
-.sidebar {
-  width: 220px;
-  background-color: #ffffff; /* 改为白色背景 */
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s;
-  flex-shrink: 0;
-  border-right: 1px solid #f1f1f1; /* 增加右侧分割线 */
+.app-sider {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  z-index: 10;
+  overflow: hidden;
 }
 
 .logo-container {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #f1f1f1;
-}
-
-.logo {
-  color: #333; /* 文字改为深色 */
-  font-weight: 800;
-  font-size: 1.2rem;
-}
-
-.v-tag {
-  font-size: 0.6rem;
-  background: #1890ff;
-  color: #fff;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-.menu-list {
-  flex: 1;
-  padding: 12px 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;
-  color: #666; /* 默认文字颜色 */
-  text-decoration: none;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  margin: 2px 0;
-}
-
-.menu-item .icon {
-  margin-right: 12px;
-  font-size: 1.1rem;
-  opacity: 0.7;
-}
-
-.menu-item:hover {
-  color: #1890ff;
-  background-color: #f0f7ff; /* 悬浮淡蓝色 */
-}
-
-.menu-item.router-link-active {
-  color: #1890ff;
-  background-color: #e6f7ff; /* 选中淡蓝色 */
-  border-right: 3px solid #1890ff; /* 增加右侧激活条 */
-  font-weight: 600;
-}
-
-.menu-divider {
-  padding: 20px 20px 10px;
-  font-size: 0.75rem;
-  color: #999; /* 分割线文字颜色 */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.menu-item.bottom {
-  margin-top: auto;
-  border-top: 1px solid #f1f1f1;
-}
-
-.menu-item.external {
-  color: #666;
-}
-
-.menu-item.external:hover {
-  color: #1890ff;
-}
-
-/* 右侧主区域 */
-.main-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* 顶部栏 - 仿美团简洁风格 */
-.top-header {
-  height: 60px;
-  background: #fff;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  z-index: 10;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
 }
 
-.breadcrumb {
-  color: #333;
+.logo {
+  font-size: 20px;
   font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.search-box {
+  color: #667eea;
   display: flex;
   align-items: center;
-  background: #f4f5f5;
-  padding: 6px 16px;
-  border-radius: 20px;
-  border: 1px solid #eee;
+  gap: 10px;
+  letter-spacing: -0.5px;
+  transition: all 0.3s ease;
+}
+
+.v-tag {
+  font-size: 10px;
+  border-radius: 10px;
+  padding: 0 8px;
+  height: 18px;
+  line-height: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: #fff;
+}
+
+.collapse-btn {
+  font-size: 16px;
+  cursor: pointer;
+  color: #5f6368;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.collapse-btn:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: scale(1.05);
+}
+
+.collapse-btn:active {
+  transform: scale(0.95);
+}
+
+.v-tag {
+  font-size: 10px;
+}
+
+.app-menu {
+  border-right: none;
+  height: calc(100% - 64px);
+  overflow-y: auto;
+}
+
+.app-menu :deep(.ant-menu-item-group-title) {
+  padding: 16px 16px 8px;
+  color: #5f6368;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.app-menu :deep(.ant-menu-item) {
+  margin: 2px 8px;
+  border-radius: 24px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 40px;
+  line-height: 40px;
+}
+
+.app-menu :deep(.ant-menu-item:hover) {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+}
+
+.app-menu :deep(.ant-menu-item-selected) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+}
+
+.app-menu :deep(.ant-menu-item-selected .anticon) {
+  color: #fff;
+}
+
+.external-menu-item {
   position: relative;
 }
 
-.search-box input {
-  border: none;
-  background: transparent;
-  outline: none;
-  margin-left: 8px;
-  width: 200px;
-  font-size: 0.9rem;
-}
-
-.suggest-panel {
+.external-icon {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 360px;
+  right: 12px;
+  font-size: 10px;
+  color: #5f6368;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.external-menu-item:hover .external-icon {
+  opacity: 1;
+}
+
+.bottom-menu {
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.main-layout {
+  background: #f5f5f5;
+}
+
+.app-header {
   background: #fff;
-  border: 1px solid #f1f1f1;
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  z-index: 9;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.trigger {
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px 12px;
+  border-radius: 50%;
+  position: relative;
   overflow: hidden;
-  z-index: 20;
 }
 
-.suggest-item {
-  padding: 12px 14px;
-  cursor: pointer;
-  border-bottom: 1px solid #f6f6f6;
+.trigger::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
 }
 
-.suggest-item:hover {
-  background: #fafafa;
+.trigger:hover::before {
+  width: 100%;
+  height: 100%;
 }
 
-.suggest-title {
-  color: #333;
-  font-weight: 700;
-  font-size: 0.95rem;
-  line-height: 1.3;
-  margin-bottom: 6px;
+.trigger:hover {
+  color: #667eea;
 }
 
-.suggest-meta {
-  color: #909090;
-  font-size: 0.8rem;
+.trigger:active {
+  transform: scale(0.95);
 }
 
-.suggest-footer {
-  padding: 10px 14px;
-  text-align: center;
-  color: #00c3ff;
-  cursor: pointer;
-  font-size: 0.9rem;
-  background: #fff;
+.header-breadcrumb {
+  font-weight: 600;
 }
 
-.suggest-footer:hover {
-  background: rgba(0, 195, 255, 0.06);
+.header-breadcrumb :deep(a) {
+  color: #666;
+  transition: color 0.2s;
 }
 
-/* 内容区容器布局 */
-.content-area {
-  flex: 1;
+.header-breadcrumb :deep(a:hover) {
+  color: #667eea;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
   overflow-y: auto;
-  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  margin-top: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  animation: dropdownSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-item {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 12px 16px !important;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+.search-item:hover {
+  background: rgba(102, 126, 234, 0.08);
+  transform: translateX(4px);
+}
+
+.search-item:active {
+  background: rgba(102, 126, 234, 0.12);
+}
+
+.app-content {
+  margin: 16px;
+  overflow: auto;
 }
 
 .content-container {
-  max-width: 1000px; /* 仿美团技术团队容器宽度 */
+  max-width: 1200px;
   margin: 0 auto;
-  background: transparent;
 }
 
 .app-footer {
-  padding: 10px 20px; /* 大幅压缩上下内边距 */
   text-align: center;
-  color: #ccc;
-  font-size: 0.75rem; /* 稍微再小一点 */
   background: transparent;
+  padding: 16px 24px;
 }
 
-.app-footer p {
-  margin: 0;
-  opacity: 0.5; /* 更淡一点，降低存在感 */
+.app-footer :deep(.ant-space-item) {
+  color: #999;
+  font-size: 12px;
+}
+
+.app-footer :deep(a) {
+  color: #666;
+  transition: color 0.2s;
+}
+
+.app-footer :deep(a:hover) {
+  color: #667eea;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+  }
+  
+  .header-breadcrumb {
+    display: none;
+  }
+  
+  .header-right :deep(.ant-input-search) {
+    width: 160px !important;
+  }
+  
+  .search-dropdown {
+    width: 280px;
+    right: -12px;
+  }
+  
+  .app-content {
+    margin: 8px;
+  }
+  
+  .logo {
+    font-size: 18px;
+  }
+  
+  .app-menu :deep(.ant-menu-item) {
+    margin: 2px 4px;
+    border-radius: 20px;
+    height: 36px;
+    line-height: 36px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-right :deep(.ant-input-search) {
+    width: 120px !important;
+  }
+  
+  .search-dropdown {
+    width: 240px;
+    right: -8px;
+  }
+  
+  .app-footer :deep(.ant-space) {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 </style>
