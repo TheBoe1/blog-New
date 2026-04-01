@@ -3,6 +3,21 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import type { ApiResponse } from '@/types'
 
+const WHITE_LIST = [
+  '/login',
+  '/logout',
+  '/register',
+  '/captchaImage',
+  '/api/articles',
+  '/api/categories',
+  '/api/tags',
+  '/api/page-config'
+]
+
+function isWhiteListUrl(url: string): boolean {
+  return WHITE_LIST.some(whiteUrl => url.startsWith(whiteUrl))
+}
+
 const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 30000,
@@ -15,9 +30,11 @@ instance.interceptors.request.use(
   (config) => {
     const userStore = useUserStore()
     const token = userStore.token
-    if (token && token.split('.').length === 3) {
+    
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
     return config
   },
   (error) => {
@@ -41,12 +58,26 @@ instance.interceptors.response.use(
     return Promise.reject(new Error(data.msg || data.message))
   },
   (error) => {
-    if (error.response?.status === 401) {
-      const userStore = useUserStore()
-      userStore.logout()
-      window.location.href = '/login'
+    const { response, config } = error
+    
+    if (response?.status === 401) {
+      const isWhiteUrl = isWhiteListUrl(config?.url || '')
+      
+      if (!isWhiteUrl) {
+        const userStore = useUserStore()
+        userStore.logout()
+        
+        if (window.location.pathname !== '/login') {
+          ElMessage.error('登录已过期，请重新登录')
+          window.location.href = '/login'
+        }
+      } else {
+        console.warn(`White list URL ${config?.url} returned 401, but this is allowed`)
+      }
+    } else {
+      ElMessage.error(response?.data?.msg || response?.data?.message || '网络错误')
     }
-    ElMessage.error(error.response?.data?.msg || error.response?.data?.message || '网络错误')
+    
     return Promise.reject(error)
   }
 )
