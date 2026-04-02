@@ -35,6 +35,16 @@ instance.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    } else {
+      console.warn(`[Request] No token found for ${config.url}`)
+    }
+    
+    if (import.meta.env.DEV) {
+      console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, {
+        hasToken: !!token,
+        authorization: config.headers.Authorization,
+        data: config.data
+      })
     }
     
     return config
@@ -46,7 +56,35 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { data } = response
+    const { data, config } = response
+    
+    if (data.code === 401) {
+      const isWhiteUrl = isWhiteListUrl(config?.url || '')
+      
+      console.error('[Response 401]', {
+        url: config?.url,
+        isWhiteList: isWhiteUrl,
+        message: data.msg || data.message,
+        solution: isWhiteUrl 
+          ? '后端白名单配置错误，请联系后端开发人员'
+          : 'Token已过期，请重新登录'
+      })
+      
+      if (!isWhiteUrl) {
+        const userStore = useUserStore()
+        userStore.logout()
+        
+        if (window.location.pathname !== '/login') {
+          ElMessage.error('登录已过期，请重新登录')
+          window.location.href = '/login'
+        }
+      } else {
+        ElMessage.error(`${data.msg || '认证失败'}（白名单接口不应该需要认证）`)
+      }
+      
+      return Promise.reject(new Error(data.msg || data.message))
+    }
+    
     if (data.code === 0 || data.code === 200) {
       if (data.data !== undefined) {
         return data.data
@@ -61,6 +99,20 @@ instance.interceptors.response.use(
   },
   (error) => {
     const { response, config } = error
+    
+    if (!response) {
+      if (error.code === 'ERR_NETWORK') {
+        ElMessage.error('网络连接失败，请检查网络或CORS配置')
+        console.error('CORS Error or Network Error:', {
+          url: config?.url,
+          baseURL: config?.baseURL,
+          message: '可能原因：1. 后端未启动 2. CORS配置错误 3. 网络问题'
+        })
+      } else {
+        ElMessage.error('网络错误，请稍后重试')
+      }
+      return Promise.reject(error)
+    }
     
     if (response?.status === 401) {
       const isWhiteUrl = isWhiteListUrl(config?.url || '')
