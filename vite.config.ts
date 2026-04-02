@@ -104,8 +104,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'element-plus': ['element-plus'],
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          'framework': ['vue', 'vue-router', 'pinia', 'element-plus', '@element-plus/icons-vue'],
         },
       },
     },
