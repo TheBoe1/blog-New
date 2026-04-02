@@ -5,7 +5,6 @@ import type { ApiResponse } from '@/types'
 
 const WHITE_LIST = [
   '/login',
-  '/api/login',
   '/logout',
   '/register',
   '/captchaImage',
@@ -22,7 +21,7 @@ function isWhiteListUrl(url: string): boolean {
 }
 
 const instance: AxiosInstance = axios.create({
-  baseURL: '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
