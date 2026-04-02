@@ -96,6 +96,8 @@ export interface ArticleQuery {
 export interface LoginParams {
   username: string
   password: string
+  code?: string
+  uuid?: string
 }
 
 export interface LoginResult {

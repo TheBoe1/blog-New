@@ -98,6 +98,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/settings': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   build: {

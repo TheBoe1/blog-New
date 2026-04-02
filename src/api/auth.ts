@@ -3,7 +3,7 @@ import type { User, LoginParams, LoginResult } from '@/types'
 
 export const authApi = {
   login(params: LoginParams): Promise<LoginResult> {
-    return request.post('/api/login', params).then((res: any) => {
+    return request.post('/login', params).then((res: any) => {
       return {
         token: res.token
       }

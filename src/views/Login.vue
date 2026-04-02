@@ -45,8 +45,22 @@
                 prefix-icon="Lock"
                 size="large"
                 show-password
-                @keyup.enter="handleLogin"
               />
+            </el-form-item>
+            <el-form-item prop="code">
+              <div class="captcha-row">
+                <el-input
+                  v-model="loginForm.code"
+                  placeholder="验证码"
+                  prefix-icon="Key"
+                  size="large"
+                  @keyup.enter="handleLogin"
+                />
+                <div class="captcha-img" @click="getCaptcha">
+                  <img v-if="captchaImg" :src="captchaImg" alt="验证码" />
+                  <el-icon v-else class="loading-icon"><Loading /></el-icon>
+                </div>
+              </div>
             </el-form-item>
             <el-form-item>
               <el-button
@@ -70,11 +84,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { request } from '@/api/request'
 
 const router = useRouter()
 const route = useRoute()
@@ -82,10 +97,14 @@ const userStore = useUserStore()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
+const captchaImg = ref('')
+const captchaUuid = ref('')
 
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
+  code: '',
+  uuid: ''
 })
 
 const rules: FormRules = {
@@ -94,28 +113,53 @@ const rules: FormRules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' }
   ]
+}
+
+async function getCaptcha() {
+  try {
+    const res = await request.get('/captchaImage')
+    if (res.code === 200) {
+      captchaImg.value = 'data:image/gif;base64,' + res.img
+      captchaUuid.value = res.uuid
+      loginForm.uuid = res.uuid
+    }
+  } catch (error) {
+    console.error('Failed to get captcha:', error)
+  }
 }
 
 async function handleLogin() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
+  loginForm.uuid = captchaUuid.value
+  
   loading.value = true
   try {
     await userStore.login({
       username: loginForm.username,
-      password: loginForm.password
+      password: loginForm.password,
+      code: loginForm.code,
+      uuid: loginForm.uuid
     })
     ElMessage.success('登录成功')
     const redirect = route.query.redirect as string || '/admin'
     router.push(redirect)
   } catch (error: any) {
     ElMessage.error(error.message || '登录失败，请检查用户名和密码')
+    getCaptcha()
   } finally {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  getCaptcha()
+})
 </script>
 
 <style scoped lang="scss">
@@ -218,6 +262,41 @@ async function handleLogin() {
         text-align: center;
       }
 
+      .captcha-row {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+        
+        .el-input {
+          flex: 1;
+        }
+        
+        .captcha-img {
+          width: 120px;
+          height: 40px;
+          border: 1px solid #dcdfe6;
+          border-radius: 4px;
+          cursor: pointer;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f5f7fa;
+          
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          
+          .loading-icon {
+            font-size: 20px;
+            color: #909399;
+            animation: spin 1s linear infinite;
+          }
+        }
+      }
+
       .login-tips {
         margin-top: 20px;
         text-align: center;
@@ -228,6 +307,15 @@ async function handleLogin() {
         }
       }
     }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
