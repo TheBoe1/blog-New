@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Article, Category, Tag, ArticleQuery, DashboardStats, VisitTrend } from '@/types'
-import { articleApi, categoryApi, tagApi, statsApi } from '@/api'
+import { articleApi, categoryApi, tagApi } from '@/api/article'
+import { adminArticleApi, adminCategoryApi, adminTagApi, adminStatsApi } from '@/api/admin'
 
 export const useBlogStore = defineStore('blog', () => {
   const articles = ref<Article[]>([])
@@ -25,10 +26,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function fetchArticles(params?: ArticleQuery): Promise<{ list: Article[]; total: number }> {
     loading.value = true
     try {
-      const isAdmin = params?.admin === true
-      const response = isAdmin 
-        ? await articleApi.getAdminList(params || {})
-        : await articleApi.getList(params || {})
+      const response = await articleApi.getList(params || {})
       const list = response.rows || response.list || []
       const totalNum = response.total || 0
       articles.value = list
@@ -36,6 +34,25 @@ export const useBlogStore = defineStore('blog', () => {
       return { list: articles.value, total: total.value }
     } catch (error) {
       console.error('Failed to fetch articles:', error)
+      articles.value = []
+      total.value = 0
+      return { list: [], total: 0 }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchAdminArticles(params?: ArticleQuery): Promise<{ list: Article[]; total: number }> {
+    loading.value = true
+    try {
+      const response = await adminArticleApi.getList(params || {})
+      const list = response.rows || response.list || []
+      const totalNum = response.total || 0
+      articles.value = list
+      total.value = totalNum
+      return { list: articles.value, total: total.value }
+    } catch (error) {
+      console.error('Failed to fetch admin articles:', error)
       articles.value = []
       total.value = 0
       return { list: [], total: 0 }
@@ -62,7 +79,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function createArticle(article: Partial<Article>): Promise<Article> {
     loading.value = true
     try {
-      const newArticle = await articleApi.create(article)
+      const newArticle = await adminArticleApi.create(article)
       articles.value.unshift(newArticle)
       total.value++
       return newArticle
@@ -77,7 +94,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function updateArticle(id: string, article: Partial<Article>): Promise<Article> {
     loading.value = true
     try {
-      const updatedArticle = await articleApi.update(id, article)
+      const updatedArticle = await adminArticleApi.update(id, article)
       const index = articles.value.findIndex(a => a.id === id)
       if (index !== -1) {
         articles.value[index] = updatedArticle
@@ -94,7 +111,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function deleteArticle(id: string): Promise<void> {
     loading.value = true
     try {
-      await articleApi.delete(id)
+      await adminArticleApi.delete(id)
       articles.value = articles.value.filter(a => a.id !== id)
       total.value--
     } catch (error) {
@@ -121,7 +138,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function createCategory(category: Partial<Category>): Promise<Category> {
     try {
-      const newCategory = await categoryApi.create(category)
+      const newCategory = await adminCategoryApi.create(category)
       categories.value.push(newCategory)
       return newCategory
     } catch (error) {
@@ -132,7 +149,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function updateCategory(id: string, category: Partial<Category>): Promise<Category> {
     try {
-      const updatedCategory = await categoryApi.update(id, category)
+      const updatedCategory = await adminCategoryApi.update(id, category)
       const index = categories.value.findIndex(c => c.id === id)
       if (index !== -1) {
         categories.value[index] = updatedCategory
@@ -146,7 +163,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function deleteCategory(id: string): Promise<void> {
     try {
-      await categoryApi.delete(id)
+      await adminCategoryApi.delete(id)
       categories.value = categories.value.filter(c => c.id !== id)
     } catch (error) {
       console.error('Failed to delete category:', error)
@@ -170,7 +187,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function createTag(tag: Partial<Tag>): Promise<Tag> {
     try {
-      const newTag = await tagApi.create(tag)
+      const newTag = await adminTagApi.create(tag)
       tags.value.push(newTag)
       return newTag
     } catch (error) {
@@ -181,7 +198,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function updateTag(id: string, tag: Partial<Tag>): Promise<Tag> {
     try {
-      const updatedTag = await tagApi.update(id, tag)
+      const updatedTag = await adminTagApi.update(id, tag)
       const index = tags.value.findIndex(t => t.id === id)
       if (index !== -1) {
         tags.value[index] = updatedTag
@@ -195,7 +212,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function deleteTag(id: string): Promise<void> {
     try {
-      await tagApi.delete(id)
+      await adminTagApi.delete(id)
       tags.value = tags.value.filter(t => t.id !== id)
     } catch (error) {
       console.error('Failed to delete tag:', error)
@@ -205,7 +222,19 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function fetchDashboardStats(): Promise<DashboardStats | null> {
     try {
-      dashboardStats.value = await statsApi.getDashboard()
+      const data = await adminStatsApi.getDashboard()
+      dashboardStats.value = {
+        articleCount: data.articleCount,
+        viewCount: 0,
+        likeCount: 0,
+        categoryCount: data.categoryCount,
+        tagCount: data.tagCount,
+        todayPV: data.todayPV,
+        todayUV: data.todayUV,
+        onlineUsers: 0,
+        recentArticles: data.recentArticles || [],
+        categoryStats: []
+      }
       return dashboardStats.value
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error)
@@ -215,7 +244,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function fetchVisitTrend(startDate: string, endDate: string, granularity: string = 'day'): Promise<VisitTrend[]> {
     try {
-      const response = await statsApi.getTrend({ startDate, endDate, granularity })
+      const response = await adminStatsApi.getTrend({ startDate, endDate, granularity })
       visitTrend.value = response.trend || []
       return visitTrend.value
     } catch (error) {
@@ -238,6 +267,7 @@ export const useBlogStore = defineStore('blog', () => {
     tagCount,
     recentArticles,
     fetchArticles,
+    fetchAdminArticles,
     fetchArticleById,
     createArticle,
     updateArticle,

@@ -17,7 +17,6 @@
             :to="item.path"
             class="nav-item"
             :class="{ active: isActive(item.path) }"
-            @click="handleNavClick(item)"
           >
             <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
             <span>{{ item.title }}</span>
@@ -206,16 +205,6 @@ function handleSearch() {
 function handleLogout() {
   userStore.logout()
   router.push('/')
-}
-
-function handleNavClick(item: { path: string; title: string; icon?: string }) {
-  if (item.path === '/about') {
-    try {
-      throw new Error('Failed to execute testFn: TypeError: Failed to fetch')
-    } catch (error) {
-      console.error('Navigation error:', error)
-    }
-  }
 }
 
 onMounted(async () => {

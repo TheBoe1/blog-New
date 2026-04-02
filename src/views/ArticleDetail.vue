@@ -38,13 +38,7 @@
       </div>
 
       <div class="article-sidebar">
-        <div v-if="showPublishButton" class="draft-actions">
-          <el-button type="primary" @click="handlePublishArticle" :loading="loading">
-            <el-icon><Upload /></el-icon>
-            发布
-          </el-button>
-        </div>
-        <div v-if="headings.length > 0" class="toc-wrapper" :class="{ fixed: isTocFixed }">
+        <div class="toc-wrapper" :class="{ fixed: isTocFixed }">
           <div class="toc-header">目录</div>
           <div class="toc-list">
             <div
@@ -89,11 +83,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useBlogStore } from '@/stores/blog'
-import type { Article } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,41 +96,59 @@ const contentRef = ref<HTMLElement>()
 const isTocFixed = ref(false)
 const activeHeading = ref('')
 const isLiked = ref(false)
-const loading = ref(false)
 
-const article = ref<Article>({
-  id: '',
-  title: '',
-  slug: '',
-  content: '',
-  htmlContent: '',
-  summary: '',
-  categoryId: '',
-  categoryName: '',
-  tags: [],
-  author: '',
-  authorId: '',
-  viewCount: 0,
-  likeCount: 0,
-  commentCount: 0,
-  isPublished: false,
-  isTop: false,
-  createTime: '',
-  updateTime: ''
+const article = ref({
+  id: '1',
+  title: 'Vue 3 组合式 API 最佳实践',
+  categoryName: '前端开发',
+  tags: ['Vue', 'TypeScript', '前端开发'],
+  htmlContent: `
+    <h2 id="intro">简介</h2>
+    <p>Vue 3 引入了组合式 API，这是一种全新的组件逻辑组织方式。相比选项式 API，组合式 API 提供了更好的代码组织和复用能力。</p>
+    
+    <h2 id="setup">setup 函数</h2>
+    <p>setup 是组合式 API 的入口点，在组件创建之前执行。它接收 props 和 context 作为参数，返回的对象可以在模板中使用。</p>
+    
+    <h3 id="setup-props">Props</h3>
+    <p>setup 函数的第一个参数是 props，它是响应式的，当传入的 props 发生变化时会更新。</p>
+    
+    <h3 id="setup-context">Context</h3>
+    <p>context 是一个普通的 JavaScript 对象，包含 attrs、slots、emit 和 expose 等属性。</p>
+    
+    <h2 id="reactive">响应式 API</h2>
+    <p>Vue 3 提供了多种响应式 API，包括 ref、reactive、computed、watch 等。</p>
+    
+    <h3 id="ref">ref</h3>
+    <p>ref 用于创建一个响应式的引用，可以是任何类型的值。在模板中使用时会自动解包。</p>
+    
+    <h3 id="reactive-api">reactive</h3>
+    <p>reactive 用于创建一个响应式的对象，返回原始对象的 Proxy 代理。</p>
+    
+    <h2 id="lifecycle">生命周期钩子</h2>
+    <p>在 setup 中，生命周期钩子以 on 开头的函数形式使用，如 onMounted、onUpdated 等。</p>
+    
+    <h2 id="conclusion">总结</h2>
+    <p>组合式 API 是 Vue 3 最重要的新特性之一，它提供了更灵活的代码组织方式和更好的逻辑复用能力。掌握组合式 API 是成为 Vue 3 高级开发者的必经之路。</p>
+  `,
+  viewCount: 256,
+  likeCount: 32,
+  createTime: '2024-01-15'
 })
 
-const headings = ref<{ id: string; text: string; level: number }[]>([])
+const headings = ref([
+  { id: 'intro', text: '简介', level: 2 },
+  { id: 'setup', text: 'setup 函数', level: 2 },
+  { id: 'setup-props', text: 'Props', level: 3 },
+  { id: 'setup-context', text: 'Context', level: 3 },
+  { id: 'reactive', text: '响应式 API', level: 2 },
+  { id: 'ref', text: 'ref', level: 3 },
+  { id: 'reactive-api', text: 'reactive', level: 3 },
+  { id: 'lifecycle', text: '生命周期钩子', level: 2 },
+  { id: 'conclusion', text: '总结', level: 2 }
+])
 
-const prevArticle = ref<{ id: string; title: string } | null>(null)
-const nextArticle = ref<{ id: string; title: string } | null>(null)
-
-const publishButtonText = computed(() => {
-  return article.value.isPublished ? '已发布' : '发布'
-})
-
-const showPublishButton = computed(() => {
-  return !article.value.isPublished
-})
+const prevArticle = ref({ id: '2', title: 'TypeScript 高级类型技巧' })
+const nextArticle = ref({ id: '3', title: 'Element Plus 组件库深度解析' })
 
 function scrollToHeading(id: string) {
   const element = document.getElementById(id)
@@ -194,75 +205,17 @@ function goToArticle(id: string) {
   router.push(`/article/${id}`)
 }
 
-function extractHeadings(html: string) {
-  const tempDiv = document.createElement('div')
-  tempDiv.innerHTML = html
-  const headingElements = tempDiv.querySelectorAll('h2, h3')
-  const extractedHeadings: { id: string; text: string; level: number }[] = []
+onMounted(async () => {
+  window.addEventListener('scroll', handleScroll)
   
-  headingElements.forEach((el, index) => {
-    const tagName = el.tagName.toLowerCase()
-    const level = parseInt(tagName.charAt(1))
-    const text = el.textContent || ''
-    const id = el.id || `heading-${index}`
-    if (!el.id) {
-      el.id = id
-    }
-    extractedHeadings.push({ id, text, level })
-  })
-  
-  return { headings: extractedHeadings, html: tempDiv.innerHTML }
-}
-
-async function handlePublishArticle() {
-  if (!article.value.id) return
-  try {
-    loading.value = true
-    await blogStore.updateArticle(article.value.id, { isPublished: true })
-    article.value.isPublished = true
-    ElMessage.success('文章发布成功')
-  } catch (error) {
-    ElMessage.error('发布失败，请重试')
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadArticle() {
+  // 尝试从 store 获取文章数据
   const articleId = route.params.id as string
-  if (!articleId) return
-  
-  loading.value = true
-  try {
+  if (articleId) {
     const fetchedArticle = await blogStore.fetchArticleById(articleId)
     if (fetchedArticle) {
       article.value = fetchedArticle
-      
-      if (fetchedArticle.htmlContent) {
-        const { headings: extractedHeadings, html } = extractHeadings(fetchedArticle.htmlContent)
-        headings.value = extractedHeadings
-        article.value.htmlContent = html
-      }
-      
-      const allArticles = blogStore.articles
-      const currentIndex = allArticles.findIndex(a => a.id === articleId)
-      if (currentIndex > 0) {
-        prevArticle.value = { id: allArticles[currentIndex - 1].id, title: allArticles[currentIndex - 1].title }
-      }
-      if (currentIndex >= 0 && currentIndex < allArticles.length - 1) {
-        nextArticle.value = { id: allArticles[currentIndex + 1].id, title: allArticles[currentIndex + 1].title }
-      }
     }
-  } catch (error) {
-    ElMessage.error('加载文章失败')
-  } finally {
-    loading.value = false
   }
-}
-
-onMounted(async () => {
-  window.addEventListener('scroll', handleScroll)
-  await loadArticle()
 })
 
 onUnmounted(() => {
@@ -368,17 +321,6 @@ onUnmounted(() => {
     .article-sidebar {
       width: 200px;
       flex-shrink: 0;
-
-      .draft-actions {
-        margin-bottom: 16px;
-        padding: 12px;
-        background: #f5f7fa;
-        border-radius: 8px;
-        
-        .el-button {
-          width: 100%;
-        }
-      }
 
       .toc-wrapper {
         &.fixed {

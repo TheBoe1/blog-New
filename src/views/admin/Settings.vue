@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { adminSettingsApi } from '@/api/admin'
 import { settingsApi } from '@/api/stats'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
@@ -153,7 +154,7 @@ const passwordForm = reactive({
 
 async function loadSettings() {
   try {
-    const settings = await settingsApi.getSettings() as Record<string, string>
+    const settings = await adminSettingsApi.getSettings()
     if (settings) {
       basicForm.siteName = settings.siteName || ''
       basicForm.siteDescription = settings.siteDescription || ''
@@ -164,7 +165,9 @@ async function loadSettings() {
       
       if (settings.socialLinks) {
         try {
-          const social = JSON.parse(settings.socialLinks)
+          const social = typeof settings.socialLinks === 'string' 
+            ? JSON.parse(settings.socialLinks) 
+            : settings.socialLinks
           profileForm.github = social.github || ''
           profileForm.email = social.email || ''
         } catch (e) {
@@ -186,7 +189,7 @@ async function loadSettings() {
 async function handleSaveBasic() {
   saving.value = true
   try {
-    await settingsApi.updateSettings({
+    await adminSettingsApi.updateSettings({
       siteName: basicForm.siteName,
       siteDescription: basicForm.siteDescription,
       siteKeywords: basicForm.siteKeywords,
@@ -205,7 +208,7 @@ async function handleSaveBasic() {
 async function handleSaveProfile() {
   savingProfile.value = true
   try {
-    await settingsApi.updateSettings({
+    await adminSettingsApi.updateSettings({
       socialLinks: JSON.stringify({
         github: profileForm.github,
         email: profileForm.email

@@ -206,7 +206,7 @@ async function handleDelete(id: string) {
 onMounted(async () => {
   loading.value = true
   try {
-    await blogStore.fetchArticles({ admin: true } as any)
+    await blogStore.fetchAdminArticles({})
     await blogStore.fetchCategories()
     pagination.total = blogStore.articles.length
   } finally {
