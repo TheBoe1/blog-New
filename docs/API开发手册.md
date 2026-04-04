@@ -38,8 +38,8 @@ interface PaginatedResponse<T> {
 **请求体**:
 ```json
 {
-  "username": "admin",
-  "password": "admin123"
+  "username": "your_username",
+  "password": "your_password"
 }
 ```
 

@@ -62,11 +62,13 @@
             </div>
             <h3 class="article-title">{{ article.title }}</h3>
             <p class="article-summary">{{ article.summary }}</p>
-            <div class="article-meta">
-              <span><el-icon><Calendar /></el-icon> {{ formatDate(article.createTime) }}</span>
-              <span><el-icon><View /></el-icon> {{ article.viewCount }}</span>
-            </div>
+            
           </div>
+		  <template #footer class="article-meta">
+              <span><el-icon><Calendar /></el-icon> {{ formatDate(article.createTime) }}</span>
+			  &nbsp;&nbsp;&nbsp;
+              <span><el-icon><View /></el-icon> {{ article.viewCount }}</span>
+			</template>
         </el-card>
       </div>
     </div>

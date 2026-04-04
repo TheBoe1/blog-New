@@ -74,9 +74,6 @@
               </el-button>
             </el-form-item>
           </el-form>
-          <div class="login-tips">
-            <p>测试账号：admin / admin123</p>
-          </div>
         </el-card>
       </div>
     </div>

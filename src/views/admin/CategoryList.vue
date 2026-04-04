@@ -46,7 +46,14 @@
     >
       <el-form :model="form" label-width="80px">
         <el-form-item label="分类名称" required>
-          <el-input v-model="form.name" placeholder="请输入分类名称" />
+          <el-select v-model="form.name" placeholder="请选择或输入分类名称" filterable allow-create>
+            <el-option
+              v-for="category in filteredCategories"
+              :key="category.id"
+              :label="category.name"
+              :value="category.name"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="分类别名">
           <el-input v-model="form.slug" placeholder="请输入分类别名（用于URL）" />
@@ -93,6 +100,44 @@ const form = reactive({
 
 const categories = computed(() => blogStore.categories)
 
+// 本地分类列表副本，用于下拉框
+const localCategories = ref([])
+
+// 当打开编辑对话框时，从最新的categories中获取数据
+function handleEdit(row: any) {
+  isEdit.value = true
+  // 从最新的categories中获取数据，避免使用旧的row数据
+  const category = categories.value.find(c => c.id === row.id)
+  if (category) {
+    Object.assign(form, {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      sortOrder: category.sortOrder
+    })
+  }
+  // 复制当前分类列表到本地
+  localCategories.value = [...categories.value]
+  dialogVisible.value = true
+}
+
+// 当打开新建对话框时，清空本地分类列表
+function handleCreate() {
+  resetForm()
+  isEdit.value = false
+  localCategories.value = [...categories.value]
+  dialogVisible.value = true
+}
+
+// 过滤后的本地分类列表
+const filteredCategories = computed(() => {
+  if (isEdit.value && form.id) {
+    return localCategories.value.filter(category => category.id !== form.id)
+  }
+  return localCategories.value
+})
+
 function getArticleCount(categoryId: string) {
   return blogStore.articles.filter(a => a.categoryId === categoryId).length
 }
@@ -113,23 +158,7 @@ function resetForm() {
   form.sortOrder = 0
 }
 
-function handleCreate() {
-  resetForm()
-  isEdit.value = false
-  dialogVisible.value = true
-}
 
-function handleEdit(row: any) {
-  isEdit.value = true
-  Object.assign(form, {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description,
-    sortOrder: row.sortOrder
-  })
-  dialogVisible.value = true
-}
 
 async function handleDelete(id: string) {
   const articleCount = getArticleCount(id)
@@ -140,6 +169,10 @@ async function handleDelete(id: string) {
   
   try {
     await blogStore.deleteCategory(id)
+    // 刷新分类列表
+    await blogStore.fetchCategories()
+    // 更新本地分类列表
+    localCategories.value = [...categories.value]
     ElMessage.success('分类已删除')
   } catch (error) {
     ElMessage.error('删除失败')
@@ -171,6 +204,10 @@ async function handleSubmit() {
       })
       ElMessage.success('分类已创建')
     }
+    // 刷新分类列表
+    await blogStore.fetchCategories()
+    // 更新本地分类列表
+    localCategories.value = [...categories.value]
     dialogVisible.value = false
   } catch (error) {
     ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
@@ -186,6 +223,8 @@ onMounted(async () => {
       blogStore.fetchCategories(),
       blogStore.fetchArticles({})
     ])
+    // 初始化本地分类列表
+    localCategories.value = [...categories.value]
   } finally {
     loading.value = false
   }

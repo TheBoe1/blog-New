@@ -9,6 +9,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? "https://oss.lianlab.top/main" : "/",
   plugins: [
     vue({
       template: {
@@ -57,13 +58,9 @@ export default defineConfig({
   server: {
     port: 5175,
     host: true,
+    historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/login': {
         target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,
@@ -94,11 +91,6 @@ export default defineConfig({
         secure: false,
       },
       '/captchaImage': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/settings': {
         target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,

@@ -1,23 +1,5 @@
 <template>
-  <div class="about-page" :style="globalStyles">
-    <el-alert
-      v-if="error"
-      :title="error.message"
-      type="warning"
-      :closable="false"
-      show-icon
-      class="config-error-alert"
-    >
-      <template #default>
-        <p style="margin: 0">{{ error.message }}</p>
-        <p v-if="error.isNotFound" style="margin: 8px 0 0; font-size: 13px; color: #909399;">
-          当前显示的是默认内容，您可以前往 
-          <router-link to="/admin/page-config" style="color: #667eea;">页面配置管理</router-link> 
-          创建自定义配置
-        </p>
-      </template>
-    </el-alert>
-
+  <div class="about-page">
     <div class="about-hero">
       <div class="avatar-section">
         <el-avatar :size="120" :src="userInfo.avatar">
@@ -25,18 +7,11 @@
         </el-avatar>
         <h1>{{ userInfo.nickname }}</h1>
         <p class="bio">{{ userInfo.bio }}</p>
-        <p v-if="techStackContent" class="tech-stack">{{ techStackContent }}</p>
       </div>
     </div>
 
     <div class="about-content">
-      <DynamicSection
-        v-for="section in sections"
-        :key="section.sectionKey"
-        :section="section"
-      />
-
-      <el-card v-if="!loading && sections.length === 0" shadow="never" class="info-card">
+      <el-card shadow="never" class="info-card">
         <template #header>
           <span>个人信息</span>
         </template>
@@ -60,7 +35,7 @@
         </div>
       </el-card>
 
-      <el-card v-if="!loading && sections.length === 0" shadow="never" class="skills-card">
+      <el-card shadow="never" class="skills-card">
         <template #header>
           <span>技能标签</span>
         </template>
@@ -79,7 +54,7 @@
         </div>
       </el-card>
 
-      <el-card v-if="!loading && sections.length === 0" shadow="never" class="timeline-card">
+      <el-card shadow="never" class="timeline-card">
         <template #header>
           <span>经历时间线</span>
         </template>
@@ -103,19 +78,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { settingsApi } from '@/api/stats'
 import { useUserStore } from '@/stores/user'
-import { usePageConfig } from '@/composables/usePageConfig'
-import DynamicSection from '@/components/DynamicSection.vue'
 
 const userStore = useUserStore()
-
-const { sections, globalStyles, loading, error, getElementContent } = usePageConfig('about')
-
-const techStackContent = computed(() => {
-  return getElementContent('hero-section', 'tech-stack')
-})
 
 const userInfo = ref({
   nickname: '博主',
@@ -182,14 +149,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .about-page {
-  .config-error-alert {
-    margin-bottom: 20px;
-    
-    :deep(.el-alert__content) {
-      padding: 8px 0;
-    }
-  }
-
   .about-hero {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 16px;

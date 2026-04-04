@@ -40,11 +40,26 @@ instance.interceptors.request.use(
     }
     
     if (import.meta.env.DEV) {
+      const isAdminApi = config.url?.startsWith('/api/admin')
       console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, {
         hasToken: !!token,
-        authorization: config.headers.Authorization,
-        data: config.data
+        authorization: config.headers.Authorization ? `Bearer ${token?.substring(0, 20)}...` : 'undefined',
+        data: config.data,
+        isAdminApi,
+        tokenLength: token?.length,
+        userStoreState: {
+          isLoggedIn: userStore.isLoggedIn,
+          isAdmin: userStore.isAdmin,
+          username: userStore.user?.username
+        }
       })
+      
+      if (isAdminApi && !token) {
+        console.error('[Auth Error] Admin API called without token!', {
+          url: config.url,
+          solution: 'Please login first or check token storage'
+        })
+      }
     }
     
     return config
@@ -74,12 +89,25 @@ instance.interceptors.response.use(
         const userStore = useUserStore()
         userStore.logout()
         
-        if (window.location.pathname !== '/login') {
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/unauthorized') {
           ElMessage.error('登录已过期，请重新登录')
           window.location.href = '/login'
         }
       } else {
         ElMessage.error(`${data.msg || '认证失败'}（白名单接口不应该需要认证）`)
+      }
+      
+      return Promise.reject(new Error(data.msg || data.message))
+    }
+    
+    if (data.code === 403) {
+      console.error('[Response 403] Permission denied', {
+        url: config?.url,
+        message: data.msg || data.message
+      })
+      
+      if (window.location.pathname !== '/unauthorized') {
+        window.location.href = '/unauthorized'
       }
       
       return Promise.reject(new Error(data.msg || data.message))
@@ -121,13 +149,41 @@ instance.interceptors.response.use(
         const userStore = useUserStore()
         userStore.logout()
         
-        if (window.location.pathname !== '/login') {
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/unauthorized') {
           ElMessage.error('登录已过期，请重新登录')
           window.location.href = '/login'
         }
       } else {
         console.warn(`White list URL ${config?.url} returned 401, but this is allowed`)
       }
+    } else if (response?.status === 403) {
+      console.error('[Response 403] Permission denied', {
+        url: config?.url,
+        message: response?.data?.msg || response?.data?.message
+      })
+      
+      if (window.location.pathname !== '/unauthorized') {
+        window.location.href = '/unauthorized'
+      }
+    } else if (response?.status === 500) {
+      // 检查是否是登录页面的GET请求不支持错误
+      const isLoginPageGetError = config?.url?.includes('/auth/login') && 
+                                   config?.method?.toLowerCase() === 'get' &&
+                                   window.location.pathname === '/login'
+      
+      if (isLoginPageGetError) {
+        // 登录页面刷新导致的GET请求错误，静默处理
+        console.log('Login page refresh detected, ignoring GET request error')
+        return Promise.reject(error)
+      }
+      
+      // 其他500错误，显示友好提示
+      ElMessage.error('服务器内部错误，请稍后重试或联系管理员')
+      console.error('[Response 500] Server error:', {
+        url: config?.url,
+        method: config?.method,
+        message: response?.data?.msg || response?.data?.message
+      })
     } else {
       ElMessage.error(response?.data?.msg || response?.data?.message || '网络错误')
     }

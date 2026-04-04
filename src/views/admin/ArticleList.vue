@@ -44,8 +44,11 @@
         <el-table-column prop="title" label="标题" min-width="200">
           <template #default="{ row }">
             <div class="article-title-cell">
-              <span class="title">{{ row.title }}</span>
-              <el-tag v-if="row.isTop" type="danger" size="small" effect="dark">置顶</el-tag>
+              <span v-if="row?.id" class="title" style="cursor: pointer;" @click="handleEdit(row.id)">
+                {{ row?.title || '' }}
+              </span>
+              <span v-else class="title">{{ row?.title || '' }}</span>
+              <el-tag v-if="row?.isTop" type="danger" size="small" effect="dark">置顶</el-tag>
             </div>
           </template>
         </el-table-column>
@@ -53,15 +56,17 @@
         <el-table-column prop="tags" label="标签" width="180">
           <template #default="{ row }">
             <el-tag
-              v-for="tag in (row.tags || []).slice(0, 2)"
+              v-for="tag in (row?.tags || []).slice(0, 3)"
               :key="tag"
+              :color="getTagColor(tag)"
+              effect="dark"
               size="small"
               style="margin-right: 4px"
             >
               {{ tag }}
             </el-tag>
-            <el-tag v-if="(row.tags || []).length > 2" size="small" type="info">
-              +{{ (row.tags || []).length - 2 }}
+            <el-tag v-if="(row?.tags || []).length > 3" size="small" type="info">
+              +{{ (row?.tags || []).length - 3 }}
             </el-tag>
           </template>
         </el-table-column>
@@ -69,25 +74,26 @@
         <el-table-column prop="likeCount" label="点赞" width="80" align="center" />
         <el-table-column prop="isPublished" label="状态" width="80" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.isPublished ? 'success' : 'info'" size="small">
-              {{ row.isPublished ? '已发布' : '草稿' }}
+            <el-tag :type="row?.isPublished ? 'success' : 'info'" size="small">
+              {{ row?.isPublished ? '已发布' : '草稿' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="120">
           <template #default="{ row }">
-            {{ formatDate(row.createTime) }}
+            {{ formatDate(row?.createTime || '') }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row.id)">
+            <el-button v-if="row?.id" type="primary" link @click="handleEdit(row.id)">
               编辑
             </el-button>
-            <el-button type="primary" link @click="handlePreview(row.id)">
+            <el-button v-if="row?.id" type="primary" link @click="handlePreview(row.id)">
               预览
             </el-button>
             <el-popconfirm
+              v-if="row?.id"
               title="确定要删除这篇文章吗？"
               @confirm="handleDelete(row.id)"
             >
@@ -115,12 +121,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useBlogStore } from '@/stores/blog'
 
 const router = useRouter()
+const route = useRoute()
 const blogStore = useBlogStore()
 
 const loading = ref(false)
@@ -137,7 +144,13 @@ const pagination = reactive({
   total: 0
 })
 
-const categories = computed(() => blogStore.categories)
+const categories = ref([])
+
+// 获取标签颜色
+function getTagColor(tagName: string): string {
+  const tag = blogStore.tags.find(t => t.name === tagName)
+  return tag?.color || '#667eea'
+}
 
 const filteredArticles = computed(() => {
   let result = [...blogStore.articles]
@@ -187,11 +200,17 @@ function handlePageChange() {
 }
 
 function handleEdit(id: string) {
+  console.log('Editing article with id:', id)
+  console.log('Navigating to:', `/admin/article/edit/${id}`)
   router.push(`/admin/article/edit/${id}`)
+  console.log('Navigation completed')
 }
 
 function handlePreview(id: string) {
+  console.log('Previewing article with id:', id)
+  console.log('Navigating to:', `/article/${id}`)
   router.push(`/article/${id}`)
+  console.log('Navigation completed')
 }
 
 async function handleDelete(id: string) {
@@ -206,11 +225,58 @@ async function handleDelete(id: string) {
 onMounted(async () => {
   loading.value = true
   try {
-    await blogStore.fetchAdminArticles({})
-    await blogStore.fetchCategories()
+    await Promise.all([
+      blogStore.fetchAdminArticles({}),
+      blogStore.fetchTags()
+    ])
     pagination.total = blogStore.articles.length
   } finally {
     loading.value = false
+  }
+})
+
+onBeforeRouteUpdate(async (to, from) => {
+  console.log('onBeforeRouteUpdate triggered:', { to: to.path, from: from.path })
+  if (to.path === '/admin/articles') {
+    console.log('Refreshing article list...')
+    loading.value = true
+    try {
+      const result = await Promise.all([
+        blogStore.fetchAdminArticles({}),
+        blogStore.fetchTags()
+      ])
+      console.log('Fetch result:', result)
+      console.log('Articles in store:', blogStore.articles)
+      pagination.total = blogStore.articles.length
+      console.log('Pagination total:', pagination.total)
+    } catch (error) {
+      console.error('Error refreshing articles:', error)
+    } finally {
+      loading.value = false
+      console.log('Refresh completed')
+    }
+  }
+})
+
+// Watch for route changes
+watch(() => route.path, async (newPath, oldPath) => {
+  console.log('Route changed:', { newPath, oldPath })
+  if (newPath === '/admin/articles') {
+    console.log('Route watcher: Refreshing article list...')
+    loading.value = true
+    try {
+      const result = await Promise.all([
+        blogStore.fetchAdminArticles({}),
+        blogStore.fetchTags()
+      ])
+      console.log('Route watcher: Fetch result:', result)
+      pagination.total = blogStore.articles.length
+      console.log('Route watcher: Refresh completed')
+    } catch (error) {
+      console.error('Route watcher: Error refreshing articles:', error)
+    } finally {
+      loading.value = false
+    }
   }
 })
 </script>
@@ -238,6 +304,13 @@ onMounted(async () => {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: #337ab7;
+      text-decoration: underline;
+      
+      &:hover {
+        color: #23527c;
+        text-decoration: none;
+      }
     }
   }
 

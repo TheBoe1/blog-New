@@ -18,18 +18,11 @@
             <el-tag :color="tag.color || '#667eea'" effect="dark" class="tag-badge">
               {{ tag.name }}
             </el-tag>
-            <span class="article-count">{{ tag.articleCount ?? getArticleCount(tag.name) }} 篇文章</span>
+            <span class="article-count">{{ getArticleCount(tag.name) }} 篇文章</span>
           </div>
           <div class="tag-actions">
             <el-button type="primary" link size="small" @click="handleEdit(tag)">编辑</el-button>
-            <el-popconfirm
-              title="确定要删除此标签吗？"
-              @confirm="handleDelete(tag.id)"
-            >
-              <template #reference>
-                <el-button type="danger" link size="small">删除</el-button>
-              </template>
-            </el-popconfirm>
+            <el-button type="danger" link size="small" @click="confirmDelete(tag)">删除</el-button>
           </div>
         </div>
       </div>
@@ -59,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useBlogStore } from '@/stores/blog'
 import type { Tag } from '@/types'
 
@@ -79,8 +72,21 @@ const form = reactive({
   color: '#667eea'
 })
 
+// 优化标签文章计数计算，使用computed缓存结果
+const tagArticleCounts = computed(() => {
+  const counts: Record<string, number> = {}
+  blogStore.articles.forEach(article => {
+    if (article.tags && Array.isArray(article.tags)) {
+      article.tags.forEach(tagName => {
+        counts[tagName] = (counts[tagName] || 0) + 1
+      })
+    }
+  })
+  return counts
+})
+
 function getArticleCount(tagName: string) {
-  return blogStore.articles.filter(a => a.tags && a.tags.includes(tagName)).length
+  return tagArticleCounts.value[tagName] || 0
 }
 
 function resetForm() {
@@ -107,11 +113,35 @@ function handleEdit(row: Tag) {
   dialogVisible.value = true
 }
 
+async function confirmDelete(tag: Tag) {
+  const articleCount = getArticleCount(tag.name)
+  const message = articleCount > 0
+    ? `确定要删除标签"${tag.name}"吗？\n该标签下有 ${articleCount} 篇文章，删除后这些文章将不再关联此标签。`
+    : `确定要删除标签"${tag.name}"吗？`
+  
+  try {
+    await ElMessageBox.confirm(message, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await handleDelete(tag.id)
+  } catch (error) {
+    // 用户取消删除
+  }
+}
+
 async function handleDelete(id: string) {
   try {
     await blogStore.deleteTag(id)
+    // 刷新标签列表和文章列表，确保数据同步
+    await Promise.all([
+      blogStore.fetchTags(),
+      blogStore.fetchAdminArticles({})
+    ])
     ElMessage.success('标签已删除')
   } catch (error) {
+    console.error('Failed to delete tag:', error)
     ElMessage.error('删除失败')
   }
 }
@@ -139,8 +169,14 @@ async function handleSubmit() {
       })
       ElMessage.success('标签已创建')
     }
+    // 刷新标签列表和文章列表，确保数据同步
+    await Promise.all([
+      blogStore.fetchTags(),
+      blogStore.fetchAdminArticles({})
+    ])
     dialogVisible.value = false
   } catch (error) {
+    console.error('Failed to submit tag:', error)
     ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
   } finally {
     submitting.value = false
@@ -152,7 +188,7 @@ onMounted(async () => {
   try {
     await Promise.all([
       blogStore.fetchTags(),
-      blogStore.fetchArticles({})
+      blogStore.fetchAdminArticles({})
     ])
   } finally {
     loading.value = false

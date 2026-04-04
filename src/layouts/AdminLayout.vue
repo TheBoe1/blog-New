@@ -98,7 +98,7 @@
         <el-main class="admin-main">
           <router-view v-slot="{ Component }">
             <transition name="slide-fade" mode="out-in">
-              <component :is="Component" />
+              <component :is="Component" :key="route.fullPath" />
             </transition>
           </router-view>
         </el-main>

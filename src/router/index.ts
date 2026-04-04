@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import type { User } from '@/types'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -113,6 +114,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '登录' }
   },
   {
+    path: '/unauthorized',
+    name: 'Unauthorized',
+    component: () => import('@/views/Unauthorized.vue'),
+    meta: { title: '无权限访问' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
@@ -140,6 +147,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     const userStore = useUserStore()
     if (!userStore.isLoggedIn) {
+      ElMessage.warning('请登录')
       next({ name: 'Login', query: { redirect: to.fullPath } })
       return
     }

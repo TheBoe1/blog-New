@@ -119,10 +119,9 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { adminSettingsApi } from '@/api/admin'
-import { settingsApi } from '@/api/stats'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
+import request from '@/api/request'
 
 const userStore = useUserStore()
 const saving = ref(false)
@@ -154,7 +153,12 @@ const passwordForm = reactive({
 
 async function loadSettings() {
   try {
-    const settings = await adminSettingsApi.getSettings()
+    console.log('Loading settings...')
+    const response = await request.get('/api/admin/settings')
+    console.log('Settings response:', response)
+    const settings = response.data || response
+    console.log('Settings data:', settings)
+    
     if (settings) {
       basicForm.siteName = settings.siteName || ''
       basicForm.siteDescription = settings.siteDescription || ''
@@ -163,6 +167,8 @@ async function loadSettings() {
       basicForm.footerText = settings.footerText || ''
       basicForm.icp = settings.icp || ''
       
+      console.log('Basic form updated:', basicForm)
+      
       if (settings.socialLinks) {
         try {
           const social = typeof settings.socialLinks === 'string' 
@@ -170,6 +176,7 @@ async function loadSettings() {
             : settings.socialLinks
           profileForm.github = social.github || ''
           profileForm.email = social.email || ''
+          console.log('Social links loaded:', social)
         } catch (e) {
           console.error('Failed to parse socialLinks:', e)
         }
@@ -180,16 +187,18 @@ async function loadSettings() {
       profileForm.nickname = userStore.user.nickname || ''
       profileForm.avatar = userStore.user.avatar || ''
       profileForm.bio = userStore.user.bio || ''
+      console.log('User profile loaded:', profileForm)
     }
   } catch (error) {
     console.error('Failed to load settings:', error)
+    ElMessage.error('加载设置失败')
   }
 }
 
 async function handleSaveBasic() {
   saving.value = true
   try {
-    await adminSettingsApi.updateSettings({
+    await request.put('/api/admin/settings', {
       siteName: basicForm.siteName,
       siteDescription: basicForm.siteDescription,
       siteKeywords: basicForm.siteKeywords,
@@ -199,6 +208,7 @@ async function handleSaveBasic() {
     })
     ElMessage.success('基本设置已保存')
   } catch (error) {
+    console.error('Failed to save settings:', error)
     ElMessage.error('保存失败')
   } finally {
     saving.value = false
@@ -208,27 +218,33 @@ async function handleSaveBasic() {
 async function handleSaveProfile() {
   savingProfile.value = true
   try {
-    await adminSettingsApi.updateSettings({
+    // 先保存社交链接到系统设置
+    await request.put('/api/admin/settings', {
       socialLinks: JSON.stringify({
         github: profileForm.github,
         email: profileForm.email
       })
     })
     
+    // 更新用户信息，使用后端期望的字段名
     await authApi.updateProfile({
-      nickname: profileForm.nickname,
+      nickName: profileForm.nickname,  // 后端期望 nickName
       avatar: profileForm.avatar,
-      bio: profileForm.bio
+      email: profileForm.email,
+      bio: profileForm.bio  // 恢复bio字段
     })
     
+    // 更新本地用户信息
     if (userStore.user) {
       userStore.user.nickname = profileForm.nickname
       userStore.user.avatar = profileForm.avatar
-      userStore.user.bio = profileForm.bio
+      userStore.user.email = profileForm.email
+      userStore.user.bio = profileForm.bio  // 恢复bio字段
     }
     
     ElMessage.success('个人信息已保存')
   } catch (error) {
+    console.error('Failed to save profile:', error)
     ElMessage.error('保存失败')
   } finally {
     savingProfile.value = false

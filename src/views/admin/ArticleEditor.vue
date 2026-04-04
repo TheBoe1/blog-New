@@ -309,6 +309,10 @@ async function handlePublish() {
   if (!valid) return
 
   form.value.isPublished = true
+  // 如果没有选择时间，默认当前时间
+  if (!form.value.publishedAt) {
+    form.value.publishedAt = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  }
   await saveArticle()
   ElMessage.success(isEdit.value ? '文章更新成功' : '文章发布成功')
   router.push('/admin/articles')
