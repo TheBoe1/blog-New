@@ -39,7 +39,7 @@
 
       <div class="article-sidebar">
         <div class="toc-wrapper" :class="{ fixed: isTocFixed }">
-          <div class="toc-header">目录</div>
+          
           <div class="toc-list">
             <div
               v-for="(heading, index) in headings"
@@ -66,17 +66,6 @@
           <el-icon><Share /></el-icon>
           分享
         </el-button>
-      </div>
-
-      <div class="article-nav">
-        <div class="prev" v-if="prevArticle" @click="goToArticle(prevArticle.id)">
-          <span class="label">上一篇</span>
-          <span class="title">{{ prevArticle.title }}</span>
-        </div>
-        <div class="next" v-if="nextArticle" @click="goToArticle(nextArticle.id)">
-          <span class="label">下一篇</span>
-          <span class="title">{{ nextArticle.title }}</span>
-        </div>
       </div>
     </div>
   </div>
@@ -134,18 +123,6 @@ const article = ref({
   likeCount: 32,
   createTime: '2024-01-15'
 })
-
-const headings = ref([
-  { id: 'intro', text: '简介', level: 2 },
-  { id: 'setup', text: 'setup 函数', level: 2 },
-  { id: 'setup-props', text: 'Props', level: 3 },
-  { id: 'setup-context', text: 'Context', level: 3 },
-  { id: 'reactive', text: '响应式 API', level: 2 },
-  { id: 'ref', text: 'ref', level: 3 },
-  { id: 'reactive-api', text: 'reactive', level: 3 },
-  { id: 'lifecycle', text: '生命周期钩子', level: 2 },
-  { id: 'conclusion', text: '总结', level: 2 }
-])
 
 const prevArticle = ref({ id: '2', title: 'TypeScript 高级类型技巧' })
 const nextArticle = ref({ id: '3', title: 'Element Plus 组件库深度解析' })

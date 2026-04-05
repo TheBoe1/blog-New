@@ -62,8 +62,16 @@
             </div>
             <h3 class="article-title">{{ article.title }}</h3>
             <p class="article-summary">{{ article.summary }}</p>
-            
+            <div class="article-tags-position">
+              <el-tag
+                v-for="tag in (article.tags || []).slice(0, 3)"
+                :key="tag"
+              >
+                {{ tag }}
+              </el-tag>
+            			</div>
           </div>
+		  
 		  <template #footer class="article-meta">
               <span><el-icon><Calendar /></el-icon> {{ formatDate(article.createTime) }}</span>
 			  &nbsp;&nbsp;&nbsp;
@@ -264,17 +272,25 @@ onMounted(async () => {
     .article-card {
       cursor: pointer;
       transition: all 0.3s ease;
+      /* 确保卡片是纵向 flex 布局 */
+      display: flex;
+      flex-direction: column;
 
       &:hover {
         transform: translateY(-4px);
       }
 
+      /* 深度作用选择器：让 el-card 的主体部分高度自动撑满 */
       :deep(.el-card__body) {
         padding: 0;
+        display: flex;
+        flex-direction: column;
+        flex: 1; 
       }
 
       .article-cover {
         height: 180px;
+        flex-shrink: 0;
         background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
 
         img {
@@ -285,8 +301,11 @@ onMounted(async () => {
       }
 
       .article-info {
+        display: flex;
+        flex-direction: column; 
         padding: 20px;
-
+        flex: 1; /* 撑开中间区域 */
+        
         .article-category {
           margin-bottom: 12px;
         }
@@ -312,18 +331,24 @@ onMounted(async () => {
           overflow: hidden;
         }
 
-        .article-meta {
+        .article-tags-position {
+          margin-top: auto;        /* 关键：自动顶到父容器最底部 */
           display: flex;
-          gap: 16px;
-          font-size: 13px;
-          color: #909399;
-
-          span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
+          flex-wrap: wrap;
+          justify-content: flex-end; /* 水平靠右 */
+          gap: 6px;
+          padding-top: 10px;       /* 增加一点间距防止粘连文字 */
         }
+      }
+
+      /* 修正 footer 的样式显示 */
+      :deep(.el-card__footer) {
+        padding: 12px 20px;
+        border-top: 1px solid #ebeef5;
+        font-size: 13px;
+        color: #909399;
+        display: flex;
+        align-items: center;
       }
     }
   }

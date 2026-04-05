@@ -38,7 +38,7 @@
         </ul>
       </div>
 
-      <div class="section">
+      <div v-if="project.screenshots.length > 0" class="section">
         <h3>项目截图</h3>
         <div class="screenshots">
           <div v-for="(screenshot, index) in project.screenshots" :key="index" class="screenshot-item">
@@ -48,11 +48,11 @@
       </div>
 
       <div class="project-actions">
-        <el-button type="primary" @click="handleVisit">
+        <el-button v-if="project.link" type="primary" @click="handleVisit">
           <el-icon><Link /></el-icon>
           访问项目
         </el-button>
-        <el-button @click="handleGithub">
+        <el-button v-if="project.github" @click="handleGithub">
           <el-icon><Link /></el-icon>
           查看源码
         </el-button>
@@ -64,46 +64,46 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { projects, getProjectById, type Project } from '@/data/projects'
 
 const route = useRoute()
 const router = useRouter()
 
-const project = ref({
-  id: '1',
-  name: '个人博客系统',
-  description: '基于 Vue 3 + TypeScript + Element Plus 构建的个人博客系统，支持文章管理、分类标签、评论系统等功能。采用现代化的前端技术栈，提供流畅的用户体验和便捷的后台管理功能。',
-  tags: ['Vue 3', 'TypeScript', 'Element Plus', 'Pinia'],
-  stars: 128,
-  updatedAt: '2024-01-15',
-  techStack: [
-    { name: 'Vue 3', description: '渐进式 JavaScript 框架' },
-    { name: 'TypeScript', description: 'JavaScript 的超集' },
-    { name: 'Element Plus', description: 'Vue 3 组件库' },
-    { name: 'Pinia', description: 'Vue 状态管理' },
-    { name: 'Vite', description: '下一代前端构建工具' },
-    { name: 'wangEditor', description: '富文本编辑器' }
-  ],
-  features: [
-    '文章的增删改查和富文本编辑',
-    '分类和标签管理',
-    '评论系统和审核功能',
-    '文章搜索和归档',
-    '响应式设计，支持移动端',
-    '后台管理系统'
-  ],
+const defaultProject: Project = {
+  id: '',
+  name: '项目不存在',
+  description: '抱歉，您访问的项目不存在或已被删除。',
+  cover: '',
+  tags: [],
+  stars: 0,
+  updatedAt: '',
+  link: '',
+  github: '',
+  techStack: [],
+  features: [],
   screenshots: []
-})
+}
+
+const project = ref<Project>(defaultProject)
 
 function handleVisit() {
-  console.log('Visit project')
+  if (project.value.link) {
+    window.open(project.value.link, '_blank')
+  }
 }
 
 function handleGithub() {
-  console.log('View source code')
+  if (project.value.github) {
+    window.open(project.value.github, '_blank')
+  }
 }
 
 onMounted(() => {
-  console.log('Loading project:', route.params.id)
+  const id = route.params.id as string
+  const foundProject = getProjectById(id)
+  if (foundProject) {
+    project.value = foundProject
+  }
 })
 </script>
 

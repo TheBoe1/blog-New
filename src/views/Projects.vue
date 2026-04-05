@@ -48,49 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { projects } from '@/data/projects'
 
 const router = useRouter()
-
-const projects = ref([
-  {
-    id: '1',
-    name: '个人博客系统',
-    description: '基于 Vue 3 + TypeScript + Element Plus 构建的个人博客系统，支持文章管理、分类标签等功能',
-    cover: '',
-    tags: ['Vue 3', 'TypeScript', 'Element Plus'],
-    stars: 128,
-    updatedAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: '可视化数据平台',
-    description: '企业级数据可视化平台，支持多种图表类型和实时数据展示',
-    cover: '',
-    tags: ['Vue 3', 'ECharts', 'DataV'],
-    stars: 256,
-    updatedAt: '2024-01-10'
-  },
-  {
-    id: '3',
-    name: '后台管理系统',
-    description: '通用的后台管理系统模板，集成权限管理、用户管理等功能模块',
-    cover: '',
-    tags: ['Vue 3', 'Pinia', 'Axios'],
-    stars: 89,
-    updatedAt: '2024-01-05'
-  },
-  {
-    id: '4',
-    name: '移动端电商应用',
-    description: '基于 uni-app 开发的跨平台电商应用，支持微信小程序和 H5',
-    cover: '',
-    tags: ['uni-app', 'Vue 3', '小程序'],
-    stars: 156,
-    updatedAt: '2023-12-20'
-  }
-])
 </script>
 
 <style scoped lang="scss">
