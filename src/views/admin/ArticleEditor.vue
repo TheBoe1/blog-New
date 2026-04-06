@@ -294,6 +294,7 @@ async function handleSaveDraft() {
   form.value.isPublished = false
   await saveArticle()
   ElMessage.success('草稿保存成功')
+  router.push('/admin/articles')
 }
 
 async function handlePublish() {

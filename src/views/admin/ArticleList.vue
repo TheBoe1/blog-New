@@ -144,7 +144,18 @@ const pagination = reactive({
   total: 0
 })
 
-const categories = ref([])
+const categories = computed(() => {
+  const categoryMap = new Map<string, { id: string; name: string }>()
+  blogStore.articles.forEach(article => {
+    if (article?.categoryId && article?.categoryName) {
+      categoryMap.set(article.categoryId, {
+        id: article.categoryId,
+        name: article.categoryName
+      })
+    }
+  })
+  return Array.from(categoryMap.values())
+})
 
 // 获取标签颜色
 function getTagColor(tagName: string): string {

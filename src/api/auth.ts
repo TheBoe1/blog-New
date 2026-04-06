@@ -38,10 +38,16 @@ export const authApi = {
   },
 
   changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    return request.put('/system/user/profile/updatePwd', { oldPassword, newPassword })
+    console.log('changePassword called with:', { oldPassword, newPassword })
+    return request.put('/system/user/profile/updatePwd', null, {
+      params: {
+        oldPassword,
+        newPassword
+      }
+    })
   },
 
   uploadAvatar(file: File, onProgress?: (percent: number) => void): Promise<{ url: string }> {
-    return request.upload('/system/user/profile/avatar', file, onProgress)
+    return request.upload('/system/user/profile/avatar', file, onProgress, 'avatarfile')
   },
 }

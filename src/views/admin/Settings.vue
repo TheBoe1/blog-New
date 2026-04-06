@@ -181,14 +181,31 @@ async function loadSettings() {
           console.error('Failed to parse socialLinks:', e)
         }
       }
+      
+      // 从系统设置加载用户信息
+      if (settings.userAvatar) {
+        profileForm.avatar = settings.userAvatar
+      }
+      if (settings.userNickname) {
+        profileForm.nickname = settings.userNickname
+      }
+      if (settings.userBio) {
+        profileForm.bio = settings.userBio
+      }
     }
     
-    if (userStore.user) {
+    // 如果系统设置中没有，从用户信息加载
+    if (!profileForm.nickname && userStore.user) {
       profileForm.nickname = userStore.user.nickname || ''
-      profileForm.avatar = userStore.user.avatar || ''
-      profileForm.bio = userStore.user.bio || ''
-      console.log('User profile loaded:', profileForm)
     }
+    if (!profileForm.avatar && userStore.user) {
+      profileForm.avatar = userStore.user.avatar || ''
+    }
+    if (!profileForm.bio && userStore.user) {
+      profileForm.bio = userStore.user.bio || ''
+    }
+    
+    console.log('User profile loaded:', profileForm)
   } catch (error) {
     console.error('Failed to load settings:', error)
     ElMessage.error('加载设置失败')
@@ -218,20 +235,17 @@ async function handleSaveBasic() {
 async function handleSaveProfile() {
   savingProfile.value = true
   try {
-    // 先保存社交链接到系统设置
+    console.log('Saving profile:', profileForm)
+    
+    // 所有个人信息保存到系统设置
     await request.put('/api/admin/settings', {
       socialLinks: JSON.stringify({
         github: profileForm.github,
         email: profileForm.email
-      })
-    })
-    
-    // 更新用户信息，使用后端期望的字段名
-    await authApi.updateProfile({
-      nickName: profileForm.nickname,  // 后端期望 nickName
-      avatar: profileForm.avatar,
-      email: profileForm.email,
-      bio: profileForm.bio  // 恢复bio字段
+      }),
+      userAvatar: profileForm.avatar,
+      userNickname: profileForm.nickname,
+      userBio: profileForm.bio
     })
     
     // 更新本地用户信息
@@ -239,7 +253,7 @@ async function handleSaveProfile() {
       userStore.user.nickname = profileForm.nickname
       userStore.user.avatar = profileForm.avatar
       userStore.user.email = profileForm.email
-      userStore.user.bio = profileForm.bio  // 恢复bio字段
+      userStore.user.bio = profileForm.bio
     }
     
     ElMessage.success('个人信息已保存')
@@ -257,7 +271,11 @@ async function handleChangePassword() {
     return
   }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.warning('两次输入的密码不一致')
+    ElMessage.warning('两次输入的新密码不一致')
+    return
+  }
+  if (passwordForm.newPassword === passwordForm.currentPassword) {
+    ElMessage.warning('新密码不能与当前密码相同')
     return
   }
   if (passwordForm.newPassword.length < 6) {
@@ -279,7 +297,7 @@ async function handleChangePassword() {
   }
 }
 
-function beforeLogoUpload(file: File) {
+async function beforeLogoUpload(file: File) {
   const isImage = file.type.startsWith('image/')
   const isLt2M = file.size / 1024 / 1024 < 2
   
@@ -292,15 +310,17 @@ function beforeLogoUpload(file: File) {
     return false
   }
   
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    basicForm.siteLogo = e.target?.result as string
+  try {
+    const response = await request.upload('/api/admin/upload', file)
+    basicForm.siteLogo = response.url
+    ElMessage.success('Logo上传成功')
+  } catch (error) {
+    ElMessage.error('Logo上传失败')
   }
-  reader.readAsDataURL(file)
   return false
 }
 
-function beforeAvatarUpload(file: File) {
+async function beforeAvatarUpload(file: File) {
   const isImage = file.type.startsWith('image/')
   const isLt2M = file.size / 1024 / 1024 < 2
   
@@ -313,11 +333,15 @@ function beforeAvatarUpload(file: File) {
     return false
   }
   
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    profileForm.avatar = e.target?.result as string
+  try {
+    const result = await authApi.uploadAvatar(file)
+    console.log('Avatar upload result:', result)
+    profileForm.avatar = result.imgUrl || result.url || result
+    ElMessage.success('头像上传成功')
+  } catch (error) {
+    console.error('Avatar upload error:', error)
+    ElMessage.error('头像上传失败')
   }
-  reader.readAsDataURL(file)
   return false
 }
 

@@ -205,9 +205,9 @@ export const request = {
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return instance.delete(url, config)
   },
-  upload<T = any>(url: string, file: File, onProgress?: (percent: number) => void): Promise<T> {
+  upload<T = any>(url: string, file: File, onProgress?: (percent: number) => void, fieldName: string = 'file'): Promise<T> {
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append(fieldName, file)
     return instance.post(url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
