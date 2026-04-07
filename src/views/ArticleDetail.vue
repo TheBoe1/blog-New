@@ -34,12 +34,20 @@
 
     <div class="article-content-wrapper">
       <div class="article-content" ref="contentRef">
-        <div class="content-body" v-html="article.htmlContent"></div>
+        <div class="content-body">
+          <MdPreview
+            v-if="isMarkdown"
+            :modelValue="articleContent"
+            :theme="theme"
+            previewTheme="github"
+            codeTheme="github"
+          />
+          <div v-else v-html="article.htmlContent"></div>
+        </div>
       </div>
 
       <div class="article-sidebar">
         <div class="toc-wrapper" :class="{ fixed: isTocFixed }">
-          
           <div class="toc-list">
             <div
               v-for="(heading, index) in headings"
@@ -72,10 +80,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 import { useBlogStore } from '@/stores/blog'
+import { isHtmlContent, htmlToMarkdown } from '@/utils/markdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,47 +96,69 @@ const contentRef = ref<HTMLElement>()
 const isTocFixed = ref(false)
 const activeHeading = ref('')
 const isLiked = ref(false)
+const theme = ref('light')
 
 const article = ref({
   id: '1',
   title: 'Vue 3 组合式 API 最佳实践',
   categoryName: '前端开发',
   tags: ['Vue', 'TypeScript', '前端开发'],
-  htmlContent: `
-    <h2 id="intro">简介</h2>
-    <p>Vue 3 引入了组合式 API，这是一种全新的组件逻辑组织方式。相比选项式 API，组合式 API 提供了更好的代码组织和复用能力。</p>
-    
-    <h2 id="setup">setup 函数</h2>
-    <p>setup 是组合式 API 的入口点，在组件创建之前执行。它接收 props 和 context 作为参数，返回的对象可以在模板中使用。</p>
-    
-    <h3 id="setup-props">Props</h3>
-    <p>setup 函数的第一个参数是 props，它是响应式的，当传入的 props 发生变化时会更新。</p>
-    
-    <h3 id="setup-context">Context</h3>
-    <p>context 是一个普通的 JavaScript 对象，包含 attrs、slots、emit 和 expose 等属性。</p>
-    
-    <h2 id="reactive">响应式 API</h2>
-    <p>Vue 3 提供了多种响应式 API，包括 ref、reactive、computed、watch 等。</p>
-    
-    <h3 id="ref">ref</h3>
-    <p>ref 用于创建一个响应式的引用，可以是任何类型的值。在模板中使用时会自动解包。</p>
-    
-    <h3 id="reactive-api">reactive</h3>
-    <p>reactive 用于创建一个响应式的对象，返回原始对象的 Proxy 代理。</p>
-    
-    <h2 id="lifecycle">生命周期钩子</h2>
-    <p>在 setup 中，生命周期钩子以 on 开头的函数形式使用，如 onMounted、onUpdated 等。</p>
-    
-    <h2 id="conclusion">总结</h2>
-    <p>组合式 API 是 Vue 3 最重要的新特性之一，它提供了更灵活的代码组织方式和更好的逻辑复用能力。掌握组合式 API 是成为 Vue 3 高级开发者的必经之路。</p>
-  `,
+  htmlContent: '',
+  markdownContent: '',
+  content: '',
+  contentType: 'html',
   viewCount: 256,
   likeCount: 32,
   createTime: '2024-01-15'
 })
 
-const prevArticle = ref({ id: '2', title: 'TypeScript 高级类型技巧' })
-const nextArticle = ref({ id: '3', title: 'Element Plus 组件库深度解析' })
+const isMarkdown = computed(() => {
+  return article.value.contentType === 'markdown' || 
+         (article.value.markdownContent && article.value.markdownContent.trim()) ||
+         (article.value.content && !isHtmlContent(article.value.content))
+})
+
+const articleContent = computed(() => {
+  if (article.value.markdownContent && article.value.markdownContent.trim()) {
+    return article.value.markdownContent
+  }
+  if (article.value.content && !isHtmlContent(article.value.content)) {
+    return article.value.content
+  }
+  if (article.value.htmlContent && isHtmlContent(article.value.htmlContent)) {
+    return htmlToMarkdown(article.value.htmlContent)
+  }
+  return ''
+})
+
+const headings = computed(() => {
+  const result: Array<{ id: string; text: string; level: number }> = []
+  
+  if (isMarkdown.value && articleContent.value) {
+    const lines = articleContent.value.split('\n')
+    lines.forEach(line => {
+      const match = line.match(/^(#{1,6})\s+(.+)$/)
+      if (match) {
+        const level = match[1].length
+        const text = match[2].trim()
+        const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '')
+        result.push({ id, text, level })
+      }
+    })
+  } else if (article.value.htmlContent) {
+    const regex = /<h([2-3])[^>]*id=["']([^"']+)["'][^>]*>(.*?)<\/h\1>/g
+    let match
+    while ((match = regex.exec(article.value.htmlContent)) !== null) {
+      result.push({
+        level: parseInt(match[1]),
+        id: match[2],
+        text: match[3].replace(/<[^>]+>/g, '')
+      })
+    }
+  }
+  
+  return result
+})
 
 function scrollToHeading(id: string) {
   const element = document.getElementById(id)
@@ -149,7 +182,7 @@ function handleScroll() {
   const rect = contentRef.value.getBoundingClientRect()
   isTocFixed.value = rect.top < 80
 
-  const headingElements = document.querySelectorAll('.content-body h2, .content-body h3')
+  const headingElements = document.querySelectorAll('.content-body h2, .content-body h3, .md-preview h2, .md-preview h3')
   let current = ''
   
   headingElements.forEach((el) => {
@@ -185,12 +218,14 @@ function goToArticle(id: string) {
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   
-  // 尝试从 store 获取文章数据
   const articleId = route.params.id as string
   if (articleId) {
     const fetchedArticle = await blogStore.fetchArticleById(articleId)
     if (fetchedArticle) {
-      article.value = fetchedArticle
+      article.value = {
+        ...fetchedArticle,
+        contentType: (fetchedArticle as any).contentType || 'html'
+      }
     }
   }
 })
@@ -291,6 +326,15 @@ onUnmounted(() => {
             background: transparent;
             padding: 0;
           }
+        }
+        
+        :deep(.md-preview) {
+          background: transparent;
+          padding: 0;
+        }
+        
+        :deep(.md-preview-content) {
+          padding: 0;
         }
       }
     }

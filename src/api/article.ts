@@ -24,6 +24,14 @@ export const articleApi = {
 
   getRecent(limit: number = 10): Promise<Article[]> {
     return request.get('/api/articles/recent', { params: { limit } })
+  },
+
+  uploadImage(file: File): Promise<{ url: string }> {
+    return request.upload('/api/admin/articles/upload', file)
+  },
+
+  uploadCover(file: File): Promise<{ url: string }> {
+    return request.upload('/api/admin/articles/upload', file)
   }
 }
 

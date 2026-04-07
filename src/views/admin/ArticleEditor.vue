@@ -3,6 +3,10 @@
     <div class="editor-header">
       <h2>{{ isEdit ? '编辑文章' : '新建文章' }}</h2>
       <div class="header-actions">
+        <el-radio-group v-model="editorType" size="small">
+          <el-radio-button label="markdown">Markdown</el-radio-button>
+          <el-radio-button label="richtext">富文本</el-radio-button>
+        </el-radio-group>
         <el-button @click="handleSaveDraft">
           <el-icon><Document /></el-icon>
           保存草稿
@@ -26,20 +30,28 @@
 
         <el-card shadow="never" class="editor-card">
           <div class="editor-wrapper">
-            <Toolbar
-              :editor="editorRef"
-              :defaultConfig="toolbarConfig"
-              mode="default"
-              class="wang-toolbar"
+            <MarkdownEditor
+              v-if="editorType === 'markdown'"
+              v-model="form.markdownContent"
+              placeholder="开始编写你的文章..."
+              @save="handleSaveDraft"
             />
-            <Editor
-              v-model="form.htmlContent"
-              :defaultConfig="editorConfig"
-              mode="default"
-              class="wang-editor"
-              @onCreated="handleCreated"
-              @onChange="handleChange"
-            />
+            <template v-else>
+              <Toolbar
+                :editor="editorRef"
+                :defaultConfig="toolbarConfig"
+                mode="default"
+                class="wang-toolbar"
+              />
+              <Editor
+                v-model="form.htmlContent"
+                :defaultConfig="editorConfig"
+                mode="default"
+                class="wang-editor"
+                @onCreated="handleCreated"
+                @onChange="handleChange"
+              />
+            </template>
           </div>
         </el-card>
       </div>
@@ -150,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, shallowRef, markRaw } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, shallowRef, markRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
@@ -158,6 +170,8 @@ import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/edit
 import '@wangeditor/editor/dist/css/style.css'
 import { useBlogStore } from '@/stores/blog'
 import { articleApi } from '@/api/article'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -168,11 +182,13 @@ const isEdit = computed(() => !!route.params.id)
 const editorRef = shallowRef<IDomEditor>()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
+const editorType = ref<'markdown' | 'richtext'>('markdown')
 
 const form = ref({
   title: '',
   content: '',
   htmlContent: '',
+  markdownContent: '',
   summary: '',
   cover: '',
   categoryId: '',
@@ -180,7 +196,8 @@ const form = ref({
   tags: [] as string[],
   isPublished: false,
   isTop: false,
-  publishedAt: '' as string
+  publishedAt: '' as string,
+  contentType: 'markdown' as 'markdown' | 'html'
 })
 
 const formRules: FormRules = {
@@ -194,7 +211,7 @@ const categories = computed(() => blogStore.categories.map(c => ({ id: c.id, nam
 const tags = computed(() => blogStore.tags.map(t => t.name))
 
 const wordCount = computed(() => {
-  const text = form.value.content.replace(/<[^>]+>/g, '')
+  const text = form.value.content.replace(/<[^>]+>/g, '').replace(/[#*`_\[\]]/g, '')
   return text.length
 })
 
@@ -245,6 +262,13 @@ function handleChange(editor: IDomEditor) {
   form.value.content = editor.getText()
   form.value.htmlContent = editor.getHtml()
 }
+
+watch(editorType, (newType) => {
+  if (newType === 'markdown' && form.value.htmlContent && isHtmlContent(form.value.htmlContent)) {
+    form.value.markdownContent = htmlToMarkdown(form.value.htmlContent)
+  }
+  form.value.contentType = newType === 'markdown' ? 'markdown' : 'html'
+})
 
 async function uploadImage(file: File): Promise<string> {
   try {
@@ -302,18 +326,25 @@ async function handlePublish() {
     ElMessage.warning('请输入文章标题')
     return
   }
-  if (!form.value.htmlContent || form.value.htmlContent === '<p><br></p>') {
+  
+  const hasContent = editorType.value === 'markdown' 
+    ? form.value.markdownContent && form.value.markdownContent.trim()
+    : form.value.htmlContent && form.value.htmlContent !== '<p><br></p>'
+    
+  if (!hasContent) {
     ElMessage.warning('请输入文章内容')
     return
   }
+  
+  // 如果没有选择发布时间，自动设置为当前时间
+  if (!form.value.publishedAt) {
+    form.value.publishedAt = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  }
+
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
   form.value.isPublished = true
-  // 如果没有选择时间，默认当前时间
-  if (!form.value.publishedAt) {
-    form.value.publishedAt = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  }
   await saveArticle()
   ElMessage.success(isEdit.value ? '文章更新成功' : '文章发布成功')
   router.push('/admin/articles')
@@ -324,15 +355,17 @@ async function saveArticle() {
   try {
     const articleData = {
       title: form.value.title,
-      content: form.value.content,
-      htmlContent: form.value.htmlContent,
+      content: editorType.value === 'markdown' ? form.value.markdownContent : form.value.content,
+      htmlContent: editorType.value === 'markdown' ? '' : form.value.htmlContent,
+      markdownContent: editorType.value === 'markdown' ? form.value.markdownContent : '',
       summary: form.value.summary,
       cover: form.value.cover,
       categoryId: form.value.categoryId === 'other' ? form.value.customCategory : form.value.categoryId,
       tags: form.value.tags,
       isPublished: form.value.isPublished,
       isTop: form.value.isTop,
-      publishedAt: form.value.publishedAt || undefined
+      publishedAt: form.value.publishedAt || undefined,
+      contentType: form.value.contentType
     }
 
     if (isEdit.value && route.params.id) {
@@ -358,6 +391,7 @@ async function loadArticle() {
           title: article.title,
           content: article.content || '',
           htmlContent: article.htmlContent || '',
+          markdownContent: article.markdownContent || '',
           summary: article.summary || '',
           cover: article.cover || '',
           categoryId: article.categoryId || '',
@@ -365,7 +399,17 @@ async function loadArticle() {
           tags: article.tags || [],
           isPublished: article.isPublished || false,
           isTop: article.isTop || false,
-          publishedAt: article.publishedAt ? formatDateTime(new Date(article.publishedAt)) : ''
+          publishedAt: article.publishedAt ? formatDateTime(new Date(article.publishedAt)) : '',
+          contentType: (article as any).contentType || 'html'
+        }
+        
+        if (form.value.contentType === 'markdown' && article.markdownContent) {
+          editorType.value = 'markdown'
+        } else if (article.htmlContent && isHtmlContent(article.htmlContent)) {
+          editorType.value = 'richtext'
+        } else if (article.content && !isHtmlContent(article.content)) {
+          editorType.value = 'markdown'
+          form.value.markdownContent = article.content
         }
       }
     } finally {
@@ -415,6 +459,7 @@ onBeforeUnmount(() => {
   .header-actions {
     display: flex;
     gap: 12px;
+    align-items: center;
   }
 }
 
