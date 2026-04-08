@@ -16,6 +16,7 @@
 import { ref, computed, watch } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import { ElMessage } from 'element-plus'
 import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
 import { articleApi } from '@/api/article'
 
@@ -23,6 +24,7 @@ const props = defineProps<{
   modelValue: string
   placeholder?: string
   theme?: 'light' | 'dark'
+  articleHash?: string
 }>()
 
 const emit = defineEmits<{
@@ -89,12 +91,20 @@ function handleSave() {
 
 async function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
   try {
+    const maxSize = 5 * 1024 * 1024
+    const oversizedFiles = files.filter(f => f.size > maxSize)
+    if (oversizedFiles.length > 0) {
+      ElMessage.warning('图片大小不能超过 5MB')
+      return
+    }
+    
     const results = await Promise.all(
-      files.map(file => articleApi.uploadImage(file))
+      files.map(file => articleApi.uploadImage(file, props.articleHash, 'content'))
     )
     callback(results.map(r => r.url))
   } catch (error) {
     console.error('Image upload failed:', error)
+    ElMessage.error('图片上传失败')
   }
 }
 </script>

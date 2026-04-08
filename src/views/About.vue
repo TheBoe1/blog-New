@@ -104,10 +104,7 @@ const skills = ref([
 ])
 
 const timeline = ref([
-  { id: 1, date: '2024-01', title: '开始写技术博客', description: '决定开始记录学习历程，分享技术心得', color: '#667eea' },
-  { id: 2, date: '2023-06', title: '晋升高级前端工程师', description: '在公司承担更多技术决策和团队管理工作', color: '#764ba2' },
-  { id: 3, date: '2022-03', title: '加入新公司', description: '开始专注于大型前端项目的架构设计', color: '#f093fb' },
-  { id: 4, date: '2020-07', title: '毕业入职', description: '大学毕业后进入互联网行业，开始前端开发之路', color: '#4facfe' }
+  { id: 1, date: '2025-03', title: '开始写技术博客', description: '决定开始记录学习历程，分享技术心得', color: '#667eea' },
 ])
 
 async function loadSettings() {

@@ -3,10 +3,13 @@
     <div class="editor-header">
       <h2>{{ isEdit ? '编辑文章' : '新建文章' }}</h2>
       <div class="header-actions">
-        <el-radio-group v-model="editorType" size="small">
-          <el-radio-button label="markdown">Markdown</el-radio-button>
-          <el-radio-button label="richtext">富文本</el-radio-button>
+        <el-radio-group v-model="editorType" size="small" :disabled="isEdit">
+          <el-radio-button value="markdown">Markdown</el-radio-button>
+          <el-radio-button value="richtext">富文本</el-radio-button>
         </el-radio-group>
+        <el-tooltip v-if="isEdit" content="编辑模式下不可切换编辑器类型" placement="top">
+          <el-icon class="edit-tip"><InfoFilled /></el-icon>
+        </el-tooltip>
         <el-button @click="handleSaveDraft">
           <el-icon><Document /></el-icon>
           保存草稿
@@ -34,6 +37,7 @@
               v-if="editorType === 'markdown'"
               v-model="form.markdownContent"
               placeholder="开始编写你的文章..."
+              :article-hash="articleHash"
               @save="handleSaveDraft"
             />
             <template v-else>
@@ -183,6 +187,11 @@ const editorRef = shallowRef<IDomEditor>()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const editorType = ref<'markdown' | 'richtext'>('markdown')
+const articleHash = ref('')
+
+function generateHash(): string {
+  return 'article_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+}
 
 const form = ref({
   title: '',
@@ -272,7 +281,7 @@ watch(editorType, (newType) => {
 
 async function uploadImage(file: File): Promise<string> {
   try {
-    const result = await articleApi.uploadImage(file)
+    const result = await articleApi.uploadImage(file, articleHash.value, 'content')
     return result.url
   } catch (error) {
     ElMessage.error('图片上传失败')
@@ -302,7 +311,7 @@ function beforeCoverUpload(file: File) {
 
 async function handleCoverUpload(options: any) {
   try {
-    const result = await articleApi.uploadCover(options.file)
+    const result = await articleApi.uploadCover(options.file, articleHash.value)
     form.value.cover = result.url
     ElMessage.success('封面上传成功')
   } catch (error) {
@@ -336,9 +345,9 @@ async function handlePublish() {
     return
   }
   
-  // 如果没有选择发布时间，自动设置为当前时间
+  // 如果没有选择发布时间，自动设置为当前本地时间
   if (!form.value.publishedAt) {
-    form.value.publishedAt = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    form.value.publishedAt = formatDateTime(new Date())
   }
 
   const valid = await formRef.value?.validate().catch(() => false)
@@ -426,6 +435,11 @@ async function loadData() {
 }
 
 onMounted(async () => {
+  if (isEdit.value && route.params.id) {
+    articleHash.value = route.params.id as string
+  } else {
+    articleHash.value = generateHash()
+  }
   await loadData()
   await loadArticle()
 })
@@ -460,6 +474,11 @@ onBeforeUnmount(() => {
     display: flex;
     gap: 12px;
     align-items: center;
+    
+    .edit-tip {
+      color: #909399;
+      cursor: help;
+    }
   }
 }
 

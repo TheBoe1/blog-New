@@ -26,12 +26,18 @@ export const articleApi = {
     return request.get('/api/articles/recent', { params: { limit } })
   },
 
-  uploadImage(file: File): Promise<{ url: string }> {
-    return request.upload('/api/admin/articles/upload', file)
+  uploadImage(file: File, articleHash?: string, type: string = 'content'): Promise<{ url: string }> {
+    return request.upload('/api/admin/images/upload', file, undefined, 'file', {
+      articleHash,
+      type
+    })
   },
 
-  uploadCover(file: File): Promise<{ url: string }> {
-    return request.upload('/api/admin/articles/upload', file)
+  uploadCover(file: File, articleHash?: string): Promise<{ url: string }> {
+    return request.upload('/api/admin/images/upload', file, undefined, 'file', {
+      articleHash,
+      type: 'cover'
+    })
   }
 }
 

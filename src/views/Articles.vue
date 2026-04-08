@@ -40,6 +40,7 @@
                     :key="tag"
                     size="small"
                     type="info"
+					:color="getTagColor(article, tag)" style="color: #ffffff;"
                     effect="plain"
                   >
                     {{ tag }}
@@ -187,7 +188,16 @@ async function fetchCategories() {
   }
   categories.value = blogStore.categories
 }
-
+function getTagColor(article: any, tagName: string): string {
+  // 1. 检查 article.tagColor 是否存在
+  // 2. 检查该标签名是否在 tagColor 中有定义
+  if (article.tagColor && article.tagColor[tagName]) {
+    return article.tagColor[tagName]
+  }
+  
+  // 3. 兜底：如果后端没给颜色，返回 Element Plus 的默认 Tag 颜色或自定义默认色
+  return '#409eff' 
+}
 async function fetchArchives() {
   try {
     const archiveData = await articleApi.getArchive()
