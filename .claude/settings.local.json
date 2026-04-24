@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/data\")",
+      "Bash(cp -r \"D:/sofaware/clude/skill/ui-ux-pro-max-skill-main/src/ui-ux-pro-max/data/\"* \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/data/\")",
+      "Bash(mkdir -p \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/scripts\")",
+      "Bash(cp -r \"D:/sofaware/clude/skill/ui-ux-pro-max-skill-main/src/ui-ux-pro-max/scripts/\"* \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/scripts/\")",
+      "Bash(mkdir -p \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/templates\")",
+      "Bash(cp -r \"D:/sofaware/clude/skill/ui-ux-pro-max-skill-main/src/ui-ux-pro-max/templates/\"* \"D:/Stday/个人简历/项目/我的博客/.claude/skills/ui-ux-pro-max/templates/\")",
+      "Bash(cd /d \"D:\\\\Stday\\\\个人简历\\\\项目\\\\我的博客\")",
+      "Bash(npm run *)"
+    ]
+  }
+}

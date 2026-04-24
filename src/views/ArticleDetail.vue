@@ -23,6 +23,7 @@
         <el-tag
           v-for="tag in article.tags"
           :key="tag"
+		  :color="getTagColor(article, tag)" style="color: #ffffff;"
           size="small"
           type="info"
           effect="plain"
@@ -159,7 +160,12 @@ const headings = computed(() => {
   
   return result
 })
-
+function getTagColor(article: any, tagName: string): string {
+  if (article.tagColor && article.tagColor[tagName]) {
+    return article.tagColor[tagName]
+  }
+  return 'var(--tag-default-color)'
+}
 function scrollToHeading(id: string) {
   const element = document.getElementById(id)
   if (element) {

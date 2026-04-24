@@ -9,3 +9,4 @@ export default pinia
 export * from './blog'
 export * from './user'
 export * from './pageConfig'
+export * from './loading'

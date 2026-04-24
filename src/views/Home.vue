@@ -147,10 +147,12 @@
           <div class="category-icon" :style="{ background: category.color }">
             <el-icon :size="32"><component :is="category.icon" /></el-icon>
           </div>
-          <div class="category-info">
-            <h4>{{ category.name }}</h4>
-            <p>{{ category.articleCount }} 篇文章</p>
-          </div>
+          <el-tooltip :content="category.name" placement="top" :disabled="category.name.length <= 6">
+            <div class="category-info">
+              <h4>{{ category.name }}</h4>
+              <p>{{ category.articleCount }} 篇文章</p>
+            </div>
+          </el-tooltip>
           <div class="category-arrow">
             <el-icon><ArrowRight /></el-icon>
           </div>
@@ -208,7 +210,7 @@ function getTagColor(article: any, tagName: string): string {
   if (article.tagColor && article.tagColor[tagName]) {
     return article.tagColor[tagName]
   }
-  return '#409eff' 
+  return 'var(--tag-default-color)'
 }
 
 function goToCategory(id: string) {
@@ -639,7 +641,7 @@ onMounted(async () => {
 
   .category-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(var(--grid-category-min), 1fr));
     gap: 20px;
 
     .category-card {
@@ -701,12 +703,16 @@ onMounted(async () => {
 
       .category-info {
         text-align: center;
+        width: 100%;
 
         h4 {
           font-size: 16px;
           font-weight: 600;
           color: var(--home-text);
           margin: 0 0 6px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         p {

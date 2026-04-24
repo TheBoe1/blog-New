@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { useLoadingStore } from '@/stores/loading'
 import type { ApiResponse } from '@/types'
 
 const WHITE_LIST = [
@@ -16,9 +17,23 @@ const WHITE_LIST = [
   '/api/page-config'
 ]
 
+const SILENT_ERROR_URLS = [
+  '/login',
+  '/captchaImage'
+]
+
 function isWhiteListUrl(url: string): boolean {
   return WHITE_LIST.some(whiteUrl => url.startsWith(whiteUrl))
 }
+
+function shouldSilentError(url: string, method: string): boolean {
+  if (url === '/login' && method.toLowerCase() === 'get') {
+    return true
+  }
+  return false
+}
+
+let isRedirecting = false
 
 const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
@@ -31,27 +46,20 @@ const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const userStore = useUserStore()
+    const loadingStore = useLoadingStore()
     const token = userStore.token
+    
+    loadingStore.showLoading()
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.warn(`[Request] No token found for ${config.url}`)
     }
     
     if (import.meta.env.DEV) {
       const isAdminApi = config.url?.startsWith('/api/admin')
       console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, {
         hasToken: !!token,
-        authorization: config.headers.Authorization ? `Bearer ${token?.substring(0, 20)}...` : 'undefined',
-        data: config.data,
         isAdminApi,
-        tokenLength: token?.length,
-        userStoreState: {
-          isLoggedIn: userStore.isLoggedIn,
-          isAdmin: userStore.isAdmin,
-          username: userStore.user?.username
-        }
       })
       
       if (isAdminApi && !token) {
@@ -65,39 +73,22 @@ instance.interceptors.request.use(
     return config
   },
   (error) => {
+    const loadingStore = useLoadingStore()
+    loadingStore.hideLoading()
     return Promise.reject(error)
   }
 )
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
+    const loadingStore = useLoadingStore()
+    loadingStore.hideLoading()
+    
     const { data, config } = response
     
     if (data.code === 401) {
-      const isWhiteUrl = isWhiteListUrl(config?.url || '')
-      
-      console.error('[Response 401]', {
-        url: config?.url,
-        isWhiteList: isWhiteUrl,
-        message: data.msg || data.message,
-        solution: isWhiteUrl 
-          ? '后端白名单配置错误，请联系后端开发人员'
-          : 'Token已过期，请重新登录'
-      })
-      
-      if (!isWhiteUrl) {
-        const userStore = useUserStore()
-        userStore.logout()
-        
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/unauthorized') {
-          ElMessage.error('登录已过期，请重新登录')
-          window.location.href = '/login'
-        }
-      } else {
-        ElMessage.error(`${data.msg || '认证失败'}（白名单接口不应该需要认证）`)
-      }
-      
-      return Promise.reject(new Error(data.msg || data.message))
+      handleTokenExpired(config?.url || '')
+      return Promise.reject(new Error(data.msg || data.message || '未授权'))
     }
     
     if (data.code === 403) {
@@ -110,7 +101,7 @@ instance.interceptors.response.use(
         window.location.href = '/unauthorized'
       }
       
-      return Promise.reject(new Error(data.msg || data.message))
+      return Promise.reject(new Error(data.msg || data.message || '无权限'))
     }
     
     if (data.code === 0 || data.code === 200) {
@@ -122,75 +113,104 @@ instance.interceptors.response.use(
       }
       return data
     }
-    ElMessage.error(data.msg || data.message || '请求失败')
+    
+    if (!shouldSilentError(config?.url || '', config?.method || 'get')) {
+      ElMessage.error(data.msg || data.message || '请求失败')
+    }
     return Promise.reject(new Error(data.msg || data.message))
   },
   (error) => {
+    const loadingStore = useLoadingStore()
+    loadingStore.hideLoading()
+    
     const { response, config } = error
     
     if (!response) {
       if (error.code === 'ERR_NETWORK') {
-        ElMessage.error('网络连接失败，请检查网络或CORS配置')
-        console.error('CORS Error or Network Error:', {
-          url: config?.url,
-          baseURL: config?.baseURL,
-          message: '可能原因：1. 后端未启动 2. CORS配置错误 3. 网络问题'
-        })
-      } else {
+        if (!shouldSilentError(config?.url || '', config?.method || 'get')) {
+          ElMessage.error('网络连接失败，请检查网络')
+        }
+        console.error('Network Error:', config?.url)
+      } else if (!shouldSilentError(config?.url || '', config?.method || 'get')) {
         ElMessage.error('网络错误，请稍后重试')
       }
       return Promise.reject(error)
     }
     
     if (response?.status === 401) {
-      const isWhiteUrl = isWhiteListUrl(config?.url || '')
-      
-      if (!isWhiteUrl) {
-        const userStore = useUserStore()
-        userStore.logout()
-        
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/unauthorized') {
-          ElMessage.error('登录已过期，请重新登录')
-          window.location.href = '/login'
-        }
-      } else {
-        console.warn(`White list URL ${config?.url} returned 401, but this is allowed`)
-      }
-    } else if (response?.status === 403) {
-      console.error('[Response 403] Permission denied', {
-        url: config?.url,
-        message: response?.data?.msg || response?.data?.message
-      })
-      
+      handleTokenExpired(config?.url || '')
+      return Promise.reject(error)
+    }
+    
+    if (response?.status === 403) {
       if (window.location.pathname !== '/unauthorized') {
         window.location.href = '/unauthorized'
       }
-    } else if (response?.status === 500) {
-      // 检查是否是登录页面的GET请求不支持错误
-      const isLoginPageGetError = config?.url?.includes('/auth/login') && 
-                                   config?.method?.toLowerCase() === 'get' &&
-                                   window.location.pathname === '/login'
-      
-      if (isLoginPageGetError) {
-        // 登录页面刷新导致的GET请求错误，静默处理
-        console.log('Login page refresh detected, ignoring GET request error')
+      return Promise.reject(error)
+    }
+    
+    if (response?.status === 500) {
+      if (shouldSilentError(config?.url || '', config?.method || 'get')) {
+        console.log('[Silent] Login page GET request error ignored')
         return Promise.reject(error)
       }
       
-      // 其他500错误，显示友好提示
-      ElMessage.error('服务器内部错误，请稍后重试或联系管理员')
-      console.error('[Response 500] Server error:', {
-        url: config?.url,
-        method: config?.method,
-        message: response?.data?.msg || response?.data?.message
-      })
-    } else {
-      ElMessage.error(response?.data?.msg || response?.data?.message || '网络错误')
+      const errorMsg = response?.data?.msg || response?.data?.message || '服务器内部错误'
+      if (errorMsg.includes('不支持请求方法') || errorMsg.includes('GET')) {
+        console.log('[Silent] Method not supported error:', config?.url)
+        return Promise.reject(error)
+      }
+      
+      ElMessage.error('服务器内部错误，请稍后重试')
+      console.error('[Response 500]:', config?.url, errorMsg)
+      return Promise.reject(error)
+    }
+    
+    if (!shouldSilentError(config?.url || '', config?.method || 'get')) {
+      ElMessage.error(response?.data?.msg || response?.data?.message || '请求失败')
     }
     
     return Promise.reject(error)
   }
 )
+
+function handleTokenExpired(requestUrl: string) {
+  if (isRedirecting) {
+    return
+  }
+  
+  const isWhiteUrl = isWhiteListUrl(requestUrl)
+  
+  console.error('[Token Expired]', {
+    url: requestUrl,
+    isWhiteList: isWhiteUrl,
+    currentPath: window.location.pathname
+  })
+  
+  if (!isWhiteUrl) {
+    isRedirecting = true
+    
+    const userStore = useUserStore()
+    userStore.logout()
+    
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/unauthorized') {
+      ElMessage({
+        type: 'warning',
+        message: '登录已过期，请重新登录',
+        duration: 2000,
+        onClose: () => {
+          isRedirecting = false
+        }
+      })
+      
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 300)
+    } else {
+      isRedirecting = false
+    }
+  }
+}
 
 export const request = {
   get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {

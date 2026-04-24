@@ -16,6 +16,19 @@
 
     <div class="articles-content">
       <div class="articles-main">
+        <!-- Empty State -->
+        <div v-if="articles.length === 0 && !loading" class="empty-state">
+          <div class="empty-icon">
+            <el-icon :size="64"><Document /></el-icon>
+          </div>
+          <h3>{{ isSearchResult ? '未找到相关文章' : '暂无文章' }}</h3>
+          <p>{{ isSearchResult ? '试试其他关键词或筛选条件' : '还没有发布任何文章' }}</p>
+          <div class="empty-actions">
+            <el-button v-if="isSearchResult" type="primary" @click="clearSearch">清除搜索</el-button>
+            <el-button v-if="hasActiveFilters" @click="clearFilters">清除筛选</el-button>
+          </div>
+        </div>
+
         <div class="article-list">
           <div
             v-for="article in articles"
@@ -31,8 +44,8 @@
                 <el-tag size="small" effect="plain">{{ article.categoryName }}</el-tag>
                 <span class="article-date">{{ formatDate(article.createTime) }}</span>
               </div>
-              <h3 class="article-title">{{ article.title }}</h3>
-              <p class="article-summary">{{ article.summary }}</p>
+              <h3 class="article-title" v-html="highlightText(article.title, searchKeyword)"></h3>
+              <p class="article-summary" v-html="highlightText(article.summary, searchKeyword)"></p>
               <div class="article-meta-bottom">
                 <div class="tags">
                   <el-tag
@@ -71,7 +84,10 @@
           <template #header>
             <span>文章归档</span>
           </template>
-          <div class="archive-list">
+          <div v-if="archives.length === 0" class="sidebar-empty">
+            暂无归档
+          </div>
+          <div v-else class="archive-list">
             <div
               v-for="archive in archives"
               :key="archive.year"
@@ -89,12 +105,16 @@
           <template #header>
             <span>热门标签</span>
           </template>
-          <div class="tag-cloud">
+          <div v-if="hotTags.length === 0" class="sidebar-empty">
+            暂无标签
+          </div>
+          <div v-else class="tag-cloud">
             <el-tag
               v-for="tag in hotTags"
               :key="tag.name"
               :type="tag.type"
               class="tag-item"
+              :class="{ active: false }"
               @click="handleSelectTag(tag.name)"
             >
               {{ tag.name }}
@@ -107,10 +127,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { articleApi } from '@/api'
+import { highlightText } from '@/utils/highlight'
 
 const router = useRouter()
 const route = useRoute()
@@ -120,6 +141,23 @@ const selectedCategory = ref('')
 const selectedYear = ref<number | null>(null)
 const currentPage = ref(1)
 const total = ref(0)
+const loading = ref(false)
+
+const searchKeyword = computed(() => (route.query.keyword as string) || '')
+
+const isSearchResult = computed(() => !!route.query.keyword)
+const hasActiveFilters = computed(() => !!selectedCategory.value || !!selectedYear.value)
+
+function clearSearch() {
+  router.push({ path: '/articles', query: {} })
+}
+
+function clearFilters() {
+  selectedCategory.value = ''
+  selectedYear.value = null
+  currentPage.value = 1
+  fetchArticles()
+}
 
 const categories = ref([])
 const articles = ref([])
@@ -196,7 +234,7 @@ function getTagColor(article: any, tagName: string): string {
   }
   
   // 3. 兜底：如果后端没给颜色，返回 Element Plus 的默认 Tag 颜色或自定义默认色
-  return '#409eff' 
+  return 'var(--tag-default-color)'
 }
 async function fetchArchives() {
   try {
@@ -265,6 +303,37 @@ watch(
 
 <style scoped lang="scss">
 .articles-page {
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px dashed var(--border-color);
+
+    .empty-icon {
+      color: #dcdfe6;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-size: 18px;
+      color: var(--text-primary);
+      margin: 0 0 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0 0 20px;
+    }
+
+    .empty-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+  }
+
   .page-header {
     display: flex;
     justify-content: space-between;
@@ -416,6 +485,13 @@ watch(
         }
       }
 
+      .sidebar-empty {
+        text-align: center;
+        padding: 20px 0;
+        color: var(--text-placeholder);
+        font-size: 14px;
+      }
+
       .archive-list {
         .archive-item {
           display: flex;
@@ -456,6 +532,12 @@ watch(
 
           &:hover {
             transform: scale(1.05);
+          }
+
+          &.active {
+            background: var(--brand-primary);
+            color: white;
+            border-color: var(--brand-primary);
           }
         }
       }

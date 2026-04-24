@@ -1,6 +1,71 @@
 @use 'sass:color';
 @use 'variables' as *;
 
+// =============================================
+// Design Tokens (CSS Variables)
+// =============================================
+:root {
+  // Brand Colors
+  --brand-primary: #{$primary-color};
+  --brand-secondary: #{$secondary-color};
+  --brand-gradient: linear-gradient(135deg, #{$primary-color} 0%, #{$secondary-color} 100%);
+
+  // Semantic Colors
+  --color-success: #{$success-color};
+  --color-warning: #{$warning-color};
+  --color-danger: #{$danger-color};
+  --color-info: #{$info-color};
+
+  // Text Colors
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --text-placeholder: #{$text-placeholder};
+
+  // Background Colors
+  --bg-primary: #{$bg-color};
+  --bg-secondary: #{$bg-color-secondary};
+  --bg-hover: #{$bg-color-hover};
+
+  // Border Colors
+  --border-color: #{$border-color};
+  --border-color-light: #{$border-color-light};
+
+  // Shadows
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+
+  // Border Radius
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+
+  // Tag Colors
+  --tag-default-color: #409eff;
+
+  // Layout
+  --header-height: #{$header-height};
+  --sidebar-width: #{$sidebar-width};
+
+  // Grid
+  --grid-category-min: 180px;
+}
+
+// Dark mode support (future)
+body.dark {
+  // Override tokens for dark mode
+}
+
+// =============================================
+// Search Highlight
+// =============================================
+.search-highlight {
+  background-color: rgba(255, 220, 0, 0.4);
+  padding: 0 2px;
+  border-radius: 2px;
+  color: inherit;
+}
+
 * {
   margin: 0;
   padding: 0;

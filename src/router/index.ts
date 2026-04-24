@@ -147,8 +147,16 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     const userStore = useUserStore()
     if (!userStore.isLoggedIn) {
-      ElMessage.warning('请登录')
+      ElMessage.warning('请先登录')
       next({ name: 'Login', query: { redirect: to.fullPath } })
+      return
+    }
+  }
+  
+  if (to.path === '/login') {
+    const userStore = useUserStore()
+    if (userStore.isLoggedIn && userStore.isAdmin) {
+      next({ path: '/admin' })
       return
     }
   }
