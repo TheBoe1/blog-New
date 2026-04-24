@@ -2,69 +2,55 @@
   <div class="front-layout">
     <header class="header">
       <div class="header-content">
-        <div class="logo" @click="router.push('/')">
+        <router-link to="/" class="logo">
           <div class="logo-icon">
             <img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" />
-            <span v-else class="gradient-text">{{ siteSettings.siteName?.charAt(0) || 'B' }}</span>
+            <span v-else class="logo-text">{{ siteSettings.siteName?.charAt(0) || 'B' }}</span>
           </div>
           <span class="site-name">{{ siteSettings.siteName || '个人博客' }}</span>
-        </div>
-        
+        </router-link>
+
         <nav class="nav-menu">
-          <router-link 
-            v-for="item in navItems" 
+          <router-link
+            v-for="item in navItems"
             :key="item.path"
             :to="item.path"
             class="nav-item"
             :class="{ active: isActive(item.path) }"
           >
-            <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
+            {{ item.title }}
           </router-link>
         </nav>
 
         <div class="header-actions">
-          <el-autocomplete
+          <el-input
             v-model="searchKeyword"
-            :fetch-suggestions="handleSearchSuggestions"
             :placeholder="searchPlaceholder"
             prefix-icon="Search"
             clearable
             class="search-input"
-            @select="handleSelectArticle"
             @keyup.enter="handleSearch"
-          >
-            <template #default="{ item }">
-              <div class="search-suggestion-item">
-                <div class="suggestion-title">{{ item.title }}</div>
-                <div class="suggestion-meta">
-                  <span class="suggestion-category">{{ item.categoryName }}</span>
-                  <span class="suggestion-views">{{ item.viewCount }} 阅读</span>
-                </div>
-              </div>
-            </template>
-          </el-autocomplete>
-          <el-button 
+          />
+          <el-button
             v-if="!userStore.isLoggedIn"
             type="primary"
+            link
             @click="router.push('/login')"
           >
             登录
           </el-button>
           <el-dropdown v-else trigger="click">
             <div class="user-avatar">
-              <el-avatar :size="36" :src="userStore.user?.avatar">
+              <el-avatar :size="32" :src="userStore.user?.avatar">
                 {{ userStore.user?.nickname?.charAt(0) }}
               </el-avatar>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="router.push('/admin')">
-                  <el-icon><Setting /></el-icon>
                   管理后台
                 </el-dropdown-item>
                 <el-dropdown-item divided @click="handleLogout">
-                  <el-icon><SwitchButton /></el-icon>
                   退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -84,16 +70,18 @@
 
     <footer class="footer">
       <div class="footer-content">
+        <div class="footer-main">
+          <span class="copyright">
+            © {{ currentYear }} {{ siteSettings.siteName || '个人博客' }}
+          </span>
+          <span v-if="siteSettings.icp" class="icp">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+              {{ siteSettings.icp }}
+            </a>
+          </span>
+        </div>
         <p class="tech-stack">
           {{ techStack }}
-        </p>
-        <p class="copyright">
-          {{ footerText }}
-        </p>
-        <p v-if="siteSettings.icp" class="icp">
-          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
-            {{ siteSettings.icp }}
-          </a>
         </p>
       </div>
     </footer>
@@ -107,14 +95,6 @@ import { useUserStore } from '@/stores/user'
 import { useBlogStore } from '@/stores/blog'
 import { settingsApi } from '@/api/stats'
 
-interface SearchSuggestion {
-  value: string
-  title: string
-  id: string
-  categoryName: string
-  viewCount: number
-}
-
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
@@ -123,82 +103,27 @@ const blogStore = useBlogStore()
 const searchKeyword = ref('')
 const siteSettings = ref<Record<string, string>>({})
 
-const navItems = computed(() => {
-  const items = [
-    { path: '/', title: '首页', icon: 'HomeFilled' },
-    { path: '/articles', title: '文章', icon: 'Document' },
-    { path: '/projects', title: '项目', icon: 'FolderOpened' },
-    { path: '/about', title: '关于', icon: 'User' }
-  ]
-  return items
-})
+const navItems = computed(() => [
+  { path: '/', title: '首页' },
+  { path: '/articles', title: '文章' },
+  { path: '/projects', title: '项目' },
+  { path: '/about', title: '关于' }
+])
 
 const currentYear = computed(() => new Date().getFullYear())
 
-const searchPlaceholder = computed(() => {
-  return siteSettings.value.searchPlaceholder || '搜索文章...'
-})
-
-const techStack = computed(() => {
-  return siteSettings.value.techStack || 'Vue · TypeScript · Vite'
-})
-
-const footerText = computed(() => {
-  if (siteSettings.value.footerText) {
-    return siteSettings.value.footerText
-  }
-  return `© ${currentYear.value} ${siteSettings.value.siteName || '个人博客'}. All rights reserved.`
-})
+const searchPlaceholder = computed(() => siteSettings.value.searchPlaceholder || '搜索文章...')
+const techStack = computed(() => siteSettings.value.techStack || 'Vue · TypeScript · Vite')
 
 function isActive(path: string) {
-  if (path === '/') {
-    return route.path === '/'
-  }
+  if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
-}
-
-async function handleSearchSuggestions(queryString: string, cb: (results: SearchSuggestion[]) => void) {
-  if (!queryString.trim()) {
-    cb([])
-    return
-  }
-  
-  try {
-    if (blogStore.articles.length === 0) {
-      await blogStore.fetchArticles({})
-    }
-    
-    const keyword = queryString.toLowerCase().trim()
-    const suggestions: SearchSuggestion[] = blogStore.articles
-      .filter(article => 
-        article.title.toLowerCase().includes(keyword) ||
-        article.summary.toLowerCase().includes(keyword) ||
-        article.tags.some(tag => tag.toLowerCase().includes(keyword))
-      )
-      .slice(0, 5)
-      .map(article => ({
-        value: article.title,
-        title: article.title,
-        id: article.id,
-        categoryName: article.categoryName,
-        viewCount: article.viewCount
-      }))
-    
-    cb(suggestions)
-  } catch (error) {
-    console.error('Search suggestions error:', error)
-    cb([])
-  }
-}
-
-function handleSelectArticle(item: SearchSuggestion) {
-  router.push(`/article/${item.id}`)
-  searchKeyword.value = ''
 }
 
 function handleSearch() {
   if (searchKeyword.value.trim()) {
     router.push({ path: '/articles', query: { keyword: searchKeyword.value } })
+    searchKeyword.value = ''
   }
 }
 
@@ -227,41 +152,37 @@ onMounted(async () => {
 }
 
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e4e7ed;
-  z-index: 1000;
+  z-index: 100;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
 
   .header-content {
-    max-width: 1200px;
+    max-width: var(--content-max-width);
     margin: 0 auto;
-    height: 100%;
+    height: var(--header-height);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 var(--space-6);
   }
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  cursor: pointer;
+  gap: var(--space-3);
+  text-decoration: none;
 
   .logo-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--text-primary);
+    border-radius: var(--radius-md);
     overflow: hidden;
 
     .logo-img {
@@ -270,42 +191,40 @@ onMounted(async () => {
       object-fit: cover;
     }
 
-    .gradient-text {
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
+    .logo-text {
+      color: var(--bg-primary);
+      font-weight: 600;
+      font-size: var(--text-base);
     }
   }
 
   .site-name {
-    font-size: 18px;
+    font-size: var(--text-base);
     font-weight: 600;
-    color: #303133;
+    color: var(--text-primary);
   }
 }
 
 .nav-menu {
   display: flex;
-  gap: 8px;
+  gap: var(--space-1);
 
   .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    color: #606266;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
 
     &:hover {
-      color: #667eea;
-      background: #f0f2f5;
+      color: var(--text-primary);
+      background: var(--bg-hover);
     }
 
     &.active {
-      color: #667eea;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      color: var(--text-primary);
+      font-weight: 500;
     }
   }
 }
@@ -313,89 +232,96 @@ onMounted(async () => {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 
   .search-input {
-    width: 240px;
+    width: 200px;
+
+    :deep(.el-input__wrapper) {
+      border-radius: var(--radius-lg);
+    }
   }
 
   .user-avatar {
     cursor: pointer;
-    transition: transform 0.3s ease;
+    border-radius: 50%;
+    transition: opacity var(--transition-fast);
 
     &:hover {
-      transform: scale(1.05);
+      opacity: 0.8;
     }
   }
 }
 
 .main-content {
   flex: 1;
-  margin-top: 60px;
-  padding: 24px;
-  max-width: 1200px;
+  padding: var(--space-8) var(--space-6);
+  max-width: var(--content-max-width);
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
 }
 
 .footer {
-  background: #f5f7fa;
-  border-top: 1px solid #e4e7ed;
-  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  padding: var(--space-8) var(--space-6);
 
   .footer-content {
-    max-width: 1200px;
+    max-width: var(--content-max-width);
     margin: 0 auto;
     text-align: center;
+  }
 
-    p {
-      color: #909399;
-      font-size: 13px;
-      margin: 4px 0;
-    }
+  .footer-main {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--space-2);
+  }
 
-    .tech-stack {
-      font-size: 12px;
-    }
+  .copyright,
+  .icp {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
 
-    .icp {
-      a {
-        color: #909399;
-        text-decoration: none;
-        &:hover {
-          color: #667eea;
-        }
-      }
+  .icp a {
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--link-color);
     }
+  }
+
+  .tech-stack {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
   }
 }
-</style>
 
-<style lang="scss">
-.search-suggestion-item {
-  padding: 8px 0;
-  
-  .suggestion-title {
-    font-size: 14px;
-    color: #303133;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 280px;
-  }
-  
-  .suggestion-meta {
-    display: flex;
-    gap: 12px;
-    margin-top: 4px;
-    font-size: 12px;
-    color: #909399;
-    
-    .suggestion-category {
-      color: #667eea;
+@media (max-width: 768px) {
+  .header {
+    .header-content {
+      padding: 0 var(--space-4);
     }
+  }
+
+  .nav-menu {
+    display: none;
+  }
+
+  .header-actions {
+    .search-input {
+      width: 140px;
+    }
+  }
+
+  .main-content {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-6) var(--space-4);
   }
 }
 </style>

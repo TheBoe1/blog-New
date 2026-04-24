@@ -1,9 +1,9 @@
 <template>
   <div class="not-found">
     <div class="content">
-      <h1>404</h1>
-      <h2>页面未找到</h2>
-      <p>抱歉，您访问的页面不存在或已被移除</p>
+      <h1 class="code">404</h1>
+      <p class="message">页面未找到</p>
+      <p class="description">抱歉，您访问的页面不存在或已被移除</p>
       <el-button type="primary" @click="router.push('/')">
         返回首页
       </el-button>
@@ -19,35 +19,36 @@ const router = useRouter()
 
 <style scoped lang="scss">
 .not-found {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height) - 200px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
   .content {
     text-align: center;
-    color: white;
+    padding: var(--space-8);
+  }
 
-    h1 {
-      font-size: 120px;
-      font-weight: 700;
-      margin: 0;
-      line-height: 1;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
+  .code {
+    font-size: 80px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: var(--space-4);
+    font-variant-numeric: tabular-nums;
+  }
 
-    h2 {
-      font-size: 32px;
-      font-weight: 600;
-      margin: 20px 0;
-    }
+  .message {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
 
-    p {
-      font-size: 16px;
-      opacity: 0.9;
-      margin-bottom: 32px;
-    }
+  .description {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
   }
 }
 </style>

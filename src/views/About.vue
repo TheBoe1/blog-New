@@ -1,79 +1,70 @@
 <template>
   <div class="about-page">
-    <div class="about-hero">
-      <div class="avatar-section">
-        <el-avatar :size="120" :src="userInfo.avatar">
-          {{ userInfo.nickname?.charAt(0) }}
-        </el-avatar>
-        <h1>{{ userInfo.nickname }}</h1>
-        <p class="bio">{{ userInfo.bio }}</p>
+    <section class="about-header">
+      <el-avatar :size="80" :src="userInfo.avatar">
+        {{ userInfo.nickname?.charAt(0) }}
+      </el-avatar>
+      <h1 class="name">{{ userInfo.nickname }}</h1>
+      <p class="bio">{{ userInfo.bio }}</p>
+    </section>
+
+    <section class="about-section">
+      <h2 class="section-title">基本信息</h2>
+      <div class="info-grid">
+        <div class="info-item" v-if="userInfo.occupation">
+          <span class="label">职业</span>
+          <span class="value">{{ userInfo.occupation }}</span>
+        </div>
+        <div class="info-item" v-if="userInfo.location">
+          <span class="label">位置</span>
+          <span class="value">{{ userInfo.location }}</span>
+        </div>
+        <div class="info-item" v-if="userInfo.email">
+          <span class="label">邮箱</span>
+          <span class="value">
+            <a :href="`mailto:${userInfo.email}`">{{ userInfo.email }}</a>
+          </span>
+        </div>
+        <div class="info-item" v-if="userInfo.github">
+          <span class="label">GitHub</span>
+          <span class="value">
+            <a :href="userInfo.github" target="_blank" rel="noopener noreferrer">
+              {{ formatUrl(userInfo.github) }}
+            </a>
+          </span>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="about-content">
-      <el-card shadow="never" class="info-card">
-        <template #header>
-          <span>个人信息</span>
-        </template>
-        <div class="info-list">
-          <div class="info-item">
-            <label class="label">职业</label>
-            <span class="value">{{ userInfo.occupation || '前端开发工程师' }}</span>
+    <section class="about-section" v-if="skills.length">
+      <h2 class="section-title">技能</h2>
+      <div class="skills-grid">
+        <div v-for="skill in skills" :key="skill.name" class="skill-item">
+          <div class="skill-header">
+            <span class="skill-name">{{ skill.name }}</span>
+            <span class="skill-level">{{ skill.level }}%</span>
           </div>
-          <div class="info-item">
-            <label class="label">位置</label>
-            <span class="value">{{ userInfo.location || '中国' }}</span>
-          </div>
-          <div class="info-item">
-            <label class="label">邮箱</label>
-            <span class="value">{{ userInfo.email }}</span>
-          </div>
-          <div class="info-item">
-            <label class="label">GitHub</label>
-            <a :href="userInfo.github" target="_blank" class="link">{{ userInfo.github }}</a>
+          <el-progress
+            :percentage="skill.level"
+            :show-text="false"
+            :stroke-width="4"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section" v-if="timeline.length">
+      <h2 class="section-title">经历</h2>
+      <div class="timeline">
+        <div v-for="item in timeline" :key="item.id" class="timeline-item">
+          <span class="timeline-date">{{ item.date }}</span>
+          <div class="timeline-content">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
           </div>
         </div>
-      </el-card>
-
-      <el-card shadow="never" class="skills-card">
-        <template #header>
-          <span>技能标签</span>
-        </template>
-        <div class="skills-list">
-          <div v-for="skill in skills" :key="skill.name" class="skill-item">
-            <div class="skill-info">
-              <span class="skill-name">{{ skill.name }}</span>
-              <span class="skill-level">{{ skill.level }}%</span>
-            </div>
-            <el-progress 
-              :percentage="skill.level" 
-              :color="skill.color"
-              :show-text="false"
-            />
-          </div>
-        </div>
-      </el-card>
-
-      <el-card shadow="never" class="timeline-card">
-        <template #header>
-          <span>经历时间线</span>
-        </template>
-        <el-timeline>
-          <el-timeline-item
-            v-for="item in timeline"
-            :key="item.id"
-            :timestamp="item.date"
-            placement="top"
-            :color="item.color"
-          >
-            <el-card shadow="hover">
-              <h4>{{ item.title }}</h4>
-              <p>{{ item.description }}</p>
-            </el-card>
-          </el-timeline-item>
-        </el-timeline>
-      </el-card>
-    </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -87,25 +78,26 @@ const userStore = useUserStore()
 const userInfo = ref({
   nickname: '博主',
   avatar: '',
-  bio: '热爱编程，专注于前端开发，喜欢探索新技术',
-  occupation: '前端开发工程师',
-  location: '中国',
-  email: 'admin@example.com',
-  github: 'https://github.com'
+  bio: '热爱编程，专注于前端开发',
+  occupation: '',
+  location: '',
+  email: '',
+  github: ''
 })
 
 const skills = ref([
-  { name: 'Vue.js', level: 90, color: '#42b883' },
-  { name: 'TypeScript', level: 85, color: '#3178c6' },
-  { name: 'React', level: 75, color: '#61dafb' },
-  { name: 'Node.js', level: 70, color: '#68a063' },
-  { name: 'CSS/Sass', level: 85, color: '#cc6699' },
-  { name: 'Python', level: 60, color: '#3776ab' }
+  { name: 'Vue.js', level: 90 },
+  { name: 'TypeScript', level: 85 },
+  { name: 'CSS/Sass', level: 80 }
 ])
 
 const timeline = ref([
-  { id: 1, date: '2025-03', title: '开始写技术博客', description: '决定开始记录学习历程，分享技术心得', color: '#667eea' },
+  { id: 1, date: '2024', title: '开始写技术博客', description: '记录学习历程，分享技术心得' }
 ])
+
+function formatUrl(url: string) {
+  return url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+}
 
 async function loadSettings() {
   try {
@@ -120,14 +112,14 @@ async function loadSettings() {
       if (settings.socialLinks) {
         try {
           const social = JSON.parse(settings.socialLinks)
-          userInfo.value.github = social.github || userInfo.value.github
-          userInfo.value.email = social.email || userInfo.value.email
+          userInfo.value.github = social.github || ''
+          userInfo.value.email = social.email || ''
         } catch (e) {
           console.error('Failed to parse social links:', e)
         }
       }
     }
-    
+
     if (userStore.user) {
       userInfo.value.nickname = userStore.user.nickname || userInfo.value.nickname
       userInfo.value.avatar = userStore.user.avatar || userInfo.value.avatar
@@ -146,115 +138,149 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .about-page {
-  .about-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    padding: 60px 40px;
-    text-align: center;
-    color: white;
-    margin-bottom: 32px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: var(--space-16);
+}
 
-    .avatar-section {
-      h1 {
-        font-size: 28px;
-        font-weight: 600;
-        margin: 20px 0 12px;
-      }
+.about-header {
+  text-align: center;
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-12);
 
-      .bio {
-        font-size: 16px;
-        opacity: 0.9;
-        max-width: 400px;
-        margin: 0 auto;
-      }
+  .name {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: var(--space-4) 0 var(--space-2);
+  }
 
-      .tech-stack {
-        margin-top: 16px;
-        font-size: 14px;
-        opacity: 0.85;
-        letter-spacing: 1px;
+  .bio {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+.about-section {
+  margin-bottom: var(--space-12);
+
+  .section-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    .label {
+      font-size: var(--text-sm);
+      color: var(--text-tertiary);
+    }
+
+    .value {
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+
+      a {
+        color: var(--link-color);
+
+        &:hover {
+          color: var(--link-hover-color);
+        }
       }
     }
   }
+}
 
-  .about-content {
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+
+  .skill-item {
+    .skill-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+
+      .skill-name {
+        font-size: var(--text-sm);
+        color: var(--text-primary);
+      }
+
+      .skill-level {
+        font-size: var(--text-sm);
+        color: var(--text-tertiary);
+      }
+    }
+  }
+}
+
+.timeline {
+  .timeline-item {
     display: flex;
-    flex-direction: column;
-    gap: 24px;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    position: relative;
 
-    .info-card {
-      .info-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-
-        .info-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-
-          .label {
-            font-size: 13px;
-            color: #909399;
-          }
-
-          .value {
-            font-size: 15px;
-            color: #303133;
-          }
-
-          .link {
-            font-size: 15px;
-            color: #667eea;
-          }
-        }
-      }
+    &::before {
+      content: '';
+      position: absolute;
+      left: 56px;
+      top: 24px;
+      bottom: 0;
+      width: 1px;
+      background: var(--border-color);
     }
 
-    .skills-card {
-      .skills-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 24px;
-
-        .skill-item {
-          .skill-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-
-            .skill-name {
-              font-size: 14px;
-              color: #303133;
-            }
-
-            .skill-level {
-              font-size: 13px;
-              color: #909399;
-            }
-          }
-        }
-      }
+    &:last-child::before {
+      display: none;
     }
 
-    .timeline-card {
-      :deep(.el-timeline-item__timestamp) {
-        color: #909399;
-      }
+    .timeline-date {
+      width: 48px;
+      font-size: var(--text-sm);
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+
+    .timeline-content {
+      flex: 1;
 
       h4 {
-        font-size: 16px;
+        font-size: var(--text-sm);
         font-weight: 600;
-        color: #303133;
-        margin: 0 0 8px;
+        color: var(--text-primary);
+        margin-bottom: var(--space-1);
       }
 
       p {
-        font-size: 14px;
-        color: #606266;
-        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
       }
     }
+  }
+}
+
+@media (max-width: 640px) {
+  .info-grid,
+  .skills-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

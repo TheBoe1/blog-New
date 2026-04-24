@@ -1,142 +1,95 @@
 <template>
   <div class="home-page">
-    <div class="hero-section">
-      <div class="hero-decoration">
-        <div class="decoration-circle circle-1"></div>
-        <div class="decoration-circle circle-2"></div>
-        <div class="decoration-circle circle-3"></div>
-        <div class="decoration-dots"></div>
-      </div>
+    <!-- Hero Section -->
+    <section class="hero">
       <div class="hero-content">
-        <div class="hero-text">
-          <h1 class="hero-title">
-            <span class="gradient-text">探索技术</span>
-            <br />
-            分享成长
-          </h1>
-          <p class="hero-description">
-            记录学习历程，分享技术心得，与志同道合的朋友一起成长
-          </p>
-          <div class="hero-actions">
-            <el-button type="primary" size="large" @click="goToArticles">
-              <el-icon><Reading /></el-icon>
-              浏览文章
-            </el-button>
-            <el-button size="large" @click="goToAbout">
-              <el-icon><InfoFilled /></el-icon>
-              了解更多
-            </el-button>
-          </div>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <div class="stat-icon">
-              <el-icon><Document /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ stats.articleCount }}</div>
-              <div class="stat-label">篇文章</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">
-              <el-icon><FolderOpened /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ stats.categoryCount }}</div>
-              <div class="stat-label">个分类</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">
-              <el-icon><View /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ stats.viewCount }}</div>
-              <div class="stat-label">次浏览</div>
-            </div>
-          </div>
+        <h1 class="hero-title">
+          记录思考<br />分享成长
+        </h1>
+        <p class="hero-description">
+          专注于前端开发与技术分享，记录学习历程
+        </p>
+        <div class="hero-actions">
+          <el-button type="primary" @click="goToArticles">
+            浏览文章
+          </el-button>
+          <el-button @click="goToAbout">
+            了解更多
+          </el-button>
         </div>
       </div>
-    </div>
-
-    <div class="content-section">
-      <div class="section-header">
-        <div class="section-title">
-          <div class="title-decoration"></div>
-          <h2>最新文章</h2>
-          <span class="section-subtitle">Latest Articles</span>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.articleCount }}</span>
+          <span class="stat-label">文章</span>
         </div>
-        <el-button type="primary" link @click="goToArticles" class="more-btn">
-          查看更多 <el-icon><ArrowRight /></el-icon>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.categoryCount }}</span>
+          <span class="stat-label">分类</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ formatNumber(stats.viewCount) }}</span>
+          <span class="stat-label">浏览</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Latest Articles -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">最新文章</h2>
+        <el-button type="primary" link @click="goToArticles">
+          查看全部 →
         </el-button>
       </div>
-      
+
       <div class="article-grid">
-        <el-card
+        <article
           v-for="article in recentArticles"
           :key="article.id"
-          shadow="hover"
-          :class="['article-card', { 'article-card-no-cover': !article.cover }]"
+          class="article-card"
           @click="goToArticle(article.id)"
         >
-          <div class="article-cover" v-if="article.cover">
-            <img :src="article.cover" :alt="article.title" />
-            <div class="cover-overlay">
-              <el-icon class="read-icon"><Reading /></el-icon>
-            </div>
+          <div v-if="article.cover" class="article-cover">
+            <img :src="article.cover" :alt="article.title" loading="lazy" />
           </div>
-          <div class="article-info">
-            <div class="article-meta-top">
-              <el-tag size="small" effect="plain" class="category-tag">
-                <el-icon><Folder /></el-icon>
-                {{ article.categoryName }}
-              </el-tag>
-              <span class="reading-time">
-                <el-icon><Clock /></el-icon>
-                {{ getReadingTime(article.content || article.summary) }} 分钟
-              </span>
+          <div class="article-body">
+            <div class="article-meta">
+              <span class="category">{{ article.categoryName }}</span>
+              <span class="dot">·</span>
+              <span class="reading-time">{{ getReadingTime(article.content || article.summary) }} 分钟</span>
             </div>
             <h3 class="article-title">{{ article.title }}</h3>
             <p class="article-summary">{{ article.summary }}</p>
-            <div class="article-tags-position">
+            <div class="article-tags" v-if="article.tags?.length">
               <el-tag
-                v-for="tag in (article.tags || []).slice(0, 3)"
+                v-for="tag in article.tags.slice(0, 3)"
                 :key="tag"
-                :color="getTagColor(article, tag)" 
-                style="border: none; color: white;"
                 size="small"
+                effect="plain"
+                :color="getTagColor(tag)"
+                style="color: #ffffff; border: none;"
               >
                 {{ tag }}
               </el-tag>
             </div>
-          </div>
-          
-          <template #footer>
             <div class="article-footer">
-              <span class="footer-item">
-                <el-icon><Calendar /></el-icon>
-                {{ formatDate(article.createTime) }}
-              </span>
-              <span class="footer-item">
-                <el-icon><View /></el-icon>
-                {{ article.viewCount }}
-              </span>
+              <span class="date">{{ formatDate(article.createTime) }}</span>
+              <span class="views">{{ article.viewCount }} 阅读</span>
             </div>
-          </template>
-        </el-card>
+          </div>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <div class="content-section">
+    <!-- Categories -->
+    <section class="section">
       <div class="section-header">
-        <div class="section-title">
-          <div class="title-decoration"></div>
-          <h2>分类导航</h2>
-          <span class="section-subtitle">Categories</span>
-        </div>
+        <h2 class="section-title">分类</h2>
       </div>
-      
+
       <div class="category-grid">
         <div
           v-for="category in displayCategories"
@@ -144,21 +97,17 @@
           class="category-card"
           @click="goToCategory(category.id)"
         >
-          <div class="category-icon" :style="{ background: category.color }">
-            <el-icon :size="32"><component :is="category.icon" /></el-icon>
+          <div class="category-icon">
+            <el-icon :size="20"><component :is="category.icon" /></el-icon>
           </div>
-          <el-tooltip :content="category.name" placement="top" :disabled="category.name.length <= 6">
-            <div class="category-info">
-              <h4>{{ category.name }}</h4>
-              <p>{{ category.articleCount }} 篇文章</p>
-            </div>
-          </el-tooltip>
-          <div class="category-arrow">
-            <el-icon><ArrowRight /></el-icon>
+          <div class="category-info">
+            <span class="category-name">{{ category.name }}</span>
+            <span class="article-count">{{ category.articleCount }} 篇</span>
           </div>
+          <el-icon class="category-arrow"><ArrowRight /></el-icon>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -178,21 +127,31 @@ const stats = ref({
 
 const recentArticles = computed(() => blogStore.recentArticles)
 
-const categoryStyles: Record<string, { color: string; icon: string }> = {
-  '1': { color: 'linear-gradient(135deg, #409eff 0%, #337ecc 100%)', icon: 'Monitor' },
-  '2': { color: 'linear-gradient(135deg, #67c23a 0%, #529b2e 100%)', icon: 'DataAnalysis' },
-  '3': { color: 'linear-gradient(135deg, #e6a23c 0%, #c48a2e 100%)', icon: 'Coin' },
-  '4': { color: 'linear-gradient(135deg, #909399 0%, #73767a 100%)', icon: 'Setting' },
-  '5': { color: 'linear-gradient(135deg, #f56c6c 0%, #c45656 100%)', icon: 'More' }
+const categoryIcons: Record<string, string> = {
+  '1': 'Monitor',
+  '2': 'DataAnalysis',
+  '3': 'Coin',
+  '4': 'Setting',
+  '5': 'Folder',
+  default: 'Folder'
 }
 
 const displayCategories = computed(() => {
   return blogStore.categories.map(cat => ({
     ...cat,
-    color: categoryStyles[cat.id]?.color || 'linear-gradient(135deg, #409eff 0%, #337ecc 100%)',
-    icon: categoryStyles[cat.id]?.icon || 'Folder'
+    icon: categoryIcons[cat.id] || categoryIcons.default
   }))
 })
+
+function formatNumber(num: number): string {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + 'w'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k'
+  }
+  return num.toString()
+}
 
 function goToArticles() {
   router.push('/articles')
@@ -206,13 +165,6 @@ function goToArticle(id: string) {
   router.push(`/article/${id}`)
 }
 
-function getTagColor(article: any, tagName: string): string {
-  if (article.tagColor && article.tagColor[tagName]) {
-    return article.tagColor[tagName]
-  }
-  return 'var(--tag-default-color)'
-}
-
 function goToCategory(id: string) {
   router.push(`/category/${id}`)
 }
@@ -221,8 +173,8 @@ function formatDate(date: string) {
   if (!date) return ''
   return new Date(date).toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+    month: 'short',
+    day: 'numeric'
   })
 }
 
@@ -232,9 +184,15 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(text.length / 500))
 }
 
+function getTagColor(tagName: string): string {
+  const tag = blogStore.tags.find(t => t.name === tagName)
+  return tag?.color || 'var(--tag-default-color)'
+}
+
 onMounted(async () => {
-  await blogStore.fetchArticles({ page: 1, pageSize: 4, sortBy: 'createTime', sortOrder: 'desc' })
+  await blogStore.fetchArticles({ page: 1, pageSize: 6, sortBy: 'createTime', sortOrder: 'desc' })
   await blogStore.fetchCategories()
+  await blogStore.fetchTags()
   stats.value = {
     articleCount: blogStore.articleCount,
     categoryCount: blogStore.categoryCount,
@@ -245,586 +203,273 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .home-page {
-  --home-bg: #f4f7f9;
-  --home-text: #333333;
-  --home-text-secondary: #606266;
-  --home-text-muted: #909399;
-  --home-border: #e4e7ed;
-  --home-card-bg: #ffffff;
-  --home-accent: var(--el-color-primary);
-  --home-accent-light: rgba(64, 158, 255, 0.1);
-  --home-accent-medium: rgba(64, 158, 255, 0.15);
-  --home-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --home-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --home-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding-bottom: var(--space-16);
+}
 
-  .hero-section {
-    background: var(--home-card-bg);
-    border-radius: 20px;
-    padding: 60px 50px;
-    margin-bottom: 48px;
-    color: var(--home-text);
-    border: 1px solid var(--home-border);
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--home-shadow-md);
+// ─── Hero ────────────────────────────────────────────
+.hero {
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
 
-    .hero-decoration {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-      overflow: hidden;
+  .hero-content {
+    max-width: 600px;
 
-      .decoration-circle {
-        position: absolute;
-        border-radius: 50%;
-        opacity: 0.6;
-      }
-
-      .circle-1 {
-        width: 400px;
-        height: 400px;
-        background: linear-gradient(135deg, rgba(64, 158, 255, 0.08) 0%, rgba(64, 158, 255, 0.02) 100%);
-        top: -100px;
-        right: -100px;
-        animation: float 8s ease-in-out infinite;
-      }
-
-      .circle-2 {
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(135deg, rgba(103, 194, 58, 0.1) 0%, rgba(103, 194, 58, 0.02) 100%);
-        bottom: -50px;
-        left: 10%;
-        animation: float 6s ease-in-out infinite reverse;
-      }
-
-      .circle-3 {
-        width: 150px;
-        height: 150px;
-        background: linear-gradient(135deg, rgba(230, 162, 60, 0.1) 0%, rgba(230, 162, 60, 0.02) 100%);
-        top: 30%;
-        right: 20%;
-        animation: float 7s ease-in-out infinite;
-      }
-
-      .decoration-dots {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 100px;
-        height: 100px;
-        background-image: radial-gradient(rgba(64, 158, 255, 0.15) 1px, transparent 1px);
-        background-size: 12px 12px;
-        opacity: 0.8;
-      }
+    .hero-title {
+      font-size: var(--text-4xl);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
     }
 
-    .hero-content {
+    .hero-description {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--space-6);
+    }
+
+    .hero-actions {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-text {
-      max-width: 560px;
-
-      .hero-title {
-        font-size: 64px;
-        font-weight: 800;
-        line-height: 1.15;
-        margin-bottom: 20px;
-        color: var(--home-text);
-        letter-spacing: -0.5px;
-
-        .gradient-text {
-          color: var(--home-accent);
-        }
-      }
-
-      .hero-description {
-        font-size: 17px;
-        color: var(--home-text-secondary);
-        margin-bottom: 32px;
-        line-height: 1.7;
-      }
-
-      .hero-actions {
-        display: flex;
-        gap: 14px;
-
-        .el-button {
-          padding: 12px 28px;
-          font-weight: 500;
-          
-          .el-icon {
-            margin-right: 6px;
-          }
-        }
-      }
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 20px;
-
-      .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 20px 24px;
-        background: var(--home-card-bg);
-        border-radius: 16px;
-        border: 1px solid var(--home-border);
-        box-shadow: var(--home-shadow-sm);
-        transition: all 0.3s ease;
-
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--home-shadow-md);
-        }
-
-        .stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          background: var(--home-accent-light);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--home-accent);
-          font-size: 22px;
-        }
-
-        .stat-content {
-          .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--home-text);
-            line-height: 1.2;
-          }
-
-          .stat-label {
-            font-size: 13px;
-            color: var(--home-text-muted);
-            margin-top: 2px;
-          }
-        }
-      }
+      gap: var(--space-3);
     }
   }
 
-  .content-section {
-    margin-bottom: 48px;
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
 
-    .section-header {
+    .stat-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
 
-      .section-title {
+    .stat-value {
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: var(--text-sm);
+      color: var(--text-tertiary);
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border-color);
+    }
+  }
+}
+
+// ─── Section ─────────────────────────────────────────
+.section {
+  margin-bottom: var(--space-12);
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+
+    .section-title {
+      font-size: var(--text-xl);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// ─── Article Grid ────────────────────────────────────
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
+
+  .article-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      border-color: var(--border-color-strong);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .article-cover {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: var(--bg-tertiary);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .article-body {
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .article-meta {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: var(--space-2);
+        font-size: var(--text-sm);
+        color: var(--text-tertiary);
+        margin-bottom: var(--space-3);
 
-        .title-decoration {
-          width: 4px;
-          height: 28px;
-          background: linear-gradient(180deg, var(--home-accent) 0%, #67c23a 100%);
-          border-radius: 2px;
+        .category {
+          color: var(--link-color);
         }
 
-        h2 {
-          font-size: 26px;
-          font-weight: 700;
-          color: var(--home-text);
-          margin: 0;
-        }
-
-        .section-subtitle {
-          font-size: 14px;
-          color: var(--home-text-muted);
-          font-weight: 400;
-          letter-spacing: 1px;
+        .dot {
+          color: var(--border-color-strong);
         }
       }
 
-      .more-btn {
+      .article-title {
+        font-size: var(--text-base);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--space-2);
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .article-summary {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 40px;
+        flex-shrink: 0;
+      }
+
+      .article-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: auto;
+        padding-top: var(--space-3);
+      }
+
+      .article-footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: var(--text-xs);
+        color: var(--text-tertiary);
+        margin-top: var(--space-3);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--border-color);
+      }
+    }
+  }
+}
+
+// ─── Category Grid ───────────────────────────────────
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+
+  .category-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+
+    &:hover {
+      border-color: var(--border-color-strong);
+      background: var(--bg-hover);
+    }
+
+    .category-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+    }
+
+    .category-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+
+      .category-name {
+        font-size: var(--text-sm);
         font-weight: 500;
-        
-        .el-icon {
-          margin-left: 4px;
-          transition: transform 0.3s ease;
-        }
-
-        &:hover .el-icon {
-          transform: translateX(4px);
-        }
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
+
+      .article-count {
+        font-size: var(--text-xs);
+        color: var(--text-tertiary);
+      }
+    }
+
+    .category-arrow {
+      color: var(--text-tertiary);
+      transition: transform var(--transition-fast);
+    }
+
+    &:hover .category-arrow {
+      transform: translateX(2px);
+    }
+  }
+}
+
+// ─── Responsive ──────────────────────────────────────
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--space-8) 0;
+
+    .hero-title {
+      font-size: var(--text-3xl);
+    }
+
+    .hero-stats {
+      gap: var(--space-4);
     }
   }
 
   .article-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 28px;
-
-    .article-card {
-      cursor: pointer;
-      transition: all 0.35s ease;
-      display: flex;
-      flex-direction: column;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--home-border);
-
-      &.article-card-no-cover {
-        .article-info {
-          padding: 24px;
-        }
-      }
-
-      &:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--home-shadow-lg);
-
-        .article-cover .cover-overlay {
-          opacity: 1;
-        }
-
-        .article-cover img {
-          transform: scale(1.05);
-        }
-      }
-
-      :deep(.el-card__body) {
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        flex: 1; 
-      }
-
-      .article-cover {
-        height: 200px;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, #f0f2f5 0%, #e8ecf0 100%);
-        position: relative;
-        overflow: hidden;
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.5s ease;
-        }
-
-        .cover-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-
-          .read-icon {
-            font-size: 48px;
-            color: white;
-          }
-        }
-
-        &.article-cover-placeholder {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--home-text-muted);
-        }
-      }
-
-      .article-info {
-        display: flex;
-        flex-direction: column; 
-        padding: 20px 24px;
-        flex: 1;
-        
-        .article-meta-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 14px;
-
-          .category-tag {
-            .el-icon {
-              margin-right: 4px;
-            }
-          }
-
-          .reading-time {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            color: var(--home-text-muted);
-
-            .el-icon {
-              font-size: 14px;
-            }
-          }
-        }
-
-        .article-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: var(--home-text);
-          margin: 0 0 10px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          line-height: 1.4;
-        }
-
-        .article-summary {
-          font-size: 14px;
-          color: var(--home-text-secondary);
-          line-height: 1.7;
-          margin: 0 0 16px;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .article-tags-position {
-          margin-top: auto;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-          gap: 6px;
-        }
-      }
-
-      :deep(.el-card__footer) {
-        padding: 14px 24px;
-        border-top: 1px solid var(--home-border);
-        background: #fafbfc;
-
-        .article-footer {
-          display: flex;
-          justify-content: space-between;
-          width: 100%;
-
-          .footer-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--home-text-muted);
-
-            .el-icon {
-              font-size: 14px;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--grid-category-min), 1fr));
-    gap: 20px;
-
-    .category-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 28px 20px;
-      background: var(--home-card-bg);
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all 0.35s ease;
-      border: 1px solid var(--home-border);
-      position: relative;
-      overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--home-accent);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-      }
-
-      &:hover {
-        border-color: var(--home-accent);
-        box-shadow: var(--home-shadow-md);
-        transform: translateY(-4px);
-
-        &::before {
-          transform: scaleX(1);
-        }
-
-        .category-icon {
-          transform: scale(1.1) rotate(5deg);
-        }
-
-        .category-arrow {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-
-      .category-icon {
-        width: 68px;
-        height: 68px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease;
-      }
-
-      .category-info {
-        text-align: center;
-        width: 100%;
-
-        h4 {
-          font-size: 16px;
-          font-weight: 600;
-          color: var(--home-text);
-          margin: 0 0 6px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        p {
-          font-size: 13px;
-          color: var(--home-text-muted);
-          margin: 0;
-        }
-      }
-
-      .category-arrow {
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%) translateX(-8px);
-        opacity: 0;
-        transition: all 0.3s ease;
-        color: var(--home-accent);
-        font-size: 18px;
-      }
-    }
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-}
-
-@media (max-width: 1200px) {
-  .home-page {
-    .category-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-}
-
-@media (max-width: 992px) {
-  .home-page {
-    .category-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .hero-section {
-      padding: 40px 30px;
-      
-      .hero-text .hero-title {
-        font-size: 48px;
-      }
-
-      .hero-stats {
-        gap: 12px;
-
-        .stat-item {
-          padding: 14px 18px;
-
-          .stat-icon {
-            width: 40px;
-            height: 40px;
-          }
-
-          .stat-content .stat-value {
-            font-size: 22px;
-          }
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .home-page {
-    .article-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .category-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .hero-section {
-      padding: 30px 20px;
-      
-      .hero-content {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .hero-text {
-        .hero-title {
-          font-size: 36px;
-        }
-
-        .hero-actions {
-          justify-content: center;
-        }
-      }
-      
-      .hero-stats {
-        margin-top: 28px;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        
-        .stat-item {
-          padding: 12px 16px;
-        }
-      }
-    }
+    grid-template-columns: 1fr;
   }
 }
 </style>

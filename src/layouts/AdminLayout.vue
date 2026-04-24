@@ -5,24 +5,25 @@
         <div class="logo-area">
           <div class="logo-icon">
             <img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" />
-            <span v-else class="gradient-text">{{ siteSettings.siteName?.charAt(0) || 'B' }}</span>
+            <span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span>
           </div>
-          <span v-show="!isCollapsed" class="logo-text">{{ siteSettings.adminTitle || '管理后台' }}</span>
+          <span v-show="!isCollapsed" class="logo-text">
+            {{ siteSettings.adminTitle || '管理后台' }}
+          </span>
         </div>
-        
+
         <el-menu
           :default-active="activeMenu"
           :collapse="isCollapsed"
           :collapse-transition="false"
           router
           class="admin-menu"
-          @select="handleMenuSelect"
         >
           <el-menu-item index="/admin">
             <el-icon><DataAnalysis /></el-icon>
             <template #title>控制台</template>
           </el-menu-item>
-          
+
           <el-sub-menu index="article">
             <template #title>
               <el-icon><Document /></el-icon>
@@ -31,22 +32,22 @@
             <el-menu-item index="/admin/articles">文章列表</el-menu-item>
             <el-menu-item index="/admin/article/create">新建文章</el-menu-item>
           </el-sub-menu>
-          
+
           <el-menu-item index="/admin/categories">
             <el-icon><Folder /></el-icon>
             <template #title>分类管理</template>
           </el-menu-item>
-          
+
           <el-menu-item index="/admin/tags">
             <el-icon><PriceTag /></el-icon>
             <template #title>标签管理</template>
           </el-menu-item>
-          
+
           <el-menu-item index="/admin/settings">
             <el-icon><Setting /></el-icon>
             <template #title>系统设置</template>
           </el-menu-item>
-          
+
           <el-menu-item index="/admin/page-config">
             <el-icon><EditPen /></el-icon>
             <template #title>页面配置</template>
@@ -57,8 +58,8 @@
       <el-container>
         <el-header class="admin-header">
           <div class="header-left">
-            <el-icon 
-              class="collapse-btn" 
+            <el-icon
+              class="collapse-btn"
               @click="isCollapsed = !isCollapsed"
             >
               <component :is="isCollapsed ? 'Expand' : 'Fold'" />
@@ -70,7 +71,7 @@
               </el-breadcrumb-item>
             </el-breadcrumb>
           </div>
-          
+
           <div class="header-right">
             <el-dropdown trigger="click">
               <div class="user-info">
@@ -82,11 +83,9 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="router.push('/')">
-                    <el-icon><House /></el-icon>
                     访问前台
                   </el-dropdown-item>
                   <el-dropdown-item divided @click="handleLogout">
-                    <el-icon><SwitchButton /></el-icon>
                     退出登录
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -121,14 +120,7 @@ const isCollapsed = ref(false)
 const siteSettings = ref<Record<string, string>>({})
 
 const activeMenu = computed(() => route.path)
-
 const currentTitle = computed(() => route.meta.title as string)
-
-function handleMenuSelect(index: string) {
-  if (index && index.startsWith('/')) {
-    router.push(index)
-  }
-}
 
 function handleLogout() {
   userStore.logout()
@@ -140,6 +132,10 @@ onMounted(async () => {
     siteSettings.value = await settingsApi.getSettings() as Record<string, string>
   } catch (error) {
     console.error('Failed to load settings:', error)
+  }
+  // Sync user info if not logged in
+  if (!userStore.user) {
+    await userStore.fetchUserInfo()
   }
 })
 </script>
@@ -155,27 +151,26 @@ onMounted(async () => {
 }
 
 .admin-aside {
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  transition: width 0.3s ease;
-  overflow: hidden;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  transition: width var(--transition-base);
 
   .logo-area {
-    height: 60px;
+    height: var(--header-height);
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: var(--space-3);
+    padding: 0 var(--space-4);
+    border-bottom: 1px solid var(--border-color);
 
     .logo-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--text-primary);
+      border-radius: var(--radius-md);
       flex-shrink: 0;
       overflow: hidden;
 
@@ -185,17 +180,17 @@ onMounted(async () => {
         object-fit: cover;
       }
 
-      .gradient-text {
-        color: white;
-        font-weight: bold;
-        font-size: 18px;
+      span {
+        color: var(--bg-primary);
+        font-weight: 600;
+        font-size: var(--text-sm);
       }
     }
 
     .logo-text {
-      color: white;
-      font-size: 16px;
+      font-size: var(--text-sm);
       font-weight: 600;
+      color: var(--text-primary);
       white-space: nowrap;
     }
   }
@@ -204,70 +199,57 @@ onMounted(async () => {
 .admin-menu {
   border-right: none;
   background: transparent;
+  padding: var(--space-2) 0;
 
   :deep(.el-menu-item),
   :deep(.el-sub-menu__title) {
-    color: rgba(255, 255, 255, 0.7);
-    height: 50px;
-    line-height: 50px;
-    background-color: transparent !important;
+    height: 44px;
+    line-height: 44px;
+    color: var(--text-secondary);
+    background-color: transparent;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.08) !important;
-      color: white;
+      background: var(--bg-hover);
+      color: var(--text-primary);
     }
-  }
-
-  :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: white;
-  }
-
-  :deep(.el-sub-menu .el-menu) {
-    background: rgba(0, 0, 0, 0.2);
   }
 
   :deep(.el-menu-item.is-active) {
-    background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%) !important;
-    color: white;
-    border-right: 3px solid #667eea;
+    color: var(--brand-primary);
+    background: var(--brand-primary-light);
   }
 
   :deep(.el-sub-menu .el-menu-item) {
-    padding-left: 50px !important;
-    min-width: auto;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.08) !important;
-    }
-    
-    &.is-active {
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, transparent 100%) !important;
-    }
+    padding-left: var(--space-8) !important;
+    height: 40px;
+    line-height: 40px;
   }
 }
 
 .admin-header {
-  background: white;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 var(--space-6);
 
   .header-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-4);
 
     .collapse-btn {
-      font-size: 20px;
+      font-size: var(--text-lg);
       cursor: pointer;
-      color: #606266;
-      transition: color 0.3s ease;
+      color: var(--text-secondary);
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: color var(--transition-fast), background-color var(--transition-fast);
 
       &:hover {
-        color: #667eea;
+        color: var(--text-primary);
+        background: var(--bg-hover);
       }
     }
   }
@@ -276,20 +258,27 @@ onMounted(async () => {
     .user-info {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--space-3);
       cursor: pointer;
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: background-color var(--transition-fast);
+
+      &:hover {
+        background: var(--bg-hover);
+      }
 
       .username {
-        color: #303133;
-        font-size: 14px;
+        font-size: var(--text-sm);
+        color: var(--text-primary);
       }
     }
   }
 }
 
 .admin-main {
-  background: #f5f7fa;
-  padding: 20px;
+  background: var(--bg-secondary);
+  padding: var(--space-6);
   overflow-y: auto;
 }
 </style>

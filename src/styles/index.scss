@@ -2,70 +2,124 @@
 @use 'variables' as *;
 
 // =============================================
-// Design Tokens (CSS Variables)
+// Design Tokens - New Minimalism (方案C)
 // =============================================
+
 :root {
-  // Brand Colors
-  --brand-primary: #{$primary-color};
-  --brand-secondary: #{$secondary-color};
-  --brand-gradient: linear-gradient(135deg, #{$primary-color} 0%, #{$secondary-color} 100%);
+  // ─── Spacing System ─────────────────────────────
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 
-  // Semantic Colors
-  --color-success: #{$success-color};
-  --color-warning: #{$warning-color};
-  --color-danger: #{$danger-color};
-  --color-info: #{$info-color};
+  // ─── Typography Scale ─────────────────────────────
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+  --text-5xl: 48px;
 
-  // Text Colors
-  --text-primary: #{$text-primary};
-  --text-secondary: #{$text-secondary};
-  --text-placeholder: #{$text-placeholder};
+  // ─── Brand Colors (Subtle) ──────────────────────────
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-primary-light: rgba(37, 99, 235, 0.1);
 
-  // Background Colors
-  --bg-primary: #{$bg-color};
-  --bg-secondary: #{$bg-color-secondary};
-  --bg-hover: #{$bg-color-hover};
+  // ─── Semantic Colors ────────────────────────────────
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-danger: #dc2626;
+  --color-info: #0891b2;
 
-  // Border Colors
-  --border-color: #{$border-color};
-  --border-color-light: #{$border-color-light};
+  // ─── Text Colors ───────────────────────────────────
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-placeholder: #9ca3af;
 
-  // Shadows
-  --shadow-sm: #{$shadow-sm};
-  --shadow-md: #{$shadow-md};
-  --shadow-lg: #{$shadow-lg};
+  // ─── Background Colors ──────────────────────────────
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #f3f4f6;
 
-  // Border Radius
-  --radius-sm: #{$radius-sm};
-  --radius-md: #{$radius-md};
-  --radius-lg: #{$radius-lg};
+  // ─── Border Colors ─────────────────────────────────
+  --border-color: #e5e7eb;
+  --border-color-strong: #d1d5db;
 
-  // Tag Colors
-  --tag-default-color: #409eff;
+  // ─── Shadows (Minimal - Prefer borders) ───────────
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-  // Layout
-  --header-height: #{$header-height};
-  --sidebar-width: #{$sidebar-width};
+  // ─── Border Radius ─────────────────────────────────
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 
-  // Grid
-  --grid-category-min: 180px;
+  // ─── Transitions ───────────────────────────────────
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  // ─── Layout ─────────────────────────────────────────
+  --header-height: 64px;
+  --content-max-width: 1200px;
+  --article-max-width: 720px;
+
+  // ─── Component Tokens ───────────────────────────────
+  --tag-default-color: #2563eb;
+  --link-color: #2563eb;
+  --link-hover-color: #1d4ed8;
 }
 
-// Dark mode support (future)
-body.dark {
-  // Override tokens for dark mode
+// ─── Dark Mode ──────────────────────────────────────
+[data-theme='dark'] {
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-tertiary: #6b7280;
+  --text-placeholder: #6b7280;
+
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #1f1f1f;
+
+  --border-color: #262626;
+  --border-color-strong: #3f3f3f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  --brand-primary: #3b82f6;
+  --brand-primary-hover: #60a5fa;
+  --brand-primary-light: rgba(59, 130, 246, 0.15);
+
+  --tag-default-color: #3b82f6;
+  --link-color: #3b82f6;
+  --link-hover-color: #60a5fa;
 }
 
-// =============================================
-// Search Highlight
-// =============================================
+// ─── Search Highlight ────────────────────────────────
 .search-highlight {
-  background-color: rgba(255, 220, 0, 0.4);
-  padding: 0 2px;
+  background-color: rgba(255, 220, 0, 0.3);
+  padding: 1px 3px;
   border-radius: 2px;
   color: inherit;
 }
 
+// ─── Reset & Base ───────────────────────────────────
 * {
   margin: 0;
   padding: 0;
@@ -74,48 +128,52 @@ body.dark {
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-size: var(--text-base);
   line-height: 1.6;
-  color: $text-primary;
-  background-color: $bg-color;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 a {
-  color: $primary-color;
+  color: var(--link-color);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color var(--transition-fast);
 
   &:hover {
-    color: color.adjust($primary-color, $lightness: -10%);
+    color: var(--link-hover-color);
   }
 }
 
+// ─── Scrollbar ───────────────────────────────────────
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: $bg-color-secondary;
-  border-radius: 3px;
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $border-color;
-  border-radius: 3px;
+  background: var(--border-color);
+  border-radius: 4px;
 
   &:hover {
-    background: $text-secondary;
+    background: var(--border-color-strong);
   }
 }
 
+// ─── Transitions ────────────────────────────────────
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-base);
 }
 
 .fade-enter-from,
@@ -124,15 +182,14 @@ a {
 }
 
 .slide-fade-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all var(--transition-base);
 }
 
 .slide-fade-leave-active {
-  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+  transition: all var(--transition-fast);
 }
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateX(20px);
   opacity: 0;
 }
