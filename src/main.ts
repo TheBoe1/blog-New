@@ -1,11 +1,13 @@
 import { createApp } from 'vue'
 import pinia from './stores'
-import ElementPlus from 'element-plus'
-import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import 'element-plus/dist/index.css'
 import 'virtual:uno.css'
 import '@unocss/reset/tailwind.css'
+
+import 'element-plus/theme-chalk/el-message.css'
+import 'element-plus/theme-chalk/el-message-box.css'
+import 'element-plus/theme-chalk/el-notification.css'
+import 'element-plus/theme-chalk/el-loading.css'
 
 import App from './App.vue'
 import router from './router'
@@ -19,6 +21,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus, { locale: zhCn })
 
 app.mount('#app')
