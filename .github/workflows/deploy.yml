@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -30,27 +30,28 @@ jobs:
 
       - name: Install ossutil
         run: |
-          curl -fsSL -o /tmp/ossutil.zip https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64.zip
-          unzip -q /tmp/ossutil.zip -d /tmp/ossutil
-          chmod +x /tmp/ossutil/ossutil64
-          sudo mv /tmp/ossutil/ossutil64 /usr/local/bin/ossutil
+          curl -fsSL -o /usr/local/bin/ossutil https://gosspublic.alicdn.com/ossutil/v1/1.7.18/ossutil64
+          chmod +x /usr/local/bin/ossutil
+          ossutil version
 
-      - name: Configure ossutil
-        run: |
-          ossutil config \
-            -i "$OSS_KEY_ID" \
-            -k "$OSS_KEY_SECRET" \
-            -e oss-cn-beijing.aliyuncs.com
+      - name: Clean OSS remote prefix
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
-
-      - name: Clean OSS remote prefix
-        run: ossutil rm -rf oss://theboe/main/ -e oss-cn-beijing.aliyuncs.com
+        run: |
+          ossutil rm -rf oss://theboe/main/ \
+            -i "$OSS_KEY_ID" \
+            -k "$OSS_KEY_SECRET" \
+            -e oss-cn-beijing.aliyuncs.com
 
       - name: Upload dist to OSS
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
         run: |
           ossutil cp -rf --update dist/ oss://theboe/main/ \
+            -i "$OSS_KEY_ID" \
+            -k "$OSS_KEY_SECRET" \
             -e oss-cn-beijing.aliyuncs.com \
             --include "*" \
             --metadata "Cache-Control:max-age=31536000,immutable"
