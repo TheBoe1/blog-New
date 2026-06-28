@@ -297,11 +297,11 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-// ── Gradient tokens (lexburner signature: #667eea → #764ba2 → #f093fb) ──
-$grad-brand: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-$grad-brand-h: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-$grad-brand-soft: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-$grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(240, 147, 251, 0.18) 100%);
+/* Editorial Blue single-color tokens (DESIGN.md compliant, 过渡值) */
+$grad-brand: var(--brand-primary);
+$grad-brand-h: var(--brand-primary);
+$grad-brand-soft: var(--brand-tint);
+$grad-brand-soft-h: var(--brand-tint-hover);
 
 // ── Card frame ──────────────────────────────────────────
 .card {
@@ -360,11 +360,10 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     .fas {
       color: var(--text-primary);
       font-size: 0.85em;
-      transition: transform 0.3s ease, color 0.3s ease;
+      transition: color 0.3s ease;
     }
 
     &:hover .fas {
-      transform: translateX(5px);
       color: var(--brand-primary);
     }
   }
@@ -388,12 +387,11 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
 
       .far, .fas {
         opacity: 0.7;
-        transition: transform 0.3s ease, color 0.3s ease;
+        transition: color 0.3s ease;
       }
 
       &:hover .far,
       &:hover .fas {
-        transform: rotate(360deg);
         color: var(--brand-primary);
       }
     }
@@ -408,7 +406,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   }
 }
 
-// ── Article content (lexburner gradient typography) ─────
+// ── Article content (Editorial Blue accent, DESIGN.md compliant) ─
 .article-content {
   font-size: 1.1rem;
   line-height: 1.8;
@@ -471,14 +469,13 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     margin: var(--space-4) 0;
   }
 
-  // Gradient text links with animated underline
+  // Links: Editorial Blue with animated underline
   :deep(a) {
-    background: $grad-brand-h;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--brand-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
 
     &::after {
       content: '';
@@ -494,22 +491,20 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     &:hover::after { width: 100%; }
   }
 
-  // Inline code: gradient bg + hover scale
+  // Inline code: Editorial Blue tint bg
   :deep(code) {
     font-family: 'Source Code Pro', 'Consolas', monospace;
     font-size: 0.9em;
     background: $grad-brand-soft;
-    color: #667eea;
+    color: var(--brand-primary);
     padding: 0.2em 0.4em;
     border-radius: 3px;
     font-weight: 500;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    transition: all 0.3s ease;
+    border: 1px solid var(--brand-tint-hover);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
       background: $grad-brand-soft-h;
-      transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
     }
   }
 
@@ -537,10 +532,10 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     }
   }
 
-  // Blockquote: gradient bg + 5px border + quote mark
+  // Blockquote: Editorial Blue tint bg + quote mark
   :deep(blockquote) {
     background: $grad-brand-soft;
-    border-left: 5px solid #667eea;
+    border-left: 1px solid var(--brand-primary);
     padding: var(--space-4) var(--space-5);
     margin: var(--space-4) 0;
     border-radius: var(--radius-sm);
@@ -553,7 +548,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
       top: -10px;
       left: 10px;
       font-size: 3rem;
-      color: rgba(102, 126, 234, 0.3);
+      color: var(--text-tertiary);
       font-family: Georgia, serif;
       line-height: 1;
     }
@@ -561,16 +556,15 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     p { margin: var(--space-1) 0; }
   }
 
-  // Images: load animation + hover zoom
+  // Images: load animation + hover shadow
   :deep(img) {
     max-width: 100%;
     border-radius: var(--radius-md);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: box-shadow 0.3s ease;
     animation: imageLoad 0.5s ease-out;
 
     &:hover {
-      transform: scale(1.02) translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       filter: brightness(1.02);
       z-index: 10;
       position: relative;
@@ -587,7 +581,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     margin: var(--space-2) 0;
   }
 
-  // Tables: gradient header + hover row
+  // Tables: Editorial Blue header + hover row
   :deep(table) {
     width: 100%;
     border-collapse: collapse;
@@ -609,13 +603,12 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     }
 
     tbody tr {
-      transition: all 0.3s ease;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
       &:hover {
-        background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(240, 147, 251, 0.05) 100%);
-        transform: scale(1.01);
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        background: var(--brand-tint);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
 
       td {
@@ -643,7 +636,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   padding: var(--space-5);
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease, border-left-color 0.3s ease, background 0.3s ease;
+  transition: border-left-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
 
   &::before {
     content: '';
@@ -673,9 +666,9 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   > * { position: relative; z-index: 1; }
 
   &:hover {
-    transform: translateX(5px);
     border-left-color: var(--brand-primary);
     background: var(--bg-tertiary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .licensing-title {
@@ -737,7 +730,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   margin: var(--space-5) 0;
 }
 
-// ── Tags: gradient underline on hover ───────────────────
+// ── Tags: Editorial Blue underline on hover ───────────
 .article-tags {
   display: flex;
   flex-wrap: wrap;
@@ -764,7 +757,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   text-decoration: none;
   background: var(--bg-tertiary);
   position: relative;
-  transition: all 0.3s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &::before {
     content: '';
@@ -773,14 +766,14 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #ff6b6b, #f06595, #cc5de8, #845ef7, #5c7cfa, #339af0);
+    background: var(--brand-primary);
     transition: width 0.3s ease;
   }
 
   &:hover {
-    transform: translateY(-2px);
     color: var(--brand-primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    border-color: var(--brand-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   &:hover::before { width: 100%; }
@@ -793,19 +786,10 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   :deep(.el-button) {
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: box-shadow 0.2s ease;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    .el-icon {
-      transition: transform 0.3s ease;
-    }
-
-    &:hover .el-icon {
-      transform: translateX(3px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
   }
 }
@@ -868,7 +852,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
 
 // ── TOC widget (right sidebar) ──────────────────────────
 // Mirrors SidebarRight .menu-list .level animation:
-// ▸ arrow slide-in + gradient bg + 3px left border + translateX.
+// ▸ arrow slide-in + tint bg + 2px left border.
 .widget-title {
   font-size: var(--text-xs);
   font-weight: 600;
@@ -902,8 +886,8 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
     color: var(--text-secondary);
     text-decoration: none;
     border-radius: 2px;
-    border-left: 3px solid transparent;
-    transition: color 0.3s ease, border-left-color 0.3s ease, transform 0.3s ease, background 0.3s ease;
+    border-left: 2px solid transparent;
+    transition: color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease;
     -webkit-text-fill-color: var(--text-secondary);
 
     // ▸ arrow — slides in from left on hover/active (same as SidebarRight .menu-list)
@@ -918,9 +902,8 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
 
     &:hover {
       color: var(--brand-primary);
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+      background: var(--brand-tint);
       border-left-color: var(--brand-primary);
-      transform: translateX(6px);
       -webkit-text-fill-color: var(--brand-primary);
 
       &::before {
@@ -935,10 +918,9 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   :deep(a.md-editor-catalog-active),
   :deep(.md-editor-catalog-active) {
     color: var(--brand-primary) !important;
-    background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%) !important;
+    background: var(--brand-tint) !important;
     border-left-color: var(--brand-primary) !important;
     font-weight: 600;
-    transform: translateX(6px);
     -webkit-text-fill-color: var(--brand-primary) !important;
 
     &::before {
@@ -968,7 +950,7 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   color: var(--text-tertiary);
 }
 
-// ── Keyframes (lexburner signature) ─────────────────────
+// ── Keyframes (Editorial Blue accent, DESIGN.md compliant) ─────────
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -1020,7 +1002,10 @@ $grad-brand-soft-h: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(2
   .article-title .fas,
   .article-tag,
   .nav-link,
-  .article-content :deep(img) {
+  .article-content :deep(img),
+  .article-content :deep(code),
+  .article-content :deep(table tbody tr),
+  .article-licensing {
     transition: none !important;
     transform: none !important;
   }

@@ -30,9 +30,12 @@
   --text-5xl: 48px;
 
   // ─── Brand Colors ──────────────────────────
-  --brand-primary: #3273dc;
-  --brand-primary-hover: #2366dd;
-  --brand-primary-light: rgba(50, 115, 220, 0.1);
+  /* Editorial Blue #2563eb — DESIGN.md 过渡值,待 colorize pass 替换 */
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-primary-light: rgba(37, 99, 235, 0.1);
+  --brand-tint: rgba(37, 99, 235, 0.08);
+  --brand-tint-hover: rgba(37, 99, 235, 0.12);
 
   // ─── Semantic Colors ────────────────────────────────
   --color-success: #23d160;
@@ -50,6 +53,7 @@
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #fafafa;
+  --bg-page: #f0eef5; // 三栏留白底色，与卡片 --bg-primary 形成对比
   --bg-hover: #f5f5f5;
   --bg-navbar: rgba(255, 255, 255, 0.8);
   --bg-navbar-scrolled: rgba(255, 255, 255, 0.95);
@@ -58,9 +62,6 @@
   // ─── Border Colors ─────────────────────────────────
   --border-color: #dbdbdb;
   --border-color-strong: #b5b5b5;
-
-  // ─── Site Gradient Background (cnkirito signature) ──
-  --site-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
 
   // ─── Shadows (floating card style) ───────────────
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
@@ -84,9 +85,9 @@
   --article-max-width: 720px;
 
   // ─── Component Tokens ───────────────────────────────
-  --tag-default-color: #3273dc;
-  --link-color: #3273dc;
-  --link-hover-color: #2366dd;
+  --tag-default-color: #2563eb;
+  --link-color: #2563eb;
+  --link-hover-color: #1d4ed8;
 }
 
 // ─── Dark Mode ──────────────────────────────────────
@@ -99,6 +100,7 @@
   --bg-primary: #1a1a1a;
   --bg-secondary: #232323;
   --bg-tertiary: #2a2a2a;
+  --bg-page: #14131a; // 暗色下的页面留白底，与卡片 #1a1a1a 形成对比
   --bg-hover: #2a2a2a;
   --bg-navbar: rgba(26, 26, 26, 0.8);
   --bg-navbar-scrolled: rgba(26, 26, 26, 0.95);
@@ -107,19 +109,19 @@
   --border-color: #363636;
   --border-color-strong: #4a4a4a;
 
-  --site-gradient: linear-gradient(135deg, #2d1b4e 0%, #1a3a5c 100%);
-
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
   --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.5);
 
-  --brand-primary: #5a8dee;
-  --brand-primary-hover: #7aa4f5;
-  --brand-primary-light: rgba(90, 141, 238, 0.15);
+  --brand-primary: #60a5fa;
+  --brand-primary-hover: #93c5fd;
+  --brand-primary-light: rgba(96, 165, 250, 0.15);
+  --brand-tint: rgba(96, 165, 250, 0.12);
+  --brand-tint-hover: rgba(96, 165, 250, 0.18);
 
-  --tag-default-color: #5a8dee;
-  --link-color: #5a8dee;
-  --link-hover-color: #7aa4f5;
+  --tag-default-color: #60a5fa;
+  --link-color: #60a5fa;
+  --link-hover-color: #93c5fd;
 }
 
 // ─── Search Highlight ────────────────────────────────
@@ -149,7 +151,7 @@ body {
   font-weight: 400;
   line-height: 1.5;
   color: var(--text-secondary);
-  background: var(--site-gradient);
+  background: var(--bg-page);
   background-attachment: fixed;
   min-height: 100vh;
   transition: background var(--transition-base), color var(--transition-base);

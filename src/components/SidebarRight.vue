@@ -177,9 +177,8 @@ function formatDate(date: string) {
     }
 
     &:hover {
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
-      border-left-color: var(--brand-primary);
-      transform: translateX(6px);
+      background: var(--brand-tint-hover);
+      border-left: 2px solid var(--brand-primary);
       color: var(--brand-primary);
 
       &::before {
@@ -189,8 +188,8 @@ function formatDate(date: string) {
     }
 
     &.is-active {
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
-      border-left-color: var(--brand-primary);
+      background: var(--brand-tint);
+      border-left: 2px solid var(--brand-primary);
       color: var(--brand-primary);
 
       &::before {
