@@ -9,7 +9,7 @@
         <div class="navbar-brand">
           <router-link to="/" class="navbar-item navbar-logo">
             <img
-              :src="siteSettings.siteLogo || '/img/avatar.jpg'"
+              :src="siteSettings.siteLogo || 'https://oss.lianlab.top/main/img/avatar.jpg'"
               :alt="siteSettings.siteName || '个人博客'"
               height="28"
             />
@@ -115,7 +115,7 @@
           <div class="level-start">
             <router-link to="/" class="footer-logo">
               <img
-                :src="siteSettings.siteLogo || '/img/avatar.jpg'"
+                :src="siteSettings.siteLogo || 'https://oss.lianlab.top/main/img/avatar.jpg'"
                 :alt="siteSettings.siteName || '个人博客'"
                 height="28"
               />

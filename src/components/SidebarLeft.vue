@@ -47,7 +47,7 @@ const profile = computed(() => ({
   name: 'Boe',
   role: '',
   location: '中国·石家庄',
-  avatar: '/img/avatar.jpg'
+  avatar: 'https://oss.lianlab.top/main/img/avatar.jpg'
 }))
 
 const socials = [

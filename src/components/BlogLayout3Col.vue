@@ -32,16 +32,16 @@ withDefaults(defineProps<{ showSidebarWidgets?: boolean }>(), { showSidebarWidge
 
 @media (min-width: 769px) {
   .columns {
-    grid-template-columns: 1fr 6fr;
+    grid-template-columns: 220px 1fr;
   }
   .column-main { order: 2; }
   .column-left { order: 1; }
   :deep(.column-right) { display: none; }
 }
 
-@media (min-width: 1216px) {
+@media (min-width: 1280px) {
   .columns {
-    grid-template-columns: 1fr 5fr 1.5fr;
+    grid-template-columns: 220px 1fr 240px;
   }
   :deep(.column-right) { display: block; }
 }
