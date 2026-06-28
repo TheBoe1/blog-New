@@ -30,14 +30,45 @@ jobs:
 
       - name: Install ossutil
         run: |
-          set -x
-          curl -fsSL -o /tmp/ossutil.zip https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64.zip
-          unzip -q /tmp/ossutil.zip -d /tmp/ossutil
-          BIN=$(find /tmp/ossutil -type f \( -name 'ossutil64' -o -name 'ossutil' \) | head -1)
-          echo "Found binary: $BIN"
-          [ -z "$BIN" ] && { echo "ERROR: ossutil binary not found after unzip"; ls -laR /tmp/ossutil; exit 1; }
-          sudo mv "$BIN" /usr/local/bin/ossutil
+          set -eux
+          # 尝试多个已知 Linux 二进制地址（阿里云官方文档公布的稳定路径）
+          for URL in \
+            "https://gosspublic.alicdn.com/ossutil/1.7.19/ossutil64" \
+            "https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64" \
+            "https://gosspublic.alicdn.com/ossutil/1.7.17/ossutil64"; do
+            echo "Trying $URL"
+            if curl -fsSL -o /tmp/ossutilbin "$URL"; then
+              echo "OK from: $URL"
+              break
+            fi
+          done
+
+          # 如果直接二进制都失败，回退到 zip（可能是 Windows 包，需检测）
+          if [ ! -s /tmp/ossutilbin ]; then
+            echo "Direct binary failed, falling back to zip"
+            curl -fsSL -o /tmp/ossutil.zip https://gosspublic.alicdn.com/ossutil/1.7.19/ossutil64.zip
+            unzip -q /tmp/ossutil.zip -d /tmp/ossutil
+            echo "=== zip contents ==="
+            ls -laR /tmp/ossutil
+            # 找一个可执行文件
+            BIN=$(find /tmp/ossutil -type f -perm /111 -print -quit || true)
+            if [ -z "$BIN" ]; then
+              echo "ERROR: no executable found in zip"
+              exit 1
+            fi
+            # 检测是否为 ELF（Linux），不是就报错
+            if ! file "$BIN" | grep -q 'ELF'; then
+              echo "ERROR: archive contains non-ELF (likely Windows) binary: $BIN"
+              file "$BIN"
+              exit 1
+            fi
+            sudo mv "$BIN" /usr/local/bin/ossutil
+          else
+            sudo mv /tmp/ossutilbin /usr/local/bin/ossutil
+          fi
+
           sudo chmod +x /usr/local/bin/ossutil
+          file /usr/local/bin/ossutil
           /usr/local/bin/ossutil help | head -5
 
       - name: Clean OSS remote prefix
