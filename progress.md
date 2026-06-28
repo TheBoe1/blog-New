@@ -17,7 +17,16 @@
 - 阶段 4：build + 浏览器验证 + 提交
 
 ### 当前状态
-规划完成，等待用户确认后开始执行。
+全部 4 阶段已完成并 push。
 
 ### 测试结果
-（暂无）
+- ✅ `npm run build` 通过 (21.72s)
+- ✅ 全 admin 目录 grep 扫描：零硬编码残留
+- ⏳ 浏览器抽样验证（待用户在浏览器中确认 Dashboard / ArticleEditor / PageConfigEditor 视觉效果）
+
+### 提交记录
+- 192bc23 阶段 0：ArticleList
+- fcb6e7a 阶段 1：TagList + Settings
+- 6b9bb00 阶段 2：ArticleEditor + PageConfigEditor
+- 1aed35c 阶段 3：Dashboard
+- a785199 规划文件
