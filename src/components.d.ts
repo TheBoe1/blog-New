@@ -7,6 +7,8 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BackToTop: typeof import('./components/BackToTop.vue')['default']
+    BlogLayout3Col: typeof import('./components/BlogLayout3Col.vue')['default']
     DynamicSection: typeof import('./components/DynamicSection.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -54,8 +56,12 @@ declare module 'vue' {
     ElUpload: typeof import('element-plus/es')['ElUpload']
     GlobalLoading: typeof import('./components/GlobalLoading.vue')['default']
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
+    ReadingProgress: typeof import('./components/ReadingProgress.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SidebarLeft: typeof import('./components/SidebarLeft.vue')['default']
+    SidebarRight: typeof import('./components/SidebarRight.vue')['default']
+    ThemeToggle: typeof import('./components/ThemeToggle.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

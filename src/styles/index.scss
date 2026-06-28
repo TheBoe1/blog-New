@@ -2,7 +2,7 @@
 @use 'variables' as *;
 
 // =============================================
-// Design Tokens - New Minimalism (方案C)
+// Design Tokens - cnkirito-inspired
 // =============================================
 
 :root {
@@ -29,37 +29,43 @@
   --text-4xl: 36px;
   --text-5xl: 48px;
 
-  // ─── Brand Colors (Subtle) ──────────────────────────
-  --brand-primary: #2563eb;
-  --brand-primary-hover: #1d4ed8;
-  --brand-primary-light: rgba(37, 99, 235, 0.1);
+  // ─── Brand Colors ──────────────────────────
+  --brand-primary: #3273dc;
+  --brand-primary-hover: #2366dd;
+  --brand-primary-light: rgba(50, 115, 220, 0.1);
 
   // ─── Semantic Colors ────────────────────────────────
-  --color-success: #16a34a;
-  --color-warning: #ca8a04;
-  --color-danger: #dc2626;
-  --color-info: #0891b2;
+  --color-success: #23d160;
+  --color-warning: #ffdd57;
+  --color-danger: #ff3860;
+  --color-info: #3298dc;
 
-  // ─── Text Colors ───────────────────────────────────
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-  --text-placeholder: #9ca3af;
+  // ─── Text Colors (Bulma-style) ───────────────────────
+  --text-primary: #363636;
+  --text-secondary: #4a4a4a;
+  --text-tertiary: #7a7a7a;
+  --text-placeholder: #b5b5b5;
 
   // ─── Background Colors ──────────────────────────────
   --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-tertiary: #f3f4f6;
-  --bg-hover: #f3f4f6;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #fafafa;
+  --bg-hover: #f5f5f5;
+  --bg-navbar: rgba(255, 255, 255, 0.8);
+  --bg-navbar-scrolled: rgba(255, 255, 255, 0.95);
+  --bg-overlay: rgba(255, 255, 255, 0.95);
 
   // ─── Border Colors ─────────────────────────────────
-  --border-color: #e5e7eb;
-  --border-color-strong: #d1d5db;
+  --border-color: #dbdbdb;
+  --border-color-strong: #b5b5b5;
 
-  // ─── Shadows (Minimal - Prefer borders) ───────────
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.08);
+  // ─── Site Gradient Background (cnkirito signature) ──
+  --site-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+
+  // ─── Shadows (floating card style) ───────────────
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.05), 0 0 1px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
 
   // ─── Border Radius ─────────────────────────────────
   --radius-sm: 4px;
@@ -78,37 +84,42 @@
   --article-max-width: 720px;
 
   // ─── Component Tokens ───────────────────────────────
-  --tag-default-color: #2563eb;
-  --link-color: #2563eb;
-  --link-hover-color: #1d4ed8;
+  --tag-default-color: #3273dc;
+  --link-color: #3273dc;
+  --link-hover-color: #2366dd;
 }
 
 // ─── Dark Mode ──────────────────────────────────────
 [data-theme='dark'] {
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-tertiary: #6b7280;
-  --text-placeholder: #6b7280;
+  --text-primary: #f5f5f5;
+  --text-secondary: #d5d5d5;
+  --text-tertiary: #a0a0a0;
+  --text-placeholder: #6b6b6b;
 
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111111;
-  --bg-tertiary: #1a1a1a;
-  --bg-hover: #1f1f1f;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #232323;
+  --bg-tertiary: #2a2a2a;
+  --bg-hover: #2a2a2a;
+  --bg-navbar: rgba(26, 26, 26, 0.8);
+  --bg-navbar-scrolled: rgba(26, 26, 26, 0.95);
+  --bg-overlay: rgba(34, 34, 34, 0.95);
 
-  --border-color: #262626;
-  --border-color-strong: #3f3f3f;
+  --border-color: #363636;
+  --border-color-strong: #4a4a4a;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --site-gradient: linear-gradient(135deg, #2d1b4e 0%, #1a3a5c 100%);
 
-  --brand-primary: #3b82f6;
-  --brand-primary-hover: #60a5fa;
-  --brand-primary-light: rgba(59, 130, 246, 0.15);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.5);
 
-  --tag-default-color: #3b82f6;
-  --link-color: #3b82f6;
-  --link-hover-color: #60a5fa;
+  --brand-primary: #5a8dee;
+  --brand-primary-hover: #7aa4f5;
+  --brand-primary-light: rgba(90, 141, 238, 0.15);
+
+  --tag-default-color: #5a8dee;
+  --link-color: #5a8dee;
+  --link-hover-color: #7aa4f5;
 }
 
 // ─── Search Highlight ────────────────────────────────
@@ -133,12 +144,20 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'Ubuntu', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   font-size: var(--text-base);
-  line-height: 1.6;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
-  transition: background-color var(--transition-base), color var(--transition-base);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--site-gradient);
+  background-attachment: fixed;
+  min-height: 100vh;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+// Code blocks & inline code use Source Code Pro
+code, pre, .mono {
+  font-family: 'Source Code Pro', 'Consolas', 'Monaco', monospace;
 }
 
 a {
@@ -181,6 +200,23 @@ a {
   opacity: 0;
 }
 
+// ─── Page-switch transition (navbar route change) ─────
+// Old page fades out fast → brief blank → new page rises from below + fades in.
+.page-switch-leave-active {
+  transition: opacity 0.28s ease-out;
+}
+.page-switch-leave-to {
+  opacity: 0;
+}
+.page-switch-enter-active {
+  transition: opacity 0.8s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.page-switch-enter-from {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
 .slide-fade-enter-active {
   transition: all var(--transition-base);
 }
@@ -192,4 +228,108 @@ a {
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   opacity: 0;
+}
+
+// ─── Scroll Animation (exact port of scroll-animations.js) ──
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-animate.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-animate-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-animate-left.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-animate-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-animate-right.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-animate-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-animate-scale.animate-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+// ─── Lazy image fade-in ───────────────────────────────
+img.lazy-load {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+img.lazy-load.loaded {
+  opacity: 1;
+}
+
+// ─── Pace progress bar ────────────────────────────────
+.pace {
+  pointer-events: none;
+  user-select: none;
+}
+.pace .pace-progress {
+  position: fixed;
+  top: 0;
+  right: 100%;
+  width: 100%;
+  height: 2px;
+  z-index: 2000;
+  background: var(--brand-primary);
+}
+.pace-inactive {
+  display: none;
+}
+
+// ─── Card hover micro-interaction (cnkirito/lexburner signature) ──
+// Cards lift 8px on hover with stronger shadow + tinted border.
+// Scoped to .front-layout so admin el-card variants are unaffected.
+.front-layout .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.front-layout .card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(66, 139, 202, 0.3);
+}
+
+@media (max-width: 768px) {
+  .front-layout .card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+// ─── Reduced motion ───────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .scroll-animate,
+  .scroll-animate-left,
+  .scroll-animate-right,
+  .scroll-animate-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .pace { display: none !important; }
+  .front-layout .card,
+  .front-layout .card:hover {
+    transition: none !important;
+    transform: none !important;
+  }
 }

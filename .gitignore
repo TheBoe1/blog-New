@@ -26,3 +26,15 @@ deploy_oss.py
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# AI 工具缓存
+.ai/
+.impeccable/
+.qoder/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# Vite 构建临时文件
+vite.config.ts.timestamp-*

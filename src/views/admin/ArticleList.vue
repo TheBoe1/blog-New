@@ -89,7 +89,7 @@
             <el-button v-if="row?.id" type="primary" link @click="handleEdit(row.id)">
               编辑
             </el-button>
-            <el-button v-if="row?.id" type="primary" link @click="handlePreview(row.id)">
+            <el-button v-if="row?.id" type="primary" link @click="handlePreview(row)">
               预览
             </el-button>
             <el-popconfirm
@@ -217,11 +217,8 @@ function handleEdit(id: string) {
   console.log('Navigation completed')
 }
 
-function handlePreview(id: string) {
-  console.log('Previewing article with id:', id)
-  console.log('Navigating to:', `/article/${id}`)
-  router.push(`/article/${id}`)
-  console.log('Navigation completed')
+function handlePreview(article: any) {
+  router.push(`/article/${article.slug || article.id}`)
 }
 
 async function handleDelete(id: string) {

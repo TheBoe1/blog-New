@@ -1,181 +1,86 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          记录思考<br />分享成长
-        </h1>
-        <p class="hero-description">
-          专注于前端开发与技术分享，记录学习历程
-        </p>
-        <div class="hero-actions">
-          <el-button type="primary" @click="goToArticles">
-            浏览文章
-          </el-button>
-          <el-button @click="goToAbout">
-            了解更多
-          </el-button>
-        </div>
-      </div>
-      <div class="hero-stats">
-        <div class="stat-item">
-          <span class="stat-value">{{ stats.articleCount }}</span>
-          <span class="stat-label">文章</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ stats.categoryCount }}</span>
-          <span class="stat-label">分类</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ formatNumber(stats.viewCount) }}</span>
-          <span class="stat-label">浏览</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Latest Articles -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">最新文章</h2>
-        <el-button type="primary" link @click="goToArticles">
-          查看全部 →
-        </el-button>
-      </div>
-
-      <div class="article-grid">
-        <article
-          v-for="article in recentArticles"
-          :key="article.id"
-          class="article-card"
-          @click="goToArticle(article.id)"
-        >
-          <div v-if="article.cover" class="article-cover">
-            <img :src="article.cover" :alt="article.title" loading="lazy" />
+    <BlogLayout3Col>
+      <article
+        v-for="(article, i) in recentArticles"
+        :key="article.id"
+        class="card article-card stagger-item"
+      >
+        <div class="card-content">
+          <h2 class="article-title">
+            <router-link :to="`/article/${article.slug || article.id}`">
+              <i class="fas fa-angle-double-right"></i>{{ article.title }}
+            </router-link>
+          </h2>
+          <div class="article-meta">
+            <span class="meta-item">
+              <i class="far fa-calendar-alt"></i>
+              <time>{{ formatDate(article.createTime) }}</time>
+            </span>
+            <span v-if="article.categoryName" class="meta-item">
+              <router-link :to="`/category/${article.categoryId}`" class="meta-link">
+                {{ article.categoryName }}
+              </router-link>
+            </span>
+            <span class="meta-item">{{ getReadingTime(article.content || article.summary) }} 分钟读完</span>
           </div>
-          <div class="article-body">
-            <div class="article-meta">
-              <span class="category">{{ article.categoryName }}</span>
-              <span class="dot">·</span>
-              <span class="reading-time">{{ getReadingTime(article.content || article.summary) }} 分钟</span>
-            </div>
-            <h3 class="article-title">{{ article.title }}</h3>
-            <p class="article-summary">{{ article.summary }}</p>
-            <div class="article-tags" v-if="article.tags?.length">
-              <el-tag
+          <div class="article-content">
+            <p v-if="article.summary">{{ article.summary }}</p>
+            <img
+              v-if="article.cover"
+              v-lazy-img="article.cover"
+              :alt="article.title"
+              class="article-cover"
+            />
+          </div>
+          <hr class="article-divider" />
+          <div class="article-footer">
+            <div v-if="article.tags?.length" class="article-tags">
+              <i class="fas fa-tags"></i>
+              <router-link
                 v-for="tag in article.tags.slice(0, 3)"
                 :key="tag"
-                size="small"
-                effect="plain"
-                :color="getTagColor(tag)"
-                style="color: #ffffff; border: none;"
-              >
-                {{ tag }}
-              </el-tag>
+                to="/articles"
+                class="article-tag"
+              >{{ tag }}</router-link>
             </div>
-            <div class="article-footer">
-              <span class="date">{{ formatDate(article.createTime) }}</span>
-              <span class="views">{{ article.viewCount }} 阅读</span>
-            </div>
+            <router-link :to="`/article/${article.slug || article.id}`" class="article-more">
+              <i class="fas fa-book-reader"></i>阅读更多
+            </router-link>
           </div>
-        </article>
-      </div>
-    </section>
+        </div>
+      </article>
 
-    <!-- Categories -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">分类</h2>
-      </div>
-
-      <div class="category-grid">
-        <div
-          v-for="category in displayCategories"
-          :key="category.id"
-          class="category-card"
-          @click="goToCategory(category.id)"
-        >
-          <div class="category-icon">
-            <el-icon :size="20"><component :is="category.icon" /></el-icon>
-          </div>
-          <div class="category-info">
-            <span class="category-name">{{ category.name }}</span>
-            <span class="article-count">{{ category.articleCount }} 篇</span>
-          </div>
-          <el-icon class="category-arrow"><ArrowRight /></el-icon>
+      <div v-if="!recentArticles.length" class="card empty-card">
+        <div class="card-content">
+          <p class="empty-text">还没有文章。</p>
         </div>
       </div>
-    </section>
+
+      <nav v-if="hasMore" class="pagination stagger-item">
+        <router-link to="/articles" class="pagination-next">下一页 →</router-link>
+      </nav>
+    </BlogLayout3Col>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, computed } from 'vue'
 import { useBlogStore } from '@/stores/blog'
+import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 
-const router = useRouter()
 const blogStore = useBlogStore()
 
-const stats = ref({
-  articleCount: 0,
-  categoryCount: 0,
-  viewCount: 0
-})
-
 const recentArticles = computed(() => blogStore.recentArticles)
-
-const categoryIcons: Record<string, string> = {
-  '1': 'Monitor',
-  '2': 'DataAnalysis',
-  '3': 'Coin',
-  '4': 'Setting',
-  '5': 'Folder',
-  default: 'Folder'
-}
-
-const displayCategories = computed(() => {
-  return blogStore.categories.map(cat => ({
-    ...cat,
-    icon: categoryIcons[cat.id] || categoryIcons.default
-  }))
-})
-
-function formatNumber(num: number): string {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
-  return num.toString()
-}
-
-function goToArticles() {
-  router.push('/articles')
-}
-
-function goToAbout() {
-  router.push('/about')
-}
-
-function goToArticle(id: string) {
-  router.push(`/article/${id}`)
-}
-
-function goToCategory(id: string) {
-  router.push(`/category/${id}`)
-}
+const hasMore = computed(() => blogStore.articles.length >= 6)
 
 function formatDate(date: string) {
   if (!date) return ''
   return new Date(date).toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\//g, '-')
 }
 
 function getReadingTime(content: string): number {
@@ -184,292 +89,288 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(text.length / 500))
 }
 
-function getTagColor(tagName: string): string {
-  const tag = blogStore.tags.find(t => t.name === tagName)
-  return tag?.color || 'var(--tag-default-color)'
-}
-
 onMounted(async () => {
   await blogStore.fetchArticles({ page: 1, pageSize: 6, sortBy: 'createTime', sortOrder: 'desc' })
   await blogStore.fetchCategories()
   await blogStore.fetchTags()
-  stats.value = {
-    articleCount: blogStore.articleCount,
-    categoryCount: blogStore.categoryCount,
-    viewCount: blogStore.articles.reduce((sum, article) => sum + article.viewCount, 0)
-  }
 })
 </script>
 
 <style scoped lang="scss">
 .home-page {
-  padding-bottom: var(--space-16);
+  padding-bottom: var(--space-12);
 }
 
-// ─── Hero ────────────────────────────────────────────
-.hero {
-  padding: var(--space-12) 0;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: var(--space-12);
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  color: var(--text-secondary);
+  overflow: hidden;
+}
+
+.card + .card {
+  margin-top: var(--space-6);
+}
+
+.card-content {
+  padding: var(--space-6);
+}
+
+.article-title {
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  font-family: 'Ubuntu', 'PingFang SC', 'Noto Sans SC', sans-serif;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+
+  a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    .fas {
+      display: inline-block;
+      margin-right: var(--space-2);
+      color: var(--brand-primary);
+      font-size: 0.85em;
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    &:hover {
+      color: var(--brand-primary);
+
+      .fas {
+        transform: translateX(5px);
+      }
+    }
+  }
+}
+
+.article-meta {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-4);
 
-  .hero-content {
-    max-width: 600px;
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 
-    .hero-title {
-      font-size: var(--text-4xl);
-      font-weight: 700;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-      margin-bottom: var(--space-4);
+    .fas, .far {
+      opacity: 0.7;
+      transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    .hero-description {
-      font-size: var(--text-lg);
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: var(--space-6);
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: var(--space-3);
+    &:hover .fas,
+    &:hover .far {
+      transform: rotate(360deg);
+      color: var(--brand-primary);
+      opacity: 1;
     }
   }
 
-  .hero-stats {
-    display: flex;
-    align-items: center;
-    gap: var(--space-6);
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-1);
-    }
-
-    .stat-value {
-      font-size: var(--text-2xl);
-      font-weight: 600;
-      color: var(--text-primary);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stat-label {
-      font-size: var(--text-sm);
-      color: var(--text-tertiary);
-    }
-
-    .stat-divider {
-      width: 1px;
-      height: 32px;
-      background: var(--border-color);
-    }
+  .meta-link {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    &:hover { color: var(--brand-primary); }
   }
 }
 
-// ─── Section ─────────────────────────────────────────
-.section {
-  margin-bottom: var(--space-12);
+.article-content {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--text-secondary);
 
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-
-    .section-title {
-      font-size: var(--text-xl);
-      font-weight: 600;
-      color: var(--text-primary);
-    }
+  p {
+    margin-bottom: var(--space-3);
   }
 }
 
-// ─── Article Grid ────────────────────────────────────
-.article-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--space-6);
+.article-cover {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  margin: var(--space-3) 0;
+}
 
-  .article-card {
+.article-divider {
+  border: none;
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.article-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.article-tags {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+
+  > .fas {
+    opacity: 0.6;
+  }
+}
+
+.article-tag {
+  display: inline-block;
+  position: relative;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ff6b6b, #f06595, #cc5de8, #845ef7, #5c7cfa, #339af0);
+    transition: width 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    color: var(--brand-primary);
+
+    &::before { width: 100%; }
+  }
+}
+
+.article-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+    pointer-events: none;
+  }
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+
+    &::before { left: 100%; }
+    i { transform: translateX(3px); }
+  }
+
+  &:visited {
+    color: var(--text-secondary);
+  }
+}
+
+.empty-card .empty-text {
+  text-align: center;
+  padding: var(--space-8) 0;
+  color: var(--text-tertiary);
+}
+
+.pagination {
+  margin-top: var(--space-6);
+  text-align: center;
+
+  .pagination-next {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-    display: flex;
-    flex-direction: column;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
 
     &:hover {
-      border-color: var(--border-color-strong);
-      box-shadow: var(--shadow-hover);
-    }
-
-    .article-cover {
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: var(--bg-tertiary);
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-
-    .article-body {
-      padding: var(--space-5);
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-
-      .article-meta {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-        font-size: var(--text-sm);
-        color: var(--text-tertiary);
-        margin-bottom: var(--space-3);
-
-        .category {
-          color: var(--link-color);
-        }
-
-        .dot {
-          color: var(--border-color-strong);
-        }
-      }
-
-      .article-title {
-        font-size: var(--text-base);
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: var(--space-2);
-        line-height: 1.5;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .article-summary {
-        font-size: var(--text-sm);
-        color: var(--text-secondary);
-        line-height: 1.6;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 40px;
-        flex-shrink: 0;
-      }
-
-      .article-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-2);
-        margin-top: auto;
-        padding-top: var(--space-3);
-      }
-
-      .article-footer {
-        display: flex;
-        justify-content: space-between;
-        font-size: var(--text-xs);
-        color: var(--text-tertiary);
-        margin-top: var(--space-3);
-        padding-top: var(--space-3);
-        border-top: 1px solid var(--border-color);
-      }
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
   }
 }
 
-// ─── Category Grid ───────────────────────────────────
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-4);
-
-  .category-card {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: border-color var(--transition-fast), background-color var(--transition-fast);
-
-    &:hover {
-      border-color: var(--border-color-strong);
-      background: var(--bg-hover);
-    }
-
-    .category-icon {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-tertiary);
-      border-radius: var(--radius-md);
-      color: var(--text-secondary);
-    }
-
-    .category-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-
-      .category-name {
-        font-size: var(--text-sm);
-        font-weight: 500;
-        color: var(--text-primary);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .article-count {
-        font-size: var(--text-xs);
-        color: var(--text-tertiary);
-      }
-    }
-
-    .category-arrow {
-      color: var(--text-tertiary);
-      transition: transform var(--transition-fast);
-    }
-
-    &:hover .category-arrow {
-      transform: translateX(2px);
-    }
-  }
-}
-
-// ─── Responsive ──────────────────────────────────────
 @media (max-width: 768px) {
-  .hero {
-    padding: var(--space-8) 0;
+  .article-title { font-size: 1.25rem; }
+}
 
-    .hero-title {
-      font-size: var(--text-3xl);
-    }
-
-    .hero-stats {
-      gap: var(--space-4);
-    }
-  }
-
-  .article-grid {
-    grid-template-columns: 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .article-title::after,
+  .article-title a,
+  .article-title a .fas,
+  .article-meta .meta-item .fas,
+  .article-meta .meta-item .far,
+  .article-tag,
+  .article-tag::before,
+  .article-more,
+  .article-more::before,
+  .article-more i,
+  .pagination-next {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }
 </style>

@@ -91,6 +91,8 @@ export default defineConfig({
     'i-ep-download',
     'i-ep-view',
     'i-ep-hide',
+    'i-ep-sunny',
+    'i-ep-moon',
     'i-carbon-blog',
     'i-carbon-code',
     'i-carbon-chart-bar',

@@ -73,6 +73,7 @@
           </div>
 
           <div class="header-right">
+            <ThemeToggle />
             <el-dropdown trigger="click">
               <div class="user-info">
                 <el-avatar :size="32" :src="userStore.user?.avatar">
@@ -255,6 +256,10 @@ onMounted(async () => {
   }
 
   .header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+
     .user-info {
       display: flex;
       align-items: center;

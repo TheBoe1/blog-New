@@ -21,7 +21,7 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '文章列表' }
       },
       {
-        path: 'article/:id',
+        path: 'article/:slug',
         name: 'ArticleDetail',
         component: () => import('@/views/ArticleDetail.vue'),
         meta: { title: '文章详情' }
@@ -37,12 +37,6 @@ const routes: RouteRecordRaw[] = [
         name: 'About',
         component: () => import('@/views/About.vue'),
         meta: { title: '关于我' }
-      },
-      {
-        path: 'projects',
-        name: 'Projects',
-        component: () => import('@/views/Projects.vue'),
-        meta: { title: '项目展示' }
       },
       {
         path: 'project/:id',

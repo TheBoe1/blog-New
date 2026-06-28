@@ -1,123 +1,58 @@
 <template>
   <div class="articles-page">
-    <div class="page-header">
-      <h1>文章列表</h1>
-      <div class="filter-area">
-        <el-select
-          v-model="selectedCategory"
-          placeholder="全部分类"
-          clearable
-          style="width: 140px"
-          @change="handleCategoryChange"
-        >
-          <el-option
+    <BlogLayout3Col>
+      <!-- Filter chips (top, single row) -->
+      <div class="filter-bar">
+        <div class="filter-chips">
+          <button
+            class="filter-chip"
+            :class="{ active: !selectedCategory }"
+            @click="selectedCategory = ''; fetchArticles()"
+          >
+            全部
+          </button>
+          <button
             v-for="cat in categories"
             :key="cat.id"
-            :label="cat.name"
-            :value="cat.id"
-          />
-        </el-select>
-      </div>
-    </div>
-
-    <div class="articles-content">
-      <div class="articles-main">
-        <!-- Empty State -->
-        <div v-if="articles.length === 0 && !loading" class="empty-state">
-          <p class="empty-text">{{ isSearchResult ? '未找到相关文章' : '暂无文章' }}</p>
-          <div class="empty-actions">
-            <el-button v-if="isSearchResult || hasActiveFilters" @click="clearFilters">
-              清除筛选
-            </el-button>
-          </div>
-        </div>
-
-        <div class="article-list">
-          <article
-            v-for="article in articles"
-            :key="article.id"
-            class="article-item"
-            @click="goToArticle(article.id)"
+            class="filter-chip"
+            :class="{ active: selectedCategory === cat.id }"
+            @click="selectedCategory = cat.id; fetchArticles()"
           >
-            <div v-if="article.cover" class="article-cover">
-              <img :src="article.cover" :alt="article.title" loading="lazy" />
-            </div>
-            <div class="article-info">
-              <div class="article-meta">
-                <span class="category">{{ article.categoryName }}</span>
-                <span class="date">{{ formatDate(article.createTime) }}</span>
-              </div>
-              <h3 class="article-title" v-html="highlightText(article.title, searchKeyword)"></h3>
-              <p class="article-summary" v-html="highlightText(article.summary, searchKeyword)"></p>
-              <div class="article-footer">
-                <div class="tags">
-                  <el-tag
-                    v-for="tag in (article.tags || []).slice(0, 3)"
-                    :key="tag"
-                    size="small"
-                    effect="plain"
-                    :color="getTagColor(tag)"
-                    style="color: #ffffff; border: none;"
-                  >
-                    {{ tag }}
-                  </el-tag>
-                </div>
-                <div class="stats">
-                  <span>{{ article.viewCount }} 阅读</span>
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div v-if="total > pageSize" class="pagination">
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="total"
-            layout="prev, pager, next"
-            @current-change="handlePageChange"
-          />
+            {{ cat.name }}
+          </button>
         </div>
       </div>
 
-      <aside class="articles-sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">归档</h3>
-          <div v-if="archives.length === 0" class="sidebar-empty">暂无归档</div>
-          <div v-else class="archive-list">
-            <div
-              v-for="archive in archives"
-              :key="archive.year"
-              class="archive-item"
-              :class="{ active: selectedYear === archive.year }"
-              @click="handleSelectYear(archive.year)"
-            >
-              <span class="year">{{ archive.year }}年</span>
-              <span class="count">{{ archive.count }}篇</span>
-            </div>
-          </div>
+      <!-- Empty state -->
+      <div v-if="groupedArticles.length === 0 && !loading" class="empty-state">
+        <p class="empty-text">{{ isSearchResult ? '未找到相关文章' : '暂无文章' }}</p>
+        <div class="empty-actions">
+          <button v-if="isSearchResult || selectedCategory" class="btn-text" @click="clearFilters">
+            清除筛选
+          </button>
         </div>
+      </div>
 
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">标签</h3>
-          <div v-if="hotTags.length === 0" class="sidebar-empty">暂无标签</div>
-          <div v-else class="tag-list">
-            <el-tag
-              v-for="tag in hotTags"
-              :key="tag.name"
-              size="small"
-              effect="plain"
-              class="tag-item"
-              :class="{ active: selectedTag === tag.name }"
-              @click="handleSelectTag(tag.name)"
-            >
-              {{ tag.name }}
-            </el-tag>
+      <!-- Timeline grouped by year (lexburner signature) -->
+      <div v-for="group in groupedArticles" :key="group.year" class="card">
+        <div class="card-content">
+          <h3 class="archive-year-tag">{{ group.year }}</h3>
+          <div class="timeline">
+            <article v-for="article in group.articles" :key="article.id" class="timeline-item">
+              <div class="timeline-content">
+                <p class="timeline-date">{{ formatDate(article.createTime) }}</p>
+                <p class="timeline-title">
+                  <router-link :to="`/article/${article.slug || article.id}`" v-html="highlightText(article.title, searchKeyword)" />
+                </p>
+                <p v-if="article.categoryName" class="timeline-category">
+                  <router-link :to="`/category/${article.categoryId}`">{{ article.categoryName }}</router-link>
+                </p>
+              </div>
+            </article>
           </div>
         </div>
-      </aside>
-    </div>
+      </div>
+    </BlogLayout3Col>
   </div>
 </template>
 
@@ -127,94 +62,68 @@ import { useRouter, useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { articleApi } from '@/api'
 import { highlightText } from '@/utils/highlight'
+import type { Article } from '@/types'
+import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 
 const router = useRouter()
 const route = useRoute()
 const blogStore = useBlogStore()
 
 const selectedCategory = ref('')
-const selectedYear = ref<number | null>(null)
-const selectedTag = ref<string | null>(null)
-const currentPage = ref(1)
-const pageSize = 10
-const total = ref(0)
 const loading = ref(false)
+const allArticles = ref<Article[]>([])
+
+const categories = ref<Array<{ id: string; name: string }>>([])
 
 const searchKeyword = computed(() => (route.query.keyword as string) || '')
 const isSearchResult = computed(() => !!route.query.keyword)
-const hasActiveFilters = computed(() => !!selectedCategory.value || !!selectedYear.value || !!selectedTag.value)
+
+const groupedArticles = computed(() => {
+  const map = new Map<number, Article[]>()
+  for (const article of allArticles.value) {
+    const year = new Date(article.createTime).getFullYear()
+    if (!map.has(year)) map.set(year, [])
+    map.get(year)!.push(article)
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, articles]) => ({
+      year,
+      articles: articles.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
+    }))
+})
 
 function clearFilters() {
   selectedCategory.value = ''
-  selectedYear.value = null
-  selectedTag.value = null
-  currentPage.value = 1
   router.push({ path: '/articles', query: {} })
-}
-
-const categories = ref<Array<{ id: string; name: string }>>([])
-const articles = ref<any[]>([])
-const archives = ref<{ year: number; count: number }[]>([])
-const hotTags = ref([
-  { name: 'Vue' },
-  { name: 'TypeScript' },
-  { name: 'Vite' }
-])
-
-function getTagColor(tagName: string): string {
-  const tag = blogStore.tags.find(t => t.name === tagName)
-  return tag?.color || 'var(--tag-default-color)'
-}
-
-function goToArticle(id: string) {
-  router.push(`/article/${id}`)
 }
 
 function formatDate(date: string) {
   if (!date) return ''
   return new Date(date).toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-function handlePageChange() {
-  fetchArticles()
-}
-
-function handleCategoryChange() {
-  currentPage.value = 1
-  fetchArticles()
-}
-
-function handleSelectYear(year: number) {
-  selectedYear.value = selectedYear.value === year ? null : year
-  currentPage.value = 1
-  fetchArticles()
-}
-
-function handleSelectTag(tag: string) {
-  selectedTag.value = selectedTag.value === tag ? null : tag
-  currentPage.value = 1
-  fetchArticles()
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\//g, '-')
 }
 
 async function fetchArticles() {
   loading.value = true
   try {
-    const queryParams: any = {
-      page: currentPage.value,
-      pageSize
+    const params: any = {
+      page: 1,
+      pageSize: 999,
+      sortBy: 'createTime',
+      sortOrder: 'desc'
     }
-    if (selectedCategory.value) queryParams.categoryId = selectedCategory.value
-    if (selectedYear.value) queryParams.year = selectedYear.value
+    if (selectedCategory.value) params.categoryId = selectedCategory.value
+    if (searchKeyword.value) params.keyword = searchKeyword.value
 
-    await blogStore.fetchArticles(queryParams)
-    articles.value = blogStore.articles
-    total.value = blogStore.articleCount
+    await blogStore.fetchArticles(params)
+    allArticles.value = blogStore.articles
   } catch (error) {
     console.error('Failed to fetch articles:', error)
+    allArticles.value = []
   } finally {
     loading.value = false
   }
@@ -227,62 +136,17 @@ async function fetchCategories() {
   categories.value = blogStore.categories
 }
 
-async function fetchArchives() {
-  try {
-    const archiveData = await articleApi.getArchive()
-    if (!archiveData) {
-      archives.value = []
-      return
-    }
-    const yearMap = new Map<number, number>()
-
-    if (Array.isArray(archiveData)) {
-      for (const item of archiveData) {
-        if (item.month && typeof item.month === 'string' && item.month.includes('-')) {
-          const year = parseInt(item.month.split('-')[0])
-          if (!isNaN(year)) {
-            yearMap.set(year, (yearMap.get(year) || 0) + (item.count || 0))
-          }
-        }
-      }
-    } else if (typeof archiveData === 'object') {
-      for (const [month, count] of Object.entries(archiveData)) {
-        if (month.includes('-')) {
-          const year = parseInt(month.split('-')[0])
-          if (!isNaN(year)) {
-            yearMap.set(year, (yearMap.get(year) || 0) + (count as number || 0))
-          }
-        }
-      }
-    }
-
-    archives.value = Array.from(yearMap.entries())
-      .map(([year, count]) => ({ year, count }))
-      .sort((a, b) => b.year - a.year)
-  } catch (error) {
-    console.error('Failed to fetch archives:', error)
-    archives.value = []
-  }
-}
-
 onMounted(async () => {
   await fetchCategories()
-  await blogStore.fetchTags()
-  await fetchArchives()
-
   if (route.query.categoryId) {
     selectedCategory.value = route.query.categoryId as string
   }
-
   await fetchArticles()
 })
 
 watch(
   () => route.query,
-  (newQuery) => {
-    if (newQuery.categoryId !== selectedCategory.value) {
-      selectedCategory.value = newQuery.categoryId as string || ''
-    }
+  () => {
     fetchArticles()
   }
 )
@@ -290,218 +154,228 @@ watch(
 
 <style scoped lang="scss">
 .articles-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-8);
+  padding-bottom: var(--space-12);
+}
 
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: 600;
-      color: var(--text-primary);
-    }
+// ─── Filter chips ───────────────────────────────────────
+.filter-bar {
+  margin-bottom: var(--space-6);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-chips {
+  display: flex;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+}
+
+.filter-chip {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #fff;
   }
 }
 
-.articles-content {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: var(--space-8);
-}
-
-.articles-main {
-  min-width: 0;
-}
-
-// ─── Empty State ─────────────────────────────────────
+// ─── Empty state ────────────────────────────────────────
 .empty-state {
-  padding: var(--space-16) 0;
   text-align: center;
+  padding: var(--space-12) 0;
 
   .empty-text {
-    font-size: var(--text-base);
-    color: var(--text-secondary);
-    margin-bottom: var(--space-4);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-3);
   }
-}
 
-// ─── Article List ────────────────────────────────────
-.article-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-
-  .article-item {
-    display: flex;
-    gap: var(--space-5);
-    padding: var(--space-5);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--brand-primary);
     cursor: pointer;
-    transition: border-color var(--transition-fast);
+    font-size: var(--text-sm);
+    text-decoration: underline;
 
     &:hover {
-      border-color: var(--border-color-strong);
-    }
-
-    .article-cover {
-      width: 160px;
-      height: 100px;
-      flex-shrink: 0;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      background: var(--bg-tertiary);
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-
-    .article-info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-
-      .article-meta {
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        font-size: var(--text-sm);
-        color: var(--text-tertiary);
-        margin-bottom: var(--space-2);
-
-        .category {
-          color: var(--link-color);
-        }
-      }
-
-      .article-title {
-        font-size: var(--text-base);
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: var(--space-2);
-        line-height: 1.5;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .article-summary {
-        font-size: var(--text-sm);
-        color: var(--text-secondary);
-        line-height: 1.6;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        flex: 1;
-      }
-
-      .article-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: var(--space-3);
-
-        .tags {
-          display: flex;
-          gap: var(--space-2);
-        }
-
-        .stats {
-          font-size: var(--text-xs);
-          color: var(--text-tertiary);
-        }
-      }
+      color: var(--brand-primary-hover);
     }
   }
 }
 
-.pagination {
+// ─── Card ───────────────────────────────────────────────
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.card + .card {
+  margin-top: var(--space-6);
+}
+
+.card-content {
+  padding: var(--space-6);
+}
+
+// ─── Year tag ───────────────────────────────────────────
+.archive-year-tag {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: var(--text-base);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+}
+
+// ─── Timeline (lexburner signature: left border + dots) ──
+.timeline {
+  margin-left: 1rem;
+  padding: 1rem 0 0 1.5rem;
+  border-left: 1px solid var(--border-color);
+}
+
+.timeline-item {
+  position: relative;
+  padding: var(--space-2) 0;
+
+  // Dot on the timeline (12px gray circle on the left border)
+  &::before {
+    content: '';
+    position: absolute;
+    left: calc(-0.375rem - 1.5rem - 0.25px);
+    top: 1.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--border-color);
+    border-radius: 50%;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  // Cover the tail of the timeline after the last item
+  &:last-child::after {
+    content: '';
+    position: absolute;
+    left: calc(-0.375rem - 1.5rem - 0.25px);
+    top: calc(1.25rem + 0.75rem);
+    bottom: -1rem;
+    width: 0.75rem;
+    background: var(--bg-primary);
+  }
+
+  &:hover::before {
+    background: var(--brand-primary);
+    transform: scale(1.2);
+  }
+}
+
+.timeline-content {
   display: flex;
-  justify-content: center;
-  margin-top: var(--space-8);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
 }
 
-// ─── Sidebar ─────────────────────────────────────────
-.articles-sidebar {
-  .sidebar-section {
-    margin-bottom: var(--space-6);
+.timeline-date {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-family: 'Source Code Pro', 'Consolas', monospace;
+  flex-shrink: 0;
+  min-width: 5.5rem;
+}
 
-    .sidebar-title {
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--space-4);
-      padding-bottom: var(--space-3);
-      border-bottom: 1px solid var(--border-color);
+.timeline-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.5;
+
+  a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--brand-primary);
     }
 
-    .sidebar-empty {
-      font-size: var(--text-sm);
-      color: var(--text-tertiary);
-    }
-  }
-
-  .archive-list {
-    .archive-item {
-      display: flex;
-      justify-content: space-between;
-      padding: var(--space-2) 0;
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: color var(--transition-fast);
-
-      &:hover,
-      &.active {
-        color: var(--link-color);
-      }
-    }
-  }
-
-  .tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-
-    .tag-item {
-      cursor: pointer;
-      transition: border-color var(--transition-fast), color var(--transition-fast);
-
-      &:hover,
-      &.active {
-        border-color: var(--link-color);
-        color: var(--link-color);
-      }
+    :deep(mark) {
+      background-color: rgba(255, 220, 0, 0.3);
+      padding: 1px 3px;
+      border-radius: 2px;
+      color: inherit;
     }
   }
 }
 
-// ─── Responsive ──────────────────────────────────────
-@media (max-width: 900px) {
-  .articles-content {
-    grid-template-columns: 1fr;
-  }
+.timeline-category {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
 
-  .articles-sidebar {
-    display: none;
+  a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--brand-primary);
+    }
   }
 }
 
-@media (max-width: 640px) {
-  .article-list .article-item {
+// ─── Responsive ─────────────────────────────────────────
+@media (max-width: 768px) {
+  .timeline {
+    margin-left: 0;
+    padding-left: 1.25rem;
+  }
+
+  .timeline-item::before {
+    left: calc(-0.375rem - 1.25rem - 0.25px);
+  }
+
+  .timeline-item:last-child::after {
+    left: calc(-0.375rem - 1.25rem - 0.25px);
+  }
+
+  .timeline-content {
     flex-direction: column;
+    gap: var(--space-1);
+  }
 
-    .article-cover {
-      width: 100%;
-      height: 160px;
-    }
+  .timeline-date {
+    min-width: 0;
+  }
+}
+
+// ─── Reduced motion ─────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip,
+  .timeline-item::before,
+  .timeline-title a,
+  .timeline-category a {
+    transition: none !important;
+    transform: none !important;
   }
 }
 </style>

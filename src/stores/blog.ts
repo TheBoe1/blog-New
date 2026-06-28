@@ -114,6 +114,21 @@ export const useBlogStore = defineStore('blog', () => {
     }
   }
 
+  async function fetchArticleBySlug(slug: string): Promise<Article | null> {
+    loading.value = true
+    try {
+      const article = await articleApi.getBySlug(slug)
+      currentArticle.value = article
+      return article
+    } catch (error) {
+      console.error('Failed to fetch article by slug:', error)
+      currentArticle.value = null
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function createArticle(article: Partial<Article>): Promise<Article> {
     loading.value = true
     try {
@@ -349,6 +364,7 @@ export const useBlogStore = defineStore('blog', () => {
     fetchArticles,
     fetchAdminArticles,
     fetchArticleById,
+    fetchArticleBySlug,
     createArticle,
     updateArticle,
     deleteArticle,

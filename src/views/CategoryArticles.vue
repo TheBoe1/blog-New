@@ -1,40 +1,69 @@
 <template>
-  <div class="category-articles">
-    <div class="category-header">
-      <h1>{{ category.name }}</h1>
-      <p>{{ category.description }}</p>
-      <div class="category-stats">
-        <span>共 {{ total }} 篇文章</span>
-      </div>
-    </div>
-
-    <el-card shadow="never" class="article-list">
-      <div
-        v-for="article in articles"
-        :key="article.id"
-        class="article-item"
-        @click="goToArticle(article.id)"
-      >
-        <div class="article-info">
-          <h3 class="article-title">{{ article.title }}</h3>
-          <p class="article-summary">{{ article.summary }}</p>
-          <div class="article-meta">
-            <span>{{ formatDate(article.createTime) }}</span>
-            <span>{{ article.viewCount }} 阅读</span>
-          </div>
+  <div class="category-articles-page">
+    <BlogLayout3Col>
+      <div class="card">
+        <div class="card-content">
+          <header class="category-header">
+            <h1 class="category-title">{{ category.name }}</h1>
+            <p v-if="category.description" class="category-desc">{{ category.description }}</p>
+            <p class="category-stats">
+              <i class="fas fa-folder-open"></i>
+              共 {{ total }} 篇文章
+            </p>
+          </header>
         </div>
       </div>
 
-      <div class="pagination-area">
+      <div v-if="!articles.length && !loading" class="card empty-card">
+        <div class="card-content">
+          <p class="empty-text">该分类下暂无文章</p>
+        </div>
+      </div>
+
+      <article
+        v-for="(article, i) in articles"
+        :key="article.id"
+        class="card article-card stagger-item"
+        @click="goToArticle(article.slug || article.id)"
+      >
+        <div class="card-content">
+          <h2 class="article-title">
+            <router-link :to="`/article/${article.slug || article.id}`">
+              <i class="fas fa-angle-double-right"></i>{{ article.title }}
+            </router-link>
+          </h2>
+          <div class="article-meta">
+            <span class="meta-item">
+              <i class="far fa-calendar-alt"></i>
+              <time>{{ formatDate(article.createTime) }}</time>
+            </span>
+            <span v-if="article.categoryName" class="meta-item">
+              <router-link :to="`/category/${article.categoryId}`" class="meta-link">
+                {{ article.categoryName }}
+              </router-link>
+            </span>
+            <span class="meta-item">
+              <i class="far fa-eye"></i>
+              {{ article.viewCount }} 阅读
+            </span>
+          </div>
+          <div v-if="article.summary" class="article-content">
+            <p>{{ article.summary }}</p>
+          </div>
+        </div>
+      </article>
+
+      <nav v-if="total > pageSize" class="pagination stagger-item">
         <el-pagination
           v-model:current-page="currentPage"
           :total="total"
-          :page-size="10"
+          :page-size="pageSize"
           layout="prev, pager, next"
+          background
           @current-change="handlePageChange"
         />
-      </div>
-    </el-card>
+      </nav>
+    </BlogLayout3Col>
   </div>
 </template>
 
@@ -42,18 +71,22 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
+import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 
 const route = useRoute()
 const router = useRouter()
 const blogStore = useBlogStore()
 
-const category = ref({
+const pageSize = 10
+const loading = ref(false)
+
+const category = ref<any>({
   id: '',
   name: '加载中...',
   description: '',
   articleCount: 0
 })
-const articles = ref([])
+const articles = ref<any[]>([])
 const currentPage = ref(1)
 const total = ref(0)
 
@@ -63,11 +96,11 @@ function formatDate(date: string) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
-  })
+  }).replace(/\//g, '-')
 }
 
-function goToArticle(id: string) {
-  router.push(`/article/${id}`)
+function goToArticle(identifier: string) {
+  router.push(`/article/${identifier}`)
 }
 
 function handlePageChange() {
@@ -76,43 +109,38 @@ function handlePageChange() {
 
 async function fetchArticles() {
   const categoryId = route.params.id as string
+  loading.value = true
   try {
-    // 确保分类数据是最新的
     if (blogStore.categories.length === 0) {
       await blogStore.fetchCategories()
     }
-    
-    // 获取分类信息
+
     const foundCategory = blogStore.categories.find(cat => cat.id === categoryId)
     if (foundCategory) {
       category.value = foundCategory
     } else {
-      // 如果找不到分类，尝试从API获取
-      console.log(`Category ${categoryId} not found in store`)
       category.value = {
         id: categoryId,
         name: '未知分类',
-        description: '该分类暂无描述',
-        articleCount: 0,
-        createTime: new Date().toISOString(),
-        parentId: '',
-        slug: '',
-        sortOrder: 0
+        description: '',
+        articleCount: 0
       }
     }
 
-    // 获取该分类的文章
-    await blogStore.fetchArticles({ categoryId, page: currentPage.value, pageSize: 10 })
+    await blogStore.fetchArticles({ categoryId, page: currentPage.value, pageSize })
     articles.value = blogStore.articles
-    // 在实际应用中，total 应该从响应中获取
-    total.value = blogStore.articles.length
+    total.value = blogStore.total || blogStore.articles.length
   } catch (error) {
     console.error('Failed to fetch category articles:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-watch(() => route.params.id, fetchArticles)
-watch(currentPage, fetchArticles)
+watch(() => route.params.id, () => {
+  currentPage.value = 1
+  fetchArticles()
+})
 
 onMounted(async () => {
   await fetchArticles()
@@ -120,83 +148,193 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.category-articles {
-  .category-header {
-    margin-bottom: 24px;
+.category-articles-page {
+  padding-bottom: var(--space-12);
+}
 
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      color: #303133;
-      margin: 0 0 8px;
-    }
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  color: var(--text-secondary);
+  overflow: hidden;
+  cursor: default;
+}
 
-    p {
-      font-size: 16px;
-      color: #606266;
-      margin: 0 0 8px;
-    }
+.card + .card {
+  margin-top: var(--space-6);
+}
 
-    .category-stats {
-      font-size: 14px;
-      color: #909399;
+.card-content {
+  padding: var(--space-6);
+}
+
+.article-card {
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.category-header {
+  .category-title {
+    position: relative;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-3);
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+      border-radius: 2px;
     }
   }
 
-  .article-list {
-    :deep(.el-card__body) {
-      padding: 0;
+  .category-desc {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+  }
+
+  .category-stats {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    .fas {
+      margin-right: 4px;
+      opacity: 0.7;
+    }
+  }
+}
+
+.empty-card .empty-text {
+  text-align: center;
+  padding: var(--space-8) 0;
+  color: var(--text-tertiary);
+}
+
+.article-title {
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  font-family: 'Ubuntu', 'PingFang SC', 'Noto Sans SC', sans-serif;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+
+  a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    .fas {
+      display: inline-block;
+      margin-right: var(--space-2);
+      color: var(--brand-primary);
+      font-size: 0.85em;
+      transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    .article-item {
-      padding: 20px;
-      border-bottom: 1px solid #f0f2f5;
-      cursor: pointer;
-      transition: background 0.3s ease;
+    &:hover {
+      color: var(--brand-primary);
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &:hover {
-        background: #f5f7fa;
-      }
-
-      .article-info {
-        .article-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: #303133;
-          margin: 0 0 8px;
-          transition: color 0.3s ease;
-
-          &:hover {
-            color: #667eea;
-          }
-        }
-
-        .article-summary {
-          font-size: 14px;
-          color: #606266;
-          margin: 0 0 12px;
-          line-height: 1.6;
-        }
-
-        .article-meta {
-          display: flex;
-          gap: 16px;
-          font-size: 13px;
-          color: #909399;
-        }
+      .fas {
+        transform: translateX(5px);
       }
     }
   }
+}
 
-  .pagination-area {
-    display: flex;
-    justify-content: center;
-    margin-top: 24px;
-    padding: 20px;
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-4);
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    .fas, .far {
+      opacity: 0.7;
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    &:hover .fas,
+    &:hover .far {
+      transform: rotate(360deg);
+      color: var(--brand-primary);
+      opacity: 1;
+    }
+  }
+
+  .meta-link {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    &:hover { color: var(--brand-primary); }
+  }
+}
+
+.article-content {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--text-secondary);
+
+  p {
+    margin-bottom: var(--space-3);
+  }
+}
+
+.pagination {
+  margin-top: var(--space-6);
+  display: flex;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-card,
+  .article-title::after,
+  .article-title a,
+  .article-title a .fas,
+  .article-meta .meta-item .fas,
+  .article-meta .meta-item .far {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }
 </style>
