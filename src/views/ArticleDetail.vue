@@ -897,6 +897,11 @@ $grad-brand-soft-h: var(--brand-tint-hover);
         color: var(--brand-primary);
         transition: left 0.3s ease, opacity 0.3s ease;
       }
+
+      // 覆盖 md-editor-v3 默认绿色 hover (#73d13d)
+      &:hover {
+        color: var(--brand-primary);
+      }
     }
 
     &:hover > span {
@@ -911,7 +916,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     }
   }
 
-  // 当前滚动位置对应的标题
+  // 当前滚动位置对应的标题 — 覆盖 md-editor-v3 默认绿色 active (#73d13d)
   :deep(.md-editor-catalog-active) > span {
     color: var(--brand-primary) !important;
     background: var(--brand-tint) !important;
@@ -922,6 +927,11 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       opacity: 1 !important;
       left: 0.4em !important;
     }
+  }
+
+  // 左侧滚动指示条 — 同样覆盖绿色
+  :deep(.md-editor-catalog-indicator) {
+    background-color: var(--brand-primary) !important;
   }
 }
 
