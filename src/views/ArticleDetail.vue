@@ -413,6 +413,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   color: var(--text-primary);
   animation: fadeInUp 0.6s ease-out 0.3s both;
 
+  :deep(h1),
   :deep(h2),
   :deep(h3),
   :deep(h4),
@@ -421,6 +422,12 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     scroll-margin-top: 80px;
     position: relative;
     padding-left: 1rem;
+  }
+
+  :deep(h1) {
+    font-size: 1.75em;
+    font-weight: 700;
+    margin: var(--space-8) 0 var(--space-4);
   }
 
   :deep(h1)::before,
