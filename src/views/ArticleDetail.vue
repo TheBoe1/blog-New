@@ -929,9 +929,9 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     }
   }
 
-  // 左侧滚动指示条 — 同样覆盖绿色
+  // 左侧滚动指示条 — 移除 md-editor-v3 默认绿色指示条
   :deep(.md-editor-catalog-indicator) {
-    background-color: var(--brand-primary) !important;
+    display: none !important;
   }
 }
 
