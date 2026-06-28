@@ -395,7 +395,7 @@
           <el-input v-model="newStyle.key" placeholder="如: primaryColor" />
         </el-form-item>
         <el-form-item label="样式值">
-          <el-input v-model="newStyle.value" placeholder="如: #667eea" />
+          <el-input v-model="newStyle.value" placeholder="如: var(--brand-primary)" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -725,7 +725,7 @@ function generatePreview() {
     let sectionClass = `section-${section.layout}`
     
     html += `<div class="${sectionClass}" style="${sectionStyle}">`
-    html += `<h4 style="margin: 0 0 10px; color: #667eea; font-size: 14px;">${section.sectionName}</h4>`
+    html += `<h4 style="margin: 0 0 10px; color: var(--brand-primary); font-size: 14px;">${section.sectionName}</h4>`
     
     section.elements.forEach(element => {
       if (!element.isVisible) return
@@ -807,7 +807,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--bg-secondary);
 
   .config-header {
     display: flex;
@@ -815,12 +815,12 @@ onMounted(() => {
     align-items: center;
     padding: 16px 24px;
     background: white;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--border-color);
 
     h2 {
       margin: 0;
       font-size: 20px;
-      color: #303133;
+      color: var(--text-primary);
     }
 
     .header-actions {
@@ -837,7 +837,7 @@ onMounted(() => {
     .config-sidebar {
       width: 320px;
       background: white;
-      border-right: 1px solid #e4e7ed;
+      border-right: 1px solid var(--border-color);
       overflow-y: auto;
 
       :deep(.el-tabs__header) {
@@ -852,19 +852,19 @@ onMounted(() => {
       .section-list {
         .section-item {
           padding: 12px;
-          border: 1px solid #e4e7ed;
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           margin-bottom: 8px;
           cursor: pointer;
           transition: all 0.3s;
 
           &:hover {
-            border-color: #667eea;
+            border-color: var(--brand-primary);
           }
 
           &.active {
-            border-color: #667eea;
-            background: #f0f2ff;
+            border-color: var(--brand-primary);
+            background: var(--brand-tint);
           }
 
           .section-info {
@@ -875,7 +875,7 @@ onMounted(() => {
 
             .section-name {
               font-weight: 500;
-              color: #303133;
+              color: var(--text-primary);
             }
           }
 
@@ -899,7 +899,7 @@ onMounted(() => {
           align-items: center;
           margin-bottom: 12px;
           font-weight: 500;
-          color: #303133;
+          color: var(--text-primary);
         }
 
         .element-items {
@@ -911,19 +911,19 @@ onMounted(() => {
           justify-content: space-between;
           align-items: center;
           padding: 10px;
-          border: 1px solid #e4e7ed;
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           margin-bottom: 8px;
           cursor: pointer;
           transition: all 0.3s;
 
           &:hover {
-            border-color: #667eea;
+            border-color: var(--brand-primary);
           }
 
           &.active {
-            border-color: #667eea;
-            background: #f0f2ff;
+            border-color: var(--brand-primary);
+            background: var(--brand-tint);
           }
 
           .element-info {
@@ -933,12 +933,12 @@ onMounted(() => {
 
             .drag-handle {
               cursor: move;
-              color: #909399;
+              color: var(--text-tertiary);
             }
 
             .element-key {
               font-size: 13px;
-              color: #606266;
+              color: var(--text-secondary);
             }
           }
 
@@ -973,7 +973,7 @@ onMounted(() => {
         h3 {
           margin: 0 0 20px;
           font-size: 18px;
-          color: #303133;
+          color: var(--text-primary);
         }
 
         .style-grid {
@@ -993,7 +993,7 @@ onMounted(() => {
     .config-preview {
       width: 400px;
       background: white;
-      border-left: 1px solid #e4e7ed;
+      border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
 
@@ -1002,16 +1002,16 @@ onMounted(() => {
         justify-content: space-between;
         align-items: center;
         padding: 12px 16px;
-        border-bottom: 1px solid #e4e7ed;
+        border-bottom: 1px solid var(--border-color);
         font-weight: 500;
-        color: #303133;
+        color: var(--text-primary);
       }
 
       .preview-content {
         flex: 1;
         padding: 16px;
         overflow-y: auto;
-        background: #fafafa;
+        background: var(--bg-tertiary);
 
         :deep(.preview-container) {
           background: white;
@@ -1024,7 +1024,7 @@ onMounted(() => {
           grid-template-columns: repeat(3, 1fr);
           gap: 10px;
           padding: 10px;
-          background: #f9f9f9;
+          background: var(--bg-tertiary);
           border-radius: 6px;
           margin-bottom: 10px;
         }
@@ -1034,14 +1034,14 @@ onMounted(() => {
           flex-wrap: wrap;
           gap: 10px;
           padding: 10px;
-          background: #f9f9f9;
+          background: var(--bg-tertiary);
           border-radius: 6px;
           margin-bottom: 10px;
         }
 
         :deep(.section-list) {
           padding: 10px;
-          background: #f9f9f9;
+          background: var(--bg-tertiary);
           border-radius: 6px;
           margin-bottom: 10px;
         }
@@ -1049,12 +1049,12 @@ onMounted(() => {
         :deep(label) {
           display: block;
           padding: 4px 0;
-          color: #606266;
+          color: var(--text-secondary);
         }
 
         :deep(p) {
           margin: 4px 0;
-          color: #303133;
+          color: var(--text-primary);
         }
 
         :deep(img) {
@@ -1069,7 +1069,7 @@ onMounted(() => {
 
         :deep(li) {
           margin: 4px 0;
-          color: #606266;
+          color: var(--text-secondary);
         }
       }
     }

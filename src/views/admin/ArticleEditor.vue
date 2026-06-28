@@ -467,16 +467,16 @@ onBeforeUnmount(() => {
   h2 {
     margin: 0;
     font-size: 20px;
-    color: #303133;
+    color: var(--text-primary);
   }
 
   .header-actions {
     display: flex;
     gap: 12px;
     align-items: center;
-    
+
     .edit-tip {
-      color: #909399;
+      color: var(--text-tertiary);
       cursor: help;
     }
   }
@@ -509,10 +509,10 @@ onBeforeUnmount(() => {
         .el-input__inner {
           font-size: 24px;
           font-weight: 600;
-          color: #303133;
-          
+          color: var(--text-primary);
+
           &::placeholder {
-            color: #c0c4cc;
+            color: var(--text-placeholder);
           }
         }
       }
@@ -532,10 +532,10 @@ onBeforeUnmount(() => {
       height: 100%;
       display: flex;
       flex-direction: column;
-      border: 1px solid #e4e7ed;
-      
+      border: 1px solid var(--border-color);
+
       .wang-toolbar {
-        border-bottom: 1px solid #e4e7ed;
+        border-bottom: 1px solid var(--border-color);
       }
       
       .wang-editor {
@@ -558,7 +558,7 @@ onBeforeUnmount(() => {
   .stats-card {
     :deep(.el-card__header) {
       padding: 12px 16px;
-      border-bottom: 1px solid #e4e7ed;
+      border-bottom: 1px solid var(--border-color);
     }
 
     :deep(.el-card__body) {
@@ -568,7 +568,7 @@ onBeforeUnmount(() => {
     .card-title {
       font-size: 14px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 }
@@ -579,8 +579,8 @@ onBeforeUnmount(() => {
   :deep(.el-upload) {
     width: 100%;
     height: 160px;
-    border: 1px dashed #d9d9d9;
-    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -590,7 +590,7 @@ onBeforeUnmount(() => {
     transition: border-color 0.3s ease;
 
     &:hover {
-      border-color: #667eea;
+      border-color: var(--brand-primary);
     }
   }
 
@@ -602,7 +602,7 @@ onBeforeUnmount(() => {
 
   .cover-uploader-icon {
     font-size: 28px;
-    color: #8c939d;
+    color: var(--text-placeholder);
   }
 }
 
@@ -611,19 +611,19 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--border-color);
 
     &:last-child {
       border-bottom: none;
     }
 
     .label {
-      color: #909399;
+      color: var(--text-tertiary);
       font-size: 13px;
     }
 
     .value {
-      color: #303133;
+      color: var(--text-primary);
       font-size: 13px;
       font-weight: 500;
     }
