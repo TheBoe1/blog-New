@@ -160,7 +160,7 @@ const categories = computed(() => {
 // 获取标签颜色
 function getTagColor(tagName: string): string {
   const tag = blogStore.tags.find(t => t.name === tagName)
-  return tag?.color || '#667eea'
+  return tag?.color || 'var(--brand-primary)'
 }
 
 const filteredArticles = computed(() => {
@@ -312,11 +312,11 @@ watch(() => route.path, async (newPath, oldPath) => {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #337ab7;
+      color: var(--link-color);
       text-decoration: underline;
-      
+
       &:hover {
-        color: #23527c;
+        color: var(--link-hover-color);
         text-decoration: none;
       }
     }
