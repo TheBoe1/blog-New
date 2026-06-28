@@ -861,7 +861,6 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   letter-spacing: 0.1em;
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-color);
 }
 
 .toc {
@@ -869,42 +868,41 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   overflow-y: auto;
   font-size: var(--text-sm);
 
-  :deep(ol) {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
+  // 嵌套子目录缩进
+  :deep(.md-editor-catalog-wrapper) {
+    padding-left: var(--space-3);
   }
 
-  :deep(li) {
-    margin: var(--space-1) 0;
-  }
+  // 目录项 = .md-editor-catalog-link > span（md-editor-v3 实际 DOM 结构）
+  :deep(.md-editor-catalog-link) {
+    > span {
+      display: block;
+      position: relative;
+      padding: 0.4em 0.75em 0.4em 1.25em;
+      color: var(--text-secondary);
+      border-radius: 2px;
+      border-left: 2px solid transparent;
+      transition: color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+      line-height: 1.4;
 
-  :deep(a) {
-    display: block;
-    position: relative;
-    padding: 0.5em 0.75em 0.5em 1.25em;
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-radius: 2px;
-    border-left: 2px solid transparent;
-    transition: color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease;
-    -webkit-text-fill-color: var(--text-secondary);
-
-    // ▸ arrow — slides in from left on hover/active (same as SidebarRight .menu-list)
-    &::before {
-      content: '▸';
-      position: absolute;
-      left: 0.25em;
-      opacity: 0;
-      color: var(--brand-primary);
-      transition: left 0.3s ease, opacity 0.3s ease;
+      // ▸ 箭头滑入（同 SidebarRight .menu-list .level）
+      &::before {
+        content: '▸';
+        position: absolute;
+        left: 0.25em;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        color: var(--brand-primary);
+        transition: left 0.3s ease, opacity 0.3s ease;
+      }
     }
 
-    &:hover {
+    &:hover > span {
       color: var(--brand-primary);
       background: var(--brand-tint);
       border-left-color: var(--brand-primary);
-      -webkit-text-fill-color: var(--brand-primary);
 
       &::before {
         opacity: 1;
@@ -913,34 +911,17 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     }
   }
 
-  // Active (current heading in viewport) — same visual as hover
-  :deep(.md-editor-catalog-active > a),
-  :deep(a.md-editor-catalog-active),
-  :deep(.md-editor-catalog-active) {
+  // 当前滚动位置对应的标题
+  :deep(.md-editor-catalog-active) > span {
     color: var(--brand-primary) !important;
     background: var(--brand-tint) !important;
     border-left-color: var(--brand-primary) !important;
     font-weight: 600;
-    -webkit-text-fill-color: var(--brand-primary) !important;
 
     &::before {
       opacity: 1 !important;
       left: 0.4em !important;
     }
-  }
-
-  :deep(.level-2) {
-    font-weight: 600;
-  }
-
-  :deep(.level-3) {
-    padding-left: var(--space-4);
-    font-size: 0.9em;
-  }
-
-  :deep(.level-4) {
-    padding-left: var(--space-6);
-    font-size: 0.85em;
   }
 }
 
