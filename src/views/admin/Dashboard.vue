@@ -136,25 +136,25 @@ const stats = computed(() => {
       title: '文章总数', 
       value: dashboardStats?.articleCount ?? blogStore.articles.length, 
       icon: 'Document', 
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+      color: 'var(--brand-primary)' 
     },
     { 
       title: '今日访问', 
       value: dashboardStats?.todayPV ?? 0, 
       icon: 'View', 
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' 
+      color: 'var(--brand-primary-hover)' 
     },
     { 
       title: '今日访客', 
       value: dashboardStats?.todayUV ?? 0, 
       icon: 'User', 
-      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' 
+      color: 'var(--brand-tint-hover)' 
     },
     { 
       title: '分类数', 
       value: dashboardStats?.categoryCount ?? blogStore.categories.length, 
       icon: 'Folder', 
-      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' 
+      color: 'var(--brand-tint)' 
     }
   ]
 })
@@ -173,7 +173,7 @@ const categoryStats = computed(() => {
   const dashboardStats = blogStore.dashboardStats
   if (dashboardStats?.categoryStats && dashboardStats.categoryStats.length > 0) {
     const total = dashboardStats.categoryStats.reduce((sum, c) => sum + c.count, 0)
-    const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+    const colors = ['var(--brand-primary)', 'var(--brand-primary-hover)', 'var(--brand-tint-hover)', 'var(--brand-tint)', 'var(--brand-primary-light)']
     return dashboardStats.categoryStats.map((cat, index) => ({
       ...cat,
       percentage: total > 0 ? Math.round((cat.count / total) * 100) : 0,
@@ -199,7 +199,7 @@ const categoryStats = computed(() => {
     }
   })
   
-  const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+  const colors = ['var(--brand-primary)', 'var(--brand-primary-hover)', 'var(--brand-tint-hover)', 'var(--brand-tint)', 'var(--brand-primary-light)']
   
   return Array.from(categoryMap.values()).map((cat, index) => ({
     ...cat,
@@ -209,10 +209,10 @@ const categoryStats = computed(() => {
 })
 
 const quickActions = ref([
-  { title: '新建文章', icon: 'Edit', color: '#667eea', path: '/admin/article/create' },
-  { title: '分类管理', icon: 'Folder', color: '#764ba2', path: '/admin/categories' },
-  { title: '标签管理', icon: 'PriceTag', color: '#f093fb', path: '/admin/tags' },
-  { title: '系统设置', icon: 'Setting', color: '#4facfe', path: '/admin/settings' }
+  { title: '新建文章', icon: 'Edit', color: 'var(--brand-primary)', path: '/admin/article/create' },
+  { title: '分类管理', icon: 'Folder', color: 'var(--brand-primary-hover)', path: '/admin/categories' },
+  { title: '标签管理', icon: 'PriceTag', color: 'var(--brand-tint-hover)', path: '/admin/tags' },
+  { title: '系统设置', icon: 'Setting', color: 'var(--brand-tint)', path: '/admin/settings' }
 ])
 
 function getBarHeight(pv: number): number {
@@ -338,12 +338,12 @@ onMounted(() => {
         .stat-value {
           font-size: 28px;
           font-weight: 700;
-          color: #303133;
+          color: var(--text-primary);
         }
 
         .stat-title {
           font-size: 14px;
-          color: #909399;
+          color: var(--text-tertiary);
           margin-top: 4px;
         }
       }
@@ -373,7 +373,7 @@ onMounted(() => {
         
         .chart-bar {
           flex: 1;
-          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+          background: var(--brand-primary);
           border-radius: 8px 8px 0 0;
           display: flex;
           flex-direction: column;
@@ -412,7 +412,7 @@ onMounted(() => {
 
       .recent-item {
         padding: 12px 0;
-        border-bottom: 1px solid #f0f2f5;
+        border-bottom: 1px solid var(--border-color);
         cursor: pointer;
         transition: background 0.3s ease;
 
@@ -421,14 +421,14 @@ onMounted(() => {
         }
 
         &:hover {
-          background: #f5f7fa;
+          background: var(--bg-secondary);
           margin: 0 -16px;
           padding: 12px 16px;
         }
 
         .article-title {
           font-size: 14px;
-          color: #303133;
+          color: var(--text-primary);
           margin-bottom: 6px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -439,7 +439,7 @@ onMounted(() => {
           display: flex;
           gap: 12px;
           font-size: 12px;
-          color: #909399;
+          color: var(--text-tertiary);
         }
       }
     }
@@ -455,13 +455,13 @@ onMounted(() => {
 
       .category-name {
         font-size: 14px;
-        color: #303133;
+        color: var(--text-primary);
         margin-bottom: 8px;
       }
 
       .category-count {
         font-size: 12px;
-        color: #909399;
+        color: var(--text-tertiary);
         text-align: right;
         margin-top: 4px;
       }
@@ -480,18 +480,18 @@ onMounted(() => {
       gap: 8px;
       padding: 20px;
       border-radius: 12px;
-      background: #f5f7fa;
+      background: var(--bg-secondary);
       cursor: pointer;
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        background: var(--brand-tint);
         transform: translateY(-2px);
       }
 
       .action-title {
         font-size: 13px;
-        color: #606266;
+        color: var(--text-secondary);
       }
     }
   }
