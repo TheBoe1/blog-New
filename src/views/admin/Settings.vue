@@ -357,15 +357,15 @@ onMounted(() => {
     :deep(.el-upload) {
       width: 100px;
       height: 100px;
-      border: 1px dashed #d9d9d9;
-      border-radius: 8px;
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-lg);
       cursor: pointer;
       position: relative;
       overflow: hidden;
       transition: all 0.3s;
-      
+
       &:hover {
-        border-color: #667eea;
+        border-color: var(--brand-primary);
       }
     }
     
@@ -380,7 +380,7 @@ onMounted(() => {
     .logo-uploader-icon,
     .avatar-uploader-icon {
       font-size: 28px;
-      color: #8c939d;
+      color: var(--text-placeholder);
       width: 100px;
       height: 100px;
       text-align: center;

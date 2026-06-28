@@ -15,7 +15,7 @@
           class="tag-item"
         >
           <div class="tag-info">
-            <el-tag :color="tag.color || '#667eea'" effect="dark" class="tag-badge">
+            <el-tag :color="tag.color || 'var(--brand-primary)'" effect="dark" class="tag-badge">
               {{ tag.name }}
             </el-tag>
             <span class="article-count">{{ getArticleCount(tag.name) }} 篇文章</span>
@@ -69,7 +69,7 @@ const form = reactive({
   id: '',
   name: '',
   slug: '',
-  color: '#667eea'
+  color: 'var(--brand-primary)'
 })
 
 // 优化标签文章计数计算，使用computed缓存结果
@@ -93,7 +93,7 @@ function resetForm() {
   form.id = ''
   form.name = ''
   form.slug = ''
-  form.color = '#667eea'
+  form.color = 'var(--brand-primary)'
 }
 
 function handleCreate() {
@@ -108,7 +108,7 @@ function handleEdit(row: Tag) {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    color: row.color || '#667eea'
+    color: row.color || 'var(--brand-primary)'
   })
   dialogVisible.value = true
 }
@@ -215,13 +215,13 @@ onMounted(async () => {
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    border: 1px solid #e4e7ed;
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
     transition: all 0.3s ease;
 
     &:hover {
-      border-color: #667eea;
-      box-shadow: 0 2px 12px rgba(102, 126, 234, 0.1);
+      border-color: var(--brand-primary);
+      box-shadow: var(--shadow-md);
     }
 
     .tag-info {
@@ -235,7 +235,7 @@ onMounted(async () => {
 
       .article-count {
         font-size: 12px;
-        color: #909399;
+        color: var(--text-tertiary);
       }
     }
 
