@@ -85,7 +85,6 @@ function formatDate(date: string) {
   letter-spacing: 0.1em;
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-color);
 }
 
 .widget-post {
