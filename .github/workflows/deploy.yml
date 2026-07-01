@@ -150,9 +150,9 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
       - name: Refresh Alibaba Cloud CDN (index.html)
-        # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（RPC V1 签名）。
-        # 若该 AK 无 CDN 权限会失败，但不阻断已完成的 OSS/ECS 部署（continue-on-error）。
-        # 失败后改用专用 CDN 子账号 AK：新增 CDN_KEY_ID/CDN_KEY_SECRET 两个 secret 并替换下方引用。
+        # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（阿里云 RPC V1 签名）。
+        # 签名规则：每个参数值先 RFC3986 编码，按键字典序拼成待签名串，整体再编码后做 HMAC-SHA1。
+        # 若 AK 无 CDN 权限会失败，但不阻断已完成的 OSS/ECS 部署（continue-on-error）。
         continue-on-error: true
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
@@ -165,32 +165,42 @@ jobs:
             exit 0
           fi
 
-          # 阿里云 RPC API V1：Timestamp ISO8601 UTC，冒号编码为 %3A
-          TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          TS_ENC=$(printf '%s' "$TS" | jq -rR @uri)
+          enc() { printf '%s' "$1" | jq -sRr @uri | sed 's/^"//; s/"$//'; }
+
+          TS_ENC=$(enc "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
+          URL_ENC=$(enc "$CDN_URL")
           NONCE="$RANDOM$RANDOM$(date +%s)"
 
-          api_params="Action=RefreshObjectCaches&Format=JSON&Version=2018-05-10&AccessKeyId=${OSS_KEY_ID}&SignatureMethod=HMAC-SHA1&Timestamp=${TS_ENC}&SignatureVersion=1.0&SignatureNonce=${NONCE}&ObjectPath=${CDN_URL}&ObjectType=File"
+          # 参数值预先编码，按键字典序排列
+          params=(
+            "AccessKeyId=${OSS_KEY_ID}"
+            "Action=RefreshObjectCaches"
+            "Format=JSON"
+            "ObjectPath=${URL_ENC}"
+            "ObjectType=File"
+            "SignatureMethod=HMAC-SHA1"
+            "SignatureNonce=${NONCE}"
+            "SignatureVersion=1.0"
+            "Timestamp=${TS_ENC}"
+            "Version=2018-05-10"
+          )
+          sorted=$(printf '%s\n' "${params[@]}" | sort | tr '\n' '&' | sed 's/&$//')
 
-          # 待签名串：参数按字典序升序排列后整体 RFC3986 编码
-          sorted=$(printf '%s' "$api_params" | tr '&' '\n' | sort | tr '\n' '&' | sed 's/&$//')
-          sorted_enc=$(printf '%s' "$sorted" | jq -sRr @uri | sed 's/^"//; s/"$//')
-          string_to_sign="GET&%2F&${sorted_enc}"
-
-          # HMAC-SHA1，key = AccessKeySecret + "&"
+          # string_to_sign = GET&%2F&<urlencoded(sorted)>
+          string_to_sign="GET&%2F&$(enc "$sorted")"
           signature=$(printf '%s' "$string_to_sign" | openssl dgst -sha1 -hmac "${OSS_KEY_SECRET}&" -binary | base64)
-          sig_enc=$(printf '%s' "$signature" | jq -sRr @uri | sed 's/^"//; s/"$//')
+          sig_enc=$(enc "$signature")
 
-          signed_url="https://cdn.aliyuncs.com/?${api_params}&Signature=${sig_enc}"
+          signed_url="https://cdn.aliyuncs.com/?${sorted}&Signature=${sig_enc}"
 
           echo "Calling CDN RefreshObjectCaches for $CDN_URL ..."
           resp=$(curl -s --max-time 30 "$signed_url")
           echo "Response: $resp"
 
-          # 成功响应含 RefreshTaskId；失败含 Code/Message（如 NoPermission / InvalidAccessKeyId）
+          # 成功响应含 RefreshTaskId；失败含 Code/Message（如 SignatureDoesNotMatch / NoPermission）
           if echo "$resp" | grep -q '"RefreshTaskId"'; then
             echo "CDN refresh submitted OK"
           else
-            echo "CDN refresh failed (likely AK lacks CDN permission, or already refreshing same URL too often)"
+            echo "CDN refresh failed"
             exit 1
           fi
