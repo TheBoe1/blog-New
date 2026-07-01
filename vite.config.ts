@@ -161,7 +161,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'framework': ['vue', 'vue-router', 'pinia', 'element-plus', '@element-plus/icons-vue'],
+          'framework': ['vue', 'vue-router', 'pinia'],
         },
       },
     },

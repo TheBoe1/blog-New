@@ -81,7 +81,21 @@ jobs:
             -k "$OSS_KEY_SECRET" \
             -e oss-cn-beijing.aliyuncs.com
 
-      - name: Upload hashed assets to OSS (immutable cache)
+      - name: Gzip static assets (js/css/svg)
+        # 预压缩 js/css/svg，上传时带 Content-Encoding:gzip，
+        # OSS 不支持自动 gzip，预压缩可让传输体积降至 ~1/3。
+        # 注意：woff2/jpg/png 等已是压缩格式，不可 gzip，故分两批上传。
+        run: |
+          set -eux
+          find dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.svg" \) -print0 \
+            | while IFS= read -r -d '' f; do
+                gzip -9 -c "$f" > "$f.gz"
+                mv "$f.gz" "$f"
+              done
+          echo "=== gzipped js sizes (top 10) ==="
+          find dist/assets -type f -name "*.js" -printf "%s %p\n" | sort -rn | head -10
+
+      - name: Upload gzipped assets to OSS (js/css/svg with Content-Encoding)
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
@@ -90,7 +104,21 @@ jobs:
             -i "$OSS_KEY_ID" \
             -k "$OSS_KEY_SECRET" \
             -e oss-cn-beijing.aliyuncs.com \
+            --include "*.js" --include "*.css" --include "*.svg" \
             --exclude "index.html" \
+            --meta "Cache-Control:max-age=31536000,immutable" \
+            --meta "Content-Encoding:gzip"
+
+      - name: Upload other assets to OSS (fonts/imgs, no gzip)
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+        run: |
+          ossutil cp -rf --update dist/ oss://theboe/main/ \
+            -i "$OSS_KEY_ID" \
+            -k "$OSS_KEY_SECRET" \
+            -e oss-cn-beijing.aliyuncs.com \
+            --exclude "*.js" --exclude "*.css" --exclude "*.svg" --exclude "index.html" \
             --meta "Cache-Control:max-age=31536000,immutable"
 
       - name: Upload index.html to OSS (no-cache)

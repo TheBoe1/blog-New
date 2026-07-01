@@ -1,6 +1,10 @@
 import { createApp } from 'vue'
 import pinia from './stores'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import {
+  ArrowDown, ArrowLeft, ArrowUp, Calendar, DataAnalysis, Delete, Document,
+  Edit, EditPen, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
+  Plus, PriceTag, Rank, Refresh, Setting, Share, Star, Upload, User,
+} from '@element-plus/icons-vue'
 import 'virtual:uno.css'
 import '@unocss/reset/tailwind.css'
 
@@ -29,8 +33,13 @@ pace.start({ restartOnRequestAfter: false, ajax: { trackMethods: ['GET', 'POST']
 
 const app = createApp(App)
 
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
+const icons = {
+  ArrowDown, ArrowLeft, ArrowUp, Calendar, DataAnalysis, Delete, Document,
+  Edit, EditPen, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
+  Plus, PriceTag, Rank, Refresh, Setting, Share, Star, Upload, User,
+}
+for (const [name, component] of Object.entries(icons)) {
+  app.component(name, component)
 }
 
 app.directive('scroll-animate', vScrollAnimate)
