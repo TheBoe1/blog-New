@@ -152,8 +152,6 @@ jobs:
       - name: Refresh Alibaba Cloud CDN (index.html)
         # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（阿里云 RPC V1 签名）。
         # 签名规则：每个参数值先 RFC3986 编码，按键字典序拼成待签名串，整体再编码后做 HMAC-SHA1。
-        # 若 AK 无 CDN 权限会失败，但不阻断已完成的 OSS/ECS 部署（continue-on-error）。
-        continue-on-error: true
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
@@ -196,6 +194,11 @@ jobs:
           echo "Calling CDN RefreshObjectCaches for $CDN_URL ..."
           resp=$(curl -s --max-time 30 "$signed_url")
           echo "Response: $resp"
+          # 写入 job summary，无需认证即可在 Actions UI 查看
+          echo "### CDN Refresh Response" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$resp" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
           # 成功响应含 RefreshTaskId；失败含 Code/Message（如 SignatureDoesNotMatch / NoPermission）
           if echo "$resp" | grep -q '"RefreshTaskId"'; then
