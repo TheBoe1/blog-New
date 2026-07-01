@@ -120,3 +120,49 @@ jobs:
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: Refresh Alibaba Cloud CDN (index.html)
+        # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（RPC V1 签名）。
+        # 若该 AK 无 CDN 权限会失败，但不阻断已完成的 OSS/ECS 部署（continue-on-error）。
+        # 失败后改用专用 CDN 子账号 AK：新增 CDN_KEY_ID/CDN_KEY_SECRET 两个 secret 并替换下方引用。
+        continue-on-error: true
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+          CDN_URL: https://lianlab.top/index.html
+        run: |
+          set -eu
+          if [ -z "$OSS_KEY_ID" ] || [ -z "$OSS_KEY_SECRET" ]; then
+            echo "Skip CDN refresh: AccessKey not configured"
+            exit 0
+          fi
+
+          # 阿里云 RPC API V1：Timestamp ISO8601 UTC，冒号编码为 %3A
+          TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          TS_ENC=$(printf '%s' "$TS" | jq -rR @uri)
+          NONCE="$RANDOM$RANDOM$(date +%s)"
+
+          api_params="Action=RefreshObjectCaches&Format=JSON&Version=2018-05-10&AccessKeyId=${OSS_KEY_ID}&SignatureMethod=HMAC-SHA1&Timestamp=${TS_ENC}&SignatureVersion=1.0&SignatureNonce=${NONCE}&ObjectPath=${CDN_URL}&ObjectType=File"
+
+          # 待签名串：参数按字典序升序排列后整体 RFC3986 编码
+          sorted=$(printf '%s' "$api_params" | tr '&' '\n' | sort | tr '\n' '&' | sed 's/&$//')
+          sorted_enc=$(printf '%s' "$sorted" | jq -sRr @uri | sed 's/^"//; s/"$//')
+          string_to_sign="GET&%2F&${sorted_enc}"
+
+          # HMAC-SHA1，key = AccessKeySecret + "&"
+          signature=$(printf '%s' "$string_to_sign" | openssl dgst -sha1 -hmac "${OSS_KEY_SECRET}&" -binary | base64)
+          sig_enc=$(printf '%s' "$signature" | jq -sRr @uri | sed 's/^"//; s/"$//')
+
+          signed_url="https://cdn.aliyuncs.com/?${api_params}&Signature=${sig_enc}"
+
+          echo "Calling CDN RefreshObjectCaches for $CDN_URL ..."
+          resp=$(curl -s --max-time 30 "$signed_url")
+          echo "Response: $resp"
+
+          # 成功响应含 RefreshTaskId；失败含 Code/Message（如 NoPermission / InvalidAccessKeyId）
+          if echo "$resp" | grep -q '"RefreshTaskId"'; then
+            echo "CDN refresh submitted OK"
+          else
+            echo "CDN refresh failed (likely AK lacks CDN permission, or already refreshing same URL too often)"
+            exit 1
+          fi
