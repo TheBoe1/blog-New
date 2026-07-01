@@ -889,7 +889,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       color: var(--text-secondary);
       border-radius: 2px;
       border-left: 2px solid transparent;
-      transition: color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease;
+      transition: color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
       cursor: pointer;
       line-height: 1.4;
 
@@ -929,6 +929,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     background: var(--brand-tint) !important;
     border-left-color: var(--brand-primary) !important;
     font-weight: 600;
+    transform: translateX(6px);
 
     &::before {
       opacity: 1 !important;
@@ -1003,7 +1004,8 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   .article-content :deep(img),
   .article-content :deep(code),
   .article-content :deep(table tbody tr),
-  .article-licensing {
+  .article-licensing,
+  .toc :deep(.md-editor-catalog-link) > span {
     transition: none !important;
     transform: none !important;
   }

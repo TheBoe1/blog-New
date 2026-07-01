@@ -207,9 +207,6 @@ function onSearchKeydown(e: KeyboardEvent) {
 onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onSearchKeydown)
-  if (blogStore.articles.length === 0) {
-    await blogStore.fetchArticles({})
-  }
   try {
     siteSettings.value = await settingsApi.getSettings() as Record<string, string>
   } catch (error) {

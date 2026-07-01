@@ -48,8 +48,10 @@ instance.interceptors.request.use(
     const userStore = useUserStore()
     const loadingStore = useLoadingStore()
     const token = userStore.token
-    
-    loadingStore.showLoading()
+
+    if (!isWhiteListUrl(config.url || '')) {
+      loadingStore.showLoading()
+    }
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`

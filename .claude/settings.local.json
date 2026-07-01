@@ -129,7 +129,12 @@
       "Bash(export NVM_HOME=\"D:\\\\\\\\sofaware\\\\\\\\DevelopmentApp\\\\\\\\nvm\")",
       "Bash(export NVM_SYMLINK=\"D:\\\\\\\\sofaware\\\\\\\\DevelopmentApp\\\\\\\\nvm\\\\\\\\nodejs\")",
       "Bash(npm config *)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(claude mcp *)",
+      "Bash(node *)",
+      "Bash(grep -n \"#[0-9a-fA-F]\\\\{3,6\\\\}\" src/views/admin/ArticleList.vue)",
+      "Bash(grep -nE \":[ ]*#[0-9a-fA-F]{3,6}|color: '#[0-9a-f]{3,6}'|#[0-9a-fA-F]{6}\" src/views/admin/Settings.vue src/views/admin/TagList.vue src/views/admin/CategoryList.vue src/views/admin/ArticleList.vue)",
+      "Skill(impeccable)"
     ]
   }
 }

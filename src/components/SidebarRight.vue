@@ -190,12 +190,25 @@ function formatDate(date: string) {
       background: var(--brand-tint);
       border-left: 2px solid var(--brand-primary);
       color: var(--brand-primary);
+      transform: translateX(6px);
 
       &::before {
         opacity: 1;
         left: 0.4em;
       }
     }
+  }
+}
+
+// ── Reduced motion: kill the selected-state shift + arrow slide ──
+@media (prefers-reduced-motion: reduce) {
+  .menu-list .level,
+  .menu-list .level::before {
+    transition: none !important;
+  }
+
+  .menu-list .level {
+    transform: none !important;
   }
 }
 </style>
