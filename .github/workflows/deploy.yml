@@ -151,59 +151,16 @@ jobs:
 
       - name: Refresh Alibaba Cloud CDN (index.html)
         # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（阿里云 RPC V1 签名）。
-        # 签名规则：每个参数值先 RFC3986 编码，按键字典序拼成待签名串，整体再编码后做 HMAC-SHA1。
+        # 签名逻辑见 scripts/cdn_refresh.py（python3 实现 RFC3986 编码，行为确定）。
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
           CDN_URL: https://lianlab.top/index.html
         run: |
-          set -eu
-          if [ -z "$OSS_KEY_ID" ] || [ -z "$OSS_KEY_SECRET" ]; then
-            echo "Skip CDN refresh: AccessKey not configured"
-            exit 0
-          fi
-
-          enc() { printf '%s' "$1" | jq -sRr @uri | sed 's/^"//; s/"$//'; }
-
-          TS_ENC=$(enc "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
-          URL_ENC=$(enc "$CDN_URL")
-          NONCE="$RANDOM$RANDOM$(date +%s)"
-
-          # 参数值预先编码，按键字典序排列
-          params=(
-            "AccessKeyId=${OSS_KEY_ID}"
-            "Action=RefreshObjectCaches"
-            "Format=JSON"
-            "ObjectPath=${URL_ENC}"
-            "ObjectType=File"
-            "SignatureMethod=HMAC-SHA1"
-            "SignatureNonce=${NONCE}"
-            "SignatureVersion=1.0"
-            "Timestamp=${TS_ENC}"
-            "Version=2018-05-10"
-          )
-          sorted=$(printf '%s\n' "${params[@]}" | sort | tr '\n' '&' | sed 's/&$//')
-
-          # string_to_sign = GET&%2F&<urlencoded(sorted)>
-          string_to_sign="GET&%2F&$(enc "$sorted")"
-          signature=$(printf '%s' "$string_to_sign" | openssl dgst -sha1 -hmac "${OSS_KEY_SECRET}&" -binary | base64)
-          sig_enc=$(enc "$signature")
-
-          signed_url="https://cdn.aliyuncs.com/?${sorted}&Signature=${sig_enc}"
-
-          echo "Calling CDN RefreshObjectCaches for $CDN_URL ..."
-          resp=$(curl -s --max-time 30 "$signed_url")
-          echo "Response: $resp"
-          # 写入 job summary，无需认证即可在 Actions UI 查看
+          resp=$(python3 scripts/cdn_refresh.py)
+          echo "$resp"
           echo "### CDN Refresh Response" >> "$GITHUB_STEP_SUMMARY"
           echo '```json' >> "$GITHUB_STEP_SUMMARY"
           echo "$resp" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-
-          # 成功响应含 RefreshTaskId；失败含 Code/Message（如 SignatureDoesNotMatch / NoPermission）
-          if echo "$resp" | grep -q '"RefreshTaskId"'; then
-            echo "CDN refresh submitted OK"
-          else
-            echo "CDN refresh failed"
-            exit 1
-          fi
+          echo "$resp" | grep -q '"RefreshTaskId"' || exit 1
