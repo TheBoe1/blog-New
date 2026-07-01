@@ -13,6 +13,7 @@ import random
 import os
 import sys
 import urllib.request
+import urllib.error
 import json
 
 
@@ -54,8 +55,12 @@ def main() -> int:
     signed_url = "https://cdn.aliyuncs.com/?" + query
 
     print(f"Calling CDN RefreshObjectCaches for {url} ...", file=sys.stderr)
-    with urllib.request.urlopen(signed_url, timeout=30) as resp:
-        body = resp.read().decode()
+    try:
+        with urllib.request.urlopen(signed_url, timeout=30) as resp:
+            body = resp.read().decode()
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        print(f"HTTP {e.code} error response:", file=sys.stderr)
     print(body)
 
     data = json.loads(body)
