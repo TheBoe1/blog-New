@@ -24,7 +24,9 @@ def enc(s: str) -> str:
 def main() -> int:
     ak = os.environ.get("OSS_KEY_ID", "")
     sk = os.environ.get("OSS_KEY_SECRET", "")
-    url = os.environ.get("CDN_URL", "https://lianlab.top/index.html")
+    # 阿里云 ObjectPath 支持换行分隔多 URL；同时刷新 / 和 /index.html
+    # 因为 CDN 把这二者视为独立缓存 key，nginx try_files 兜底使二者内容相同但 key 不同。
+    url = os.environ.get("CDN_URL", "https://lianlab.top/\nhttps://lianlab.top/index.html")
 
     if not ak or not sk:
         print("Skip CDN refresh: AccessKey not configured", file=sys.stderr)

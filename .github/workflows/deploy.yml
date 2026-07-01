@@ -151,11 +151,12 @@ jobs:
 
       - name: Refresh Alibaba Cloud CDN (index.html)
         # 复用 OSS 的 AccessKey 调用 CDN RefreshObjectCaches API（阿里云 RPC V1 签名）。
-        # 签名逻辑见 scripts/cdn_refresh.py（python3 实现 RFC3986 编码，行为确定）。
+        # 签名逻辑见 scripts/cdn_refresh.py。同时刷新 / 和 /index.html——
+        # CDN 视二者为独立缓存 key，nginx try_files 兜底使内容相同但 key 不同。
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
-          CDN_URL: https://lianlab.top/index.html
+          CDN_URL: "https://lianlab.top/\nhttps://lianlab.top/index.html"
         run: |
           resp=$(python3 scripts/cdn_refresh.py)
           echo "$resp"
