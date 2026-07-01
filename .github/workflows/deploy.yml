@@ -81,7 +81,7 @@ jobs:
             -k "$OSS_KEY_SECRET" \
             -e oss-cn-beijing.aliyuncs.com
 
-      - name: Upload dist to OSS
+      - name: Upload hashed assets to OSS (immutable cache)
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
@@ -90,8 +90,19 @@ jobs:
             -i "$OSS_KEY_ID" \
             -k "$OSS_KEY_SECRET" \
             -e oss-cn-beijing.aliyuncs.com \
-            --include "*" \
+            --exclude "index.html" \
             --meta "Cache-Control:max-age=31536000,immutable"
+
+      - name: Upload index.html to OSS (no-cache)
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+        run: |
+          ossutil cp -rf --update dist/index.html oss://theboe/main/index.html \
+            -i "$OSS_KEY_ID" \
+            -k "$OSS_KEY_SECRET" \
+            -e oss-cn-beijing.aliyuncs.com \
+            --meta "Cache-Control:no-cache,max-age=0"
 
       - name: Setup SSH
         run: |
