@@ -149,14 +149,14 @@ const stats = computed(() => ({
     background: transparent;
     transition: all 0.3s ease;
 
-    i { transition: transform 0.3s ease; }
+    i { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
     &:hover {
       transform: translateY(-3px) rotate(5deg);
       color: var(--brand-primary);
       border-color: var(--brand-primary);
 
-      i { animation: social-icon-bounce 0.5s ease; }
+      i { transform: translateY(-2px); }
     }
   }
 }
@@ -171,10 +171,5 @@ const stats = computed(() => ({
 
 .card-content {
   padding: var(--space-6);
-}
-
-@keyframes social-icon-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
 }
 </style>
