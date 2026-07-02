@@ -317,11 +317,13 @@ onUnmounted(() => {
       content: '';
       position: absolute;
       bottom: 0;
-      left: 50%;
-      width: 0;
+      left: 10%;
+      width: 80%;
       height: 2px;
       background: var(--brand-primary);
-      transition: width 0.3s ease, left 0.3s ease;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.3s ease;
     }
 
     &:hover {
@@ -329,8 +331,7 @@ onUnmounted(() => {
       background: transparent;
 
       &::after {
-        width: 80%;
-        left: 10%;
+        transform: scaleX(1);
       }
     }
 
@@ -340,8 +341,7 @@ onUnmounted(() => {
       background: transparent;
 
       &::after {
-        width: 80%;
-        left: 10%;
+        transform: scaleX(1);
       }
     }
 
@@ -381,11 +381,13 @@ onUnmounted(() => {
       content: '';
       position: absolute;
       bottom: -6px;
-      left: 50%;
-      width: 0;
+      left: 10%;
+      width: 80%;
       height: 2px;
       background: var(--brand-primary);
-      transition: width 0.3s ease, left 0.3s ease;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.3s ease;
     }
 
     &:hover,
@@ -393,8 +395,7 @@ onUnmounted(() => {
       color: var(--brand-primary);
 
       &::before {
-        width: 80%;
-        left: 10%;
+        transform: scaleX(1);
       }
     }
   }

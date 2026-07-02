@@ -489,13 +489,15 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       position: absolute;
       bottom: 0;
       left: 0;
-      width: 0;
+      width: 100%;
       height: 2px;
       background: $grad-brand-h;
-      transition: width 0.3s ease;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
     }
 
-    &:hover::after { width: 100%; }
+    &:hover::after { transform: scaleX(1); }
   }
 
   // Inline code: Editorial Blue tint bg
@@ -771,10 +773,12 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 0;
+    width: 100%;
     height: 2px;
     background: var(--brand-primary);
-    transition: width 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
   }
 
   &:hover {
@@ -783,7 +787,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
-  &:hover::before { width: 100%; }
+  &:hover::before { transform: scaleX(1); }
 }
 
 .article-actions {
