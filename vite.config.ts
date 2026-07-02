@@ -113,12 +113,10 @@ export default defineConfig({
       'markdown-it',
       'linkify-it',
     ],
-    exclude: ['md-editor-v3'],
   },
   server: {
     port: 5175,
     host: true,
-    historyApiFallback: true,
     proxy: {
       '/api': {
         target: 'http://localhost:9090',
