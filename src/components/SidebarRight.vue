@@ -190,7 +190,7 @@ function formatDate(date: string) {
       background: var(--brand-tint);
       border-left: 2px solid var(--brand-primary);
       color: var(--brand-primary);
-      transform: translateX(6px);
+      transform: translateX(10px);
 
       &::before {
         opacity: 1;

@@ -933,7 +933,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     background: var(--brand-tint) !important;
     border-left-color: var(--brand-primary) !important;
     font-weight: 600;
-    transform: translateX(6px);
+    transform: translateX(10px);
 
     &::before {
       opacity: 1 !important;
