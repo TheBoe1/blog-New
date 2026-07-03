@@ -28,8 +28,14 @@
           </div>
         </nav>
         <div class="profile-social">
-          <a v-for="s in socials" :key="s.title" :href="s.url" :title="s.title" target="_blank" rel="noopener" class="profile-social-btn">
-            <i :class="s.icon"></i>
+          <a href="https://github.com/TheBoe1" title="GitHub" target="_blank" rel="noopener" class="profile-social-btn">
+            <IconMdiGithub />
+          </a>
+          <a href="mailto:13102895026a@gmail.com" title="Email" class="profile-social-btn">
+            <IconMdiEmail />
+          </a>
+          <a href="/atom.xml" title="RSS" class="profile-social-btn">
+            <IconMdiRss />
           </a>
         </div>
       </div>
@@ -49,11 +55,6 @@ const profile = computed(() => ({
   location: '中国·石家庄',
   avatar: 'https://oss.lianlab.top/main/img/avatar.jpg'
 }))
-
-const socials = [
-  { title: 'GitHub', url: 'https://github.com', icon: 'fab fa-github' },
-  { title: 'RSS', url: '/atom.xml', icon: 'fas fa-rss' }
-]
 
 const stats = computed(() => ({
   articleCount: blogStore.articleCount || blogStore.articles.length,
@@ -149,14 +150,14 @@ const stats = computed(() => ({
     background: transparent;
     transition: all 0.3s ease;
 
-    i { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    svg { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
     &:hover {
       transform: translateY(-3px) rotate(5deg);
       color: var(--brand-primary);
       border-color: var(--brand-primary);
 
-      i { transform: translateY(-2px); }
+      svg { transform: translateY(-2px); }
     }
   }
 }
