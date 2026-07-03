@@ -119,9 +119,27 @@
       </router-link>
     </nav>
 
-    <div v-if="loading && !article.id" class="card">
+    <!-- 加载中：基于文章容器的骨架屏（非全局遮罩） -->
+    <div v-if="loading && !article.id" class="card article-detail">
       <div class="card-content">
-        <p class="loading-text">加载中...</p>
+        <el-skeleton animated>
+          <template #template>
+            <el-skeleton-item variant="h1" style="width: 62%; margin-bottom: 18px;" />
+            <div class="skeleton-meta">
+              <el-skeleton-item variant="text" style="width: 96px" />
+              <el-skeleton-item variant="text" style="width: 72px" />
+              <el-skeleton-item variant="text" style="width: 64px" />
+              <el-skeleton-item variant="text" style="width: 120px" />
+            </div>
+            <el-skeleton-item variant="text" style="width: 100%; margin-top: 28px;" />
+            <el-skeleton-item variant="text" style="width: 100%; margin-top: 14px;" />
+            <el-skeleton-item variant="text" style="width: 94%; margin-top: 14px;" />
+            <el-skeleton-item variant="text" style="width: 97%; margin-top: 14px;" />
+            <el-skeleton-item variant="text" style="width: 88%; margin-top: 14px;" />
+            <el-skeleton-item variant="text" style="width: 100%; margin-top: 14px;" />
+            <el-skeleton-item variant="text" style="width: 70%; margin-top: 14px;" />
+          </template>
+        </el-skeleton>
       </div>
     </div>
 
@@ -150,8 +168,8 @@ const blogStore = useBlogStore()
 const editorId = 'article-md-preview'
 const scrollElement = document.documentElement
 
-const theme = ref('light')
-const loading = ref(false)
+const theme = ref<'light' | 'dark'>('light')
+const loading = ref(true)
 
 const article = ref<any>({
   id: '',
@@ -247,6 +265,8 @@ function handleShare() {
 async function loadArticle(identifier: string) {
   if (!identifier) return
   loading.value = true
+  // 重置 article，确保切换文章时也显示骨架（loading && !article.id 命中）
+  article.value = { id: '', tags: [], tagColor: {} } as any
 
   let result: any = null
 
@@ -286,13 +306,19 @@ watch(() => route.params.slug, (val) => {
 })
 
 onMounted(async () => {
-  await blogStore.fetchTags()
-  await blogStore.fetchCategories()
-  await blogStore.fetchArticles({ page: 1, pageSize: 50, sortBy: 'createTime', sortOrder: 'desc' })
   const identifier = route.params.slug as string
+  // 辅助数据（标签/分类/列表，供上下篇导航与标签色用）与正文并行，不阻塞首屏
+  const auxiliary = Promise.allSettled([
+    blogStore.fetchTags(),
+    blogStore.fetchCategories(),
+    blogStore.fetchArticles({ page: 1, pageSize: 50, sortBy: 'createTime', sortOrder: 'desc' })
+  ])
   if (identifier) {
     await loadArticle(identifier)
+  } else {
+    loading.value = false
   }
+  await auxiliary
 })
 </script>
 
@@ -919,6 +945,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       color: var(--brand-primary);
       background: var(--brand-tint);
       border-left-color: var(--brand-primary);
+      transform: translateX(10px);
 
       &::before {
         opacity: 1;
@@ -945,6 +972,13 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   :deep(.md-editor-catalog-indicator) {
     display: none !important;
   }
+}
+
+.skeleton-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: 4px;
 }
 
 .loading-text {
