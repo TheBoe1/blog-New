@@ -2,7 +2,7 @@
   <div class="home-page">
     <BlogLayout3Col>
       <article
-        v-for="(article, i) in recentArticles"
+        v-for="article in recentArticles"
         :key="article.id"
         class="card article-card stagger-item"
       >

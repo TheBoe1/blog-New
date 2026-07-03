@@ -1,6 +1,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { usePageConfigStore } from '@/stores/pageConfig'
-import type { PageConfig, PageSectionConfig, PageElementConfig } from '@/types'
+import type { PageSectionConfig, PageElementConfig } from '@/types'
 
 interface PageConfigError {
   message: string

@@ -84,7 +84,7 @@
                 class="element-items"
                 @end="handleElementReorder"
               >
-                <template #item="{ element, index }">
+                <template #item="{ element }">
                   <div
                     class="element-item"
                     :class="{ active: selectedElement?.elementKey === element.elementKey }"
@@ -122,7 +122,7 @@
           <el-tab-pane label="全局样式" name="global">
             <div class="style-editor">
               <div
-                v-for="(value, key) in configData.globalStyles"
+                v-for="key in Object.keys(configData.globalStyles)"
                 :key="key"
                 class="style-item"
               >
@@ -241,7 +241,7 @@
             <el-divider content-position="left">自定义样式</el-divider>
 
             <div
-              v-for="(value, key) in selectedElement.styles"
+              v-for="key in Object.keys(selectedElement.styles)"
               :key="key"
               class="custom-style-item"
             >
@@ -258,7 +258,7 @@
             <el-divider content-position="left">属性设置</el-divider>
 
             <div
-              v-for="(value, key) in selectedElement.attributes"
+              v-for="key in Object.keys(selectedElement.attributes)"
               :key="key"
               class="custom-style-item"
             >
@@ -437,7 +437,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import draggable from 'vuedraggable'
 import { usePageConfigStore } from '@/stores/pageConfig'
@@ -537,7 +537,7 @@ function handleElementReorder() {
   generatePreview()
 }
 
-function handleElementVisibilityChange(element: PageElementConfig) {
+function handleElementVisibilityChange(_element: PageElementConfig) {
   generatePreview()
 }
 

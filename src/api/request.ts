@@ -2,7 +2,6 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useLoadingStore } from '@/stores/loading'
-import type { ApiResponse } from '@/types'
 
 const WHITE_LIST = [
   '/login',
@@ -15,11 +14,6 @@ const WHITE_LIST = [
   '/api/settings',
   '/api/stats/visit',
   '/api/page-config'
-]
-
-const SILENT_ERROR_URLS = [
-  '/login',
-  '/captchaImage'
 ]
 
 function isWhiteListUrl(url: string): boolean {

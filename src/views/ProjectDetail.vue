@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { projects, getProjectById, type Project } from '@/data/projects'
+import { getProjectById, type Project } from '@/data/projects'
 
 const route = useRoute()
 const router = useRouter()

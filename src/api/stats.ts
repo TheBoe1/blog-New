@@ -1,5 +1,5 @@
 import { request } from './request'
-import type { VisitLog, BlogSettings } from '@/types'
+import type { BlogSettings } from '@/types'
 
 export const statsApi = {
   recordVisit(data: {

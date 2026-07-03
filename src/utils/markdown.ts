@@ -6,11 +6,11 @@ const turndownService = new TurndownService({
   bulletListMarker: '-'
 })
 
-turndownService.addRule('pre', function(content) {
+turndownService.addRule('pre', function(content: string) {
   return '\n\n' + content + '\n\n'
 })
 
-turndownService.addRule('figure', function(content) {
+turndownService.addRule('figure', function(content: string) {
   return '\n' + content + '\n'
 })
 

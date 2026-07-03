@@ -142,10 +142,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { useBlogStore } from '@/stores/blog'
 import { settingsApi } from '@/api/stats'
 import { useEntranceAnim } from '@/composables/useEntranceAnim'
 import { projects as projectList } from '@/data/projects'
@@ -154,7 +153,6 @@ import BackToTop from '@/components/BackToTop.vue'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const blogStore = useBlogStore()
 
 const searchKeyword = ref('')
 const siteSettings = ref<Record<string, string>>({})

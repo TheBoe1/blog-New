@@ -60,7 +60,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
-import { articleApi } from '@/api'
 import { highlightText } from '@/utils/highlight'
 import type { Article } from '@/types'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'

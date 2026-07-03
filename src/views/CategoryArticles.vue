@@ -21,7 +21,7 @@
       </div>
 
       <article
-        v-for="(article, i) in articles"
+        v-for="article in articles"
         :key="article.id"
         class="card article-card stagger-item"
         @click="goToArticle(article.slug || article.id)"

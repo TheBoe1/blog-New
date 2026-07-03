@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h } from 'vue'
+import { computed } from 'vue'
 import type { PageSectionConfig, PageElementConfig } from '@/types'
 
 const props = defineProps<{

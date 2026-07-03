@@ -36,7 +36,7 @@ export const useBlogStore = defineStore('blog', () => {
           item.tags = []
         } else if (typeof item.tags === 'string') {
           // If tags is a string, split it into an array
-          item.tags = item.tags.split(',').map(tag => tag.trim())
+          item.tags = item.tags.split(',').map((tag: string) => tag.trim())
         }
         return item
       })
@@ -63,7 +63,7 @@ export const useBlogStore = defineStore('blog', () => {
       console.log('Processed data:', { list, totalNum })
       
       // Filter out undefined or null items and ensure tags is an array
-      articles.value = list.filter(item => item != null).map(item => {
+      articles.value = list.filter((item: any) => item != null).map((item: any) => {
         console.log('Processing article:', item.title, 'tags:', item.tags, 'tags type:', typeof item.tags)
         
         // Ensure tags is an array
@@ -72,7 +72,7 @@ export const useBlogStore = defineStore('blog', () => {
           console.log('Tags is null/undefined, set to empty array')
         } else if (typeof item.tags === 'string') {
           // If tags is a string, split it into an array
-          item.tags = item.tags.split(',').map(tag => tag.trim())
+          item.tags = item.tags.split(',').map((tag: string) => tag.trim())
           console.log('Tags is string, converted to array:', item.tags)
         } else if (!Array.isArray(item.tags)) {
           // If tags is neither string nor array, set to empty array
