@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Article, Category, Tag, ArticleQuery, DashboardStats, VisitTrend } from '@/types'
 import { articleApi, categoryApi, tagApi } from '@/api/article'
-import request from '@/api/request'
+import { request } from '@/api/request'
 
 export const useBlogStore = defineStore('blog', () => {
   const articles = ref<Article[]>([])
@@ -30,7 +30,7 @@ export const useBlogStore = defineStore('blog', () => {
       const list = response.rows || response.list || []
       const totalNum = response.total || 0
       // Ensure tags is an array for each article
-      articles.value = list.map(item => {
+      articles.value = list.map((item: any) => {
         // Ensure tags is an array
         if (!item.tags) {
           item.tags = []

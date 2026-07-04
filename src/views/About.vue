@@ -118,7 +118,7 @@ function formatUrl(url: string) {
 
 async function loadSettings() {
   try {
-    const settings = await settingsApi.getSettings() as Record<string, string>
+    const settings = await settingsApi.getSettings() as unknown as Record<string, string>
     if (settings) {
       if (settings.siteName) {
         userInfo.value.nickname = settings.authorName || settings.siteName

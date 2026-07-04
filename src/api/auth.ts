@@ -1,8 +1,8 @@
 import { request } from './request'
-import type { User, LoginParams, LoginResult } from '@/types'
+import type { User, LoginParams } from '@/types'
 
 export const authApi = {
-  login(params: LoginParams): Promise<LoginResult> {
+  login(params: LoginParams): Promise<{ token: string }> {
     return request.post('/login', params).then((res: any) => {
       return {
         token: res.token
@@ -47,7 +47,7 @@ export const authApi = {
     })
   },
 
-  uploadAvatar(file: File, onProgress?: (percent: number) => void): Promise<{ url: string }> {
+  uploadAvatar(file: File, onProgress?: (percent: number) => void): Promise<{ url: string; imgUrl?: string }> {
     return request.upload('/system/user/profile/avatar', file, onProgress, 'avatarfile')
   },
 }

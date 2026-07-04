@@ -121,7 +121,7 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
-import request from '@/api/request'
+import { request } from '@/api/request'
 
 const userStore = useUserStore()
 const saving = ref(false)
@@ -336,7 +336,7 @@ async function beforeAvatarUpload(file: File) {
   try {
     const result = await authApi.uploadAvatar(file)
     console.log('Avatar upload result:', result)
-    profileForm.avatar = result.imgUrl || result.url || result
+    profileForm.avatar = result.imgUrl || result.url
     ElMessage.success('头像上传成功')
   } catch (error) {
     console.error('Avatar upload error:', error)

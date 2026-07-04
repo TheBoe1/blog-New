@@ -82,6 +82,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useBlogStore } from '@/stores/blog'
+import type { Category } from '@/types'
 
 const blogStore = useBlogStore()
 
@@ -101,7 +102,7 @@ const form = reactive({
 const categories = computed(() => blogStore.categories)
 
 // 本地分类列表副本，用于下拉框
-const localCategories = ref([])
+const localCategories = ref<Category[]>([])
 
 // 当打开编辑对话框时，从最新的categories中获取数据
 function handleEdit(row: any) {

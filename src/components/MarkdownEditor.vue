@@ -15,6 +15,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { MdEditor } from 'md-editor-v3'
+import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { ElMessage } from 'element-plus'
 import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
@@ -53,7 +54,7 @@ const previewTheme = computed(() => props.theme || 'light')
 const language = ref('zh-CN')
 const placeholder = computed(() => props.placeholder || '请输入 Markdown 内容...')
 
-const toolbars = [
+const toolbars: ToolbarNames[] = [
   'bold',
   'underline',
   'italic',
@@ -75,7 +76,6 @@ const toolbars = [
   'mermaid',
   '-',
   'revoke',
-  'undo',
   'next',
   'save',
   '=',

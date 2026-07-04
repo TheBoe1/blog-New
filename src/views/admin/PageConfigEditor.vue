@@ -494,16 +494,15 @@ const newStyle = reactive({ key: '', value: '' })
 const newElementStyle = reactive({ key: '', value: '' })
 const newAttribute = reactive({ key: '', value: '' })
 
-function getElementTypeTag(type: string) {
-  const typeMap: Record<string, string> = {
-    label: '',
+function getElementTypeTag(type: string): 'primary' | 'success' | 'info' | 'warning' | 'danger' | undefined {
+  const typeMap: Record<string, 'primary' | 'success' | 'info' | 'warning' | 'danger'> = {
     text: 'success',
     html: 'warning',
     image: 'info',
     link: 'primary',
     list: 'danger'
   }
-  return typeMap[type] || ''
+  return typeMap[type]
 }
 
 async function handlePageChange() {

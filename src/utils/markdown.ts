@@ -6,12 +6,14 @@ const turndownService = new TurndownService({
   bulletListMarker: '-'
 })
 
-turndownService.addRule('pre', function(content: string) {
-  return '\n\n' + content + '\n\n'
+turndownService.addRule('pre', {
+  filter: 'pre',
+  replacement: (content: string) => '\n\n' + content + '\n\n'
 })
 
-turndownService.addRule('figure', function(content: string) {
-  return '\n' + content + '\n'
+turndownService.addRule('figure', {
+  filter: 'figure',
+  replacement: (content: string) => '\n' + content + '\n'
 })
 
 export function htmlToMarkdown(html: string): string {

@@ -130,7 +130,7 @@ function handleLogout() {
 
 onMounted(async () => {
   try {
-    siteSettings.value = await settingsApi.getSettings() as Record<string, string>
+    siteSettings.value = await settingsApi.getSettings() as unknown as Record<string, string>
   } catch (error) {
     console.error('Failed to load settings:', error)
   }

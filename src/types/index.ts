@@ -4,6 +4,7 @@ export interface Article {
   slug: string
   content: string
   htmlContent: string
+  markdownContent?: string
   summary: string
   cover?: string
   categoryId: string

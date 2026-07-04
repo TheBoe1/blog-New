@@ -206,7 +206,7 @@ onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onSearchKeydown)
   try {
-    siteSettings.value = await settingsApi.getSettings() as Record<string, string>
+    siteSettings.value = await settingsApi.getSettings() as unknown as Record<string, string>
   } catch (error) {
     console.error('Failed to load settings:', error)
   }
