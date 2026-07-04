@@ -6,7 +6,10 @@ export const useThemeStore = defineStore('theme', () => {
   const isDark = ref(saved === 'dark')
 
   function apply() {
-    document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+    const el = document.documentElement
+    el.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+    // Element Plus 暗色模式依赖 .dark 类名（.dark .el-xxx 选择器）
+    el.classList.toggle('dark', isDark.value)
   }
 
   function toggle() {

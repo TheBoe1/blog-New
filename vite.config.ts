@@ -33,6 +33,7 @@ export default defineConfig({
       resolvers: [
         ElementPlusResolver(),
         IconsResolver({
+          prefix: 'Icon',
           enabledCollections: ['ep', 'carbon', 'mdi'],
         }),
       ],

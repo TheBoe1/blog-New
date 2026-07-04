@@ -12,6 +12,8 @@ import 'element-plus/theme-chalk/el-message.css'
 import 'element-plus/theme-chalk/el-message-box.css'
 import 'element-plus/theme-chalk/el-notification.css'
 import 'element-plus/theme-chalk/el-loading.css'
+// Element Plus 暗色模式变量表：配合 <html>.dark 类名激活，覆盖 el-skeleton 等所有 EP 组件
+import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import '@fortawesome/fontawesome-free/css/fontawesome.css'
 import '@fortawesome/fontawesome-free/css/solid.css'

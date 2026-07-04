@@ -1,6 +1,35 @@
 <template>
   <div class="home-page">
     <BlogLayout3Col>
+      <!-- 加载中：骨架屏（给后端反应时间，避免首屏闪现“还没有文章”） -->
+      <template v-if="loading && !recentArticles.length">
+        <div
+          v-for="i in 3"
+          :key="`skeleton-${i}`"
+          class="card skeleton-card"
+        >
+          <div class="card-content">
+            <el-skeleton animated>
+              <template #template>
+                <el-skeleton-item variant="h3" style="width: 62%; margin-bottom: 16px;" />
+                <div class="skeleton-meta">
+                  <el-skeleton-item variant="text" style="width: 88px" />
+                  <el-skeleton-item variant="text" style="width: 64px" />
+                  <el-skeleton-item variant="text" style="width: 96px" />
+                </div>
+                <el-skeleton-item variant="text" style="width: 100%; margin-top: 20px;" />
+                <el-skeleton-item variant="text" style="width: 94%; margin-top: 12px;" />
+                <el-skeleton-item variant="text" style="width: 76%; margin-top: 12px;" />
+                <div class="skeleton-footer">
+                  <el-skeleton-item variant="text" style="width: 120px" />
+                  <el-skeleton-item variant="rect" style="width: 92px; height: 22px; border-radius: 4px;" />
+                </div>
+              </template>
+            </el-skeleton>
+          </div>
+        </div>
+      </template>
+
       <article
         v-for="article in recentArticles"
         :key="article.id"
@@ -51,7 +80,7 @@
         </div>
       </article>
 
-      <div v-if="!recentArticles.length" class="card empty-card">
+      <div v-if="!loading && !recentArticles.length" class="card empty-card">
         <div class="card-content">
           <p class="empty-text">还没有文章。</p>
         </div>
@@ -65,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 
@@ -73,6 +102,9 @@ const blogStore = useBlogStore()
 
 const recentArticles = computed(() => blogStore.recentArticles)
 const hasMore = computed(() => blogStore.articles.length >= 6)
+
+// 首屏列表加载态：独立于 store.loading（后者在 categories/tags 请求间会反复跳变）
+const loading = ref(true)
 
 function formatDate(date: string) {
   if (!date) return ''
@@ -90,9 +122,17 @@ function getReadingTime(content: string): number {
 }
 
 onMounted(async () => {
-  await blogStore.fetchArticles({ page: 1, pageSize: 6, sortBy: 'createTime', sortOrder: 'desc' })
-  await blogStore.fetchCategories()
-  await blogStore.fetchTags()
+  // 辅助数据（分类/标签）与文章列表并行，不阻塞首屏骨架→内容的切换
+  const auxiliary = Promise.allSettled([
+    blogStore.fetchCategories(),
+    blogStore.fetchTags()
+  ])
+  try {
+    await blogStore.fetchArticles({ page: 1, pageSize: 6, sortBy: 'createTime', sortOrder: 'desc' })
+  } finally {
+    loading.value = false
+  }
+  await auxiliary
 })
 </script>
 
@@ -325,6 +365,24 @@ onMounted(async () => {
   text-align: center;
   padding: var(--space-8) 0;
   color: var(--text-tertiary);
+}
+
+.skeleton-card {
+  .skeleton-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .skeleton-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+  }
 }
 
 .pagination {
