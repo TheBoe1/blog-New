@@ -4,24 +4,29 @@
 // =============================================
 // Design Tokens — three-layer architecture
 // Primitive → Semantic → Component (on-demand)
+// See ADR-001 (三层) + ADR-002 v3 (Theme Architecture)
 // Semantic tokens are public API: rename forbidden, extend preferred.
+// Brand Single Source of Truth: PRODUCT.md → index.scss → uno.config.ts
 // =============================================
 
 :root {
-  // ─── Primitive: Brand (blue) ─────────────────────────
-  --brand-50:  #eff6ff;
-  --brand-100: #dbeafe;
-  --brand-200: #bfdbfe;
-  --brand-300: #93c5fd;
-  --brand-400: #60a5fa;
-  --brand-500: #3b82f6;
-  --brand-600: #2563eb;
-  --brand-700: #1d4ed8;
-  --brand-800: #1e40af;
-  --brand-900: #1e3a8a;
+  // ─── Primitive: Brand (periwinkle #667eea 系, see PRODUCT.md) ───────────────
+  // Aligned with uno.config.ts primary palette. #667eea = --brand-500.
+  --brand-50:  #f0f3ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c7d2fe;
+  --brand-300: #a5b4fc;
+  --brand-400: #818cf8;
+  --brand-500: #667eea;  // ← Brand Primary (PROJECT REALITY, was --brand-600: #2563eb)
+  --brand-600: #5a67d8;
+  --brand-700: #4c51bf;
+  --brand-800: #434190;
+  --brand-900: #3c366b;
 
-  // ─── Primitive: Neutral ──────────────────────────────
-  // Half-steps (150/450/650/825) preserve legacy design values; may consolidate over time.
+  // ─── Primitive: Secondary (brand secondary, see PRODUCT.md) ────────────────
+  --secondary-500: #764ba2;  // full palette TBD when ≥2 components use it
+
+  // ─── Primitive: Neutral (light surfaces + light-mode text) ─────────────────
   --neutral-0:   #ffffff;
   --neutral-50:  #fafafa;
   --neutral-100: #f5f5f5;
@@ -40,44 +45,83 @@
   --neutral-900: #1a1a1a;
   --neutral-950: #14131a;
 
+  // ─── Primitive: Ink (cool indigo-gray, dark-only — ADR-002 §1) ─────────────
+  // Full 50-950 palette (infra, 超前建设可接受); dark mode uses 700-950.
+  --ink-50:  #f4f5f7;
+  --ink-100: #e6e8ec;
+  --ink-200: #c9cdd6;
+  --ink-300: #a8aebb;
+  --ink-400: #868b9c;
+  --ink-500: #646a7d;
+  --ink-600: #4a4f60;
+  --ink-700: #242531;  // raised / hover (lightest dark surface)
+  --ink-800: #1a1b23;  // card / article surface
+  --ink-850: #17181f;  // sunken (code/quote, 比 card 暗 1 步)
+  --ink-900: #141519;  // chrome (navbar/sidebar)
+  --ink-950: #0f1015;  // page (darkest)
+
   // ─── Primitive: State ────────────────────────────────
   --success-500: #23d160;
   --warning-500: #ffdd57;
   --danger-500:  #ff3860;
   --info-500:    #3298dc;
 
-  // ─── Semantic: Brand ─────────────────────────────────
-  --brand-primary:       var(--brand-600);
-  --brand-primary-hover: var(--brand-700);
-  --brand-primary-light: color-mix(in srgb, var(--brand-600) 10%, transparent);
-  --brand-tint:          color-mix(in srgb, var(--brand-600) 8%, transparent);
-  --brand-tint-hover:    color-mix(in srgb, var(--brand-600) 12%, transparent);
+  // ═══ Semantic: Background Domain ⊃ Surface (spatial roles, ADR-002 §2) ════
+  // Light: Surface → Neutral. Dark: Surface → Ink (see [data-theme='dark']).
+  --surface-page:   #f0eef5;             // L0 page (light: brand-tinted lavender atmosphere, documented exception)
+  --surface-chrome: var(--neutral-50);    // L1 navbar/sidebar/search/command
+  --surface-card:   var(--neutral-0);     // L2 card/article
+  --surface-raised: var(--neutral-100);   // L4 hover/active elevation
+  --surface-sunken: var(--neutral-100);   // L3 code/quote (比 card 暗 1 步)
 
-  // ─── Semantic: State ─────────────────────────────────
+  // ─── Semantic: Background — legacy --bg-* API routes to --surface-* (Stable API)
+  --bg-page:            var(--surface-page);
+  --bg-primary:         var(--surface-card);
+  --bg-secondary:       var(--surface-chrome);
+  --bg-tertiary:        var(--surface-raised);
+  --bg-hover:           var(--surface-raised);
+  --bg-navbar:          color-mix(in srgb, var(--surface-chrome) 80%, transparent);
+  --bg-navbar-scrolled: color-mix(in srgb, var(--surface-chrome) 95%, transparent);
+  --bg-overlay:         color-mix(in srgb, var(--neutral-0) 95%, transparent);  // light frosted
+
+  // ─── Semantic: Content Domain (Markdown content, namespace --content-*) ────
+  // Inline + Block split (ADR-002 §6). API independent even when 同源.
+  --content-code-inline-bg: var(--brand-tint);       // inline code (brand-tinted)
+  --content-code-bg:        var(--surface-sunken);   // block code (sunken surface)
+  --content-quote-bg:       var(--surface-sunken);   // blockquote (sunken, API split from code)
+  // --content-callout-bg / --content-mark-bg / ... : Rule of Three, 出现再建
+
+  // ─── Semantic: Text Domain (information hierarchy; FINAL COLOR, not alpha) ─
+  --text-primary:     var(--neutral-800);   // #363636 ≈ black 79%; AAA ≥7:1 on white
+  --text-secondary:   var(--neutral-700);   // #4a4a4a ≈ black 71%
+  --text-muted:       var(--neutral-500);   // #7a7a7a ≈ black 48%; ≥3:1 (大字/非关键)
+  --text-placeholder: var(--neutral-450);   // #a0a0a0 (input placeholder)
+  --text-on-brand:    var(--neutral-0);     // 白字 on brand/colored bg (light & dark)
+  // Deprecated alias — migrate usages to --text-muted (ADR-002 §2), remove next cycle
+  --text-tertiary:    var(--text-muted);
+
+  // ─── Semantic: Border Domain (opacity-based, quiet; adapts to any surface) ─
+  --border-color:        rgba(0, 0, 0, 0.12);
+  --border-color-strong: rgba(0, 0, 0, 0.20);
+  --border-on-brand:     rgba(255, 255, 255, 0.24);  // border on brand bg
+
+  // ─── Semantic: Brand ───────────────────────────────────────────────────────
+  --brand-primary:       var(--brand-500);   // #667eea (was --brand-600; pointer 调整对齐 PRODUCT.md)
+  --brand-primary-hover: var(--brand-600);   // #5a67d8
+  --brand-primary-light: color-mix(in srgb, var(--brand-500) 10%, transparent);
+  --brand-tint:          color-mix(in srgb, var(--brand-500) 8%, transparent);
+  --brand-tint-hover:    color-mix(in srgb, var(--brand-500) 12%, transparent);
+
+  // ─── Semantic: State ───────────────────────────────────────────────────────
   --color-success: var(--success-500);
   --color-warning: var(--warning-500);
   --color-danger:  var(--danger-500);
   --color-info:    var(--info-500);
 
-  // ─── Semantic: Text (color) — --text-* reserved for color ─
-  --text-primary:     var(--neutral-800);
-  --text-secondary:   var(--neutral-700);
-  --text-tertiary:    var(--neutral-500);
-  --text-placeholder: var(--neutral-400);
-
-  // ─── Semantic: Background ────────────────────────────
-  --bg-primary:         var(--neutral-0);
-  --bg-secondary:       var(--neutral-100);
-  --bg-tertiary:        var(--neutral-50);
-  --bg-page:            #f0eef5; // brand-tinted page neutral (documented exception)
-  --bg-hover:           var(--neutral-100);
-  --bg-navbar:          color-mix(in srgb, var(--neutral-0) 80%, transparent);
-  --bg-navbar-scrolled: color-mix(in srgb, var(--neutral-0) 95%, transparent);
-  --bg-overlay:         color-mix(in srgb, var(--neutral-0) 95%, transparent);
-
-  // ─── Semantic: Border ────────────────────────────────
-  --border-color:        var(--neutral-300);
-  --border-color-strong: var(--neutral-400);
+  // ─── Semantic: Focus (Foundation, ADR-002 §7 always visible) ───────────────
+  --focus-ring-width:  2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color:  color-mix(in srgb, var(--brand-primary) 50%, transparent);
 
   // ─── Foundation: Spacing ─────────────────────────────
   --space-1: 4px;
@@ -92,7 +136,6 @@
   --space-16: 64px;
 
   // ─── Foundation: Typography — font-size ──────────────
-  // Renamed from --text-{size} to resolve the color/size naming conflict.
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-base: 16px;
@@ -126,13 +169,12 @@
   --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
 
   // ─── Foundation: Motion ──────────────────────────────
-  // Canonical motion scale. New code uses --motion-* / --ease-*.
   --motion-fast: 150ms;
   --motion-normal: 250ms;
   --motion-slow: 350ms;
   --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  // Legacy transition tokens (stable API, exact values preserved; migrate to --motion-* over time)
+  // Legacy transition tokens (stable API, preserved)
   --transition-fast: 150ms;
   --transition-base: 200ms;
   --transition-slow: 300ms;
@@ -143,43 +185,53 @@
   --article-max-width: 720px;
 
   // ─── Component-adjacent (transitional) ───────────────
-  --tag-default-color: var(--brand-600);
-  --link-color: var(--brand-600);
-  --link-hover-color: var(--brand-700);
+  --tag-default-color: var(--brand-500);
+  --link-color: var(--brand-500);
+  --link-hover-color: var(--brand-600);
 
-  // Component tokens (empty by design — add via Rule of Three when duplication appears)
-  // e.g. --button-bg, --card-bg
+  // ─── Component Tokens (Rule of Three; add on demand) ──
+  --gradient-brand: linear-gradient(135deg, var(--brand-500) 0%, var(--secondary-500) 100%);
 }
 
-// ─── Dark Mode — only swap Semantic mappings ──────────
+// ─── Dark Mode — swap Semantic mappings (ADR-002 §3: Theme = Semantic Mapping) ──
+// Surface → Ink; Text → white-based final color; Border → white alpha; Brand → 浅一档.
+// --bg-* / --content-* / --gradient-brand / --focus-ring-color auto-follow via surface/brand.
 [data-theme='dark'] {
-  --text-primary:     var(--neutral-100);
-  --text-secondary:   var(--neutral-150);
-  --text-tertiary:    var(--neutral-450);
-  --text-placeholder: var(--neutral-650);
+  // Surface → Ink
+  --surface-page:   var(--ink-950);
+  --surface-chrome: var(--ink-900);
+  --surface-card:   var(--ink-800);
+  --surface-raised: var(--ink-700);
+  --surface-sunken: var(--ink-850);
 
-  --bg-primary:         var(--neutral-900);
-  --bg-secondary:       var(--neutral-825);
-  --bg-tertiary:        var(--neutral-850);
-  --bg-page:            var(--neutral-950);
-  --bg-hover:           var(--neutral-850);
-  --bg-navbar:          color-mix(in srgb, var(--neutral-900) 80%, transparent);
-  --bg-navbar-scrolled: color-mix(in srgb, var(--neutral-900) 95%, transparent);
-  --bg-overlay:         color-mix(in srgb, var(--neutral-850) 95%, transparent);
+  // Overlay → dark dim (fixes GlobalLoading white-on-dark bug)
+  --bg-overlay: color-mix(in srgb, var(--ink-950) 80%, transparent);
 
-  --border-color:        var(--neutral-800);
-  --border-color-strong: var(--neutral-700);
+  // Text (final color, white-based; NOT alpha — ADR-002 §2/§8)
+  --text-primary:     #e9eaed;   // ≈ white 92%; AAA ≥7:1 on ink-800
+  --text-secondary:   #b3b5bc;   // ≈ white 72%; AA ≥4.5:1
+  --text-muted:       #8a8c95;   // ≈ white 56%; ≥3:1 (大字/非关键)
+  --text-placeholder: #6a6c75;   // input placeholder
+  // --text-on-brand: var(--neutral-0) — unchanged (白字 on brand in both themes)
 
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.5);
+  // Border (quiet, white alpha)
+  --border-color:        rgba(255, 255, 255, 0.08);
+  --border-color-strong: rgba(255, 255, 255, 0.14);
+  // --border-on-brand: rgba(255,255,255,0.24) — unchanged
 
-  --brand-primary:       var(--brand-400);
-  --brand-primary-hover: var(--brand-300);
+  // Brand → 浅一档 (保证 contrast on dark surface)
+  --brand-primary:       var(--brand-400);   // #818cf8 (亮色是 --brand-500)
+  --brand-primary-hover: var(--brand-300);   // #a5b4fc
   --brand-primary-light: color-mix(in srgb, var(--brand-400) 15%, transparent);
   --brand-tint:          color-mix(in srgb, var(--brand-400) 12%, transparent);
   --brand-tint-hover:    color-mix(in srgb, var(--brand-400) 18%, transparent);
 
+  // Shadow (dark 下几乎不可见; ADR-002 §4 Theme Budget 允许 shadow 变化)
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.5);
+
+  // Component-adjacent
   --tag-default-color: var(--brand-400);
   --link-color: var(--brand-400);
   --link-hover-color: var(--brand-300);
@@ -362,7 +414,7 @@ img.lazy-load.loaded {
 }
 
 // ─── Card hover micro-interaction (cnkirito/lexburner signature) ──
-// Cards lift 8px on hover with stronger shadow + tinted border.
+// Cards lift 8px on hover with stronger shadow + brand-tinted border.
 // Scoped to .front-layout so admin el-card variants are unaffected.
 .front-layout .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -370,7 +422,7 @@ img.lazy-load.loaded {
 .front-layout .card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-hover);
-  border-color: rgba(66, 139, 202, 0.3);
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
 @media (max-width: 768px) {

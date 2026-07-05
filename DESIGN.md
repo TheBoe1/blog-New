@@ -1,6 +1,6 @@
 ---
 name: 我的博客
-description: Design System — 三层 token 架构 + 治理规则
+description: Design System — 三层 token + Theme Architecture（ADR-002 v3 镜像）
 register: brand
 ---
 
@@ -10,48 +10,61 @@ register: brand
 
 > **Stable API Principle**：Semantic Token 是公开 API。不为"命名更统一"而大规模重命名。优先扩展系统，而非破坏稳定接口。
 
+> **Architecture**：ADR-001（三层 Token）+ ADR-002 v3（Theme Architecture）。本文件是两者的实现镜像。
+
 ---
 
 ## 1. Token Architecture
 
-三层架构。业务组件**禁止**直接消费 Primitive Token。
+三层：`Primitive → Semantic → Component`。Semantic 内部按 **Namespace Domain** 组织（ADR-002 §2）。业务组件**禁止**直接消费 Primitive。
 
 ```
-Primitive Token   →  Semantic Token   →   Component Token（按需）
-（原始色板）          （语义/角色）          （谁在用）
---brand-600          --brand-primary       --button-bg（出现重复再抽）
---neutral-800        --text-primary
---neutral-0          --bg-primary
+Primitive (Brand / Secondary / Neutral / Ink / State)
+    ↓
+Semantic Domains
+    Background ⊃ Surface : page / chrome / card / raised / sunken
+    Text                 : primary / secondary / muted / placeholder / on-brand
+    Border               : default / strong / on-brand
+    Brand                : primary / hover / tint
+    Feedback             : success / warning / danger / info
+    Content              : inline (mark / kbd / code-inline)
+                           block (code / quote / callout / table / math / diagram)
+    Focus                : ring-width / ring-color / ring-offset
+    ↓
+Component (Rule of Three; on-demand)
 ```
 
 | 层 | 回答 | 谁能用 |
 |---|---|---|
 | Primitive | 它属于哪个色板？ | 只能被 Semantic 引用 |
 | Semantic | 它负责什么角色？ | 业务组件直接用 |
-| Component | 谁在用？ | 仅当 ≥2 状态共享时才抽（Rule of Three） |
+| Component | 谁在用？ | 仅当 ≥2 状态共享时抽（Rule of Three） |
 
 ### 1.1 Primitive
 
-`--brand-50..900`（蓝色色阶）、`--neutral-0..950`（含半步 150/450/650/825 保留历史设计值）、`--success-500` / `--warning-500` / `--danger-500` / `--info-500`。
+- **Brand** `--brand-50..900`（periwinkle `#667eea` 系，`--brand-500` = primary；见 `PRODUCT.md` Brand 节 — Single Source of Truth）
+- **Secondary** `--secondary-500`（`#764ba2`；full palette TBD）
+- **Neutral** `--neutral-0..950`（含半步 150/450/650/825/850；亮色 surface + 亮色 text）
+- **Ink** `--ink-50..950`（cool indigo-gray，暗色专用；亮色暂不用，palette 完整超前建设）
+- **State** `--success-500` / `--warning-500` / `--danger-500` / `--info-500`
 
-> Primitive 是 brand-centric（`--brand-600`），不是 color-centric（`--blue-500`）。品牌换色相时，Primitive 名不变，只改值。
+> Primitive brand-centric（`--brand-500`），不是 color-centric。品牌换色相时，Primitive 名不变，只改值。
 
 ### 1.2 Semantic
 
-引用 Primitive。暗色模式只换 Semantic 指向的 Primitive，组件代码零改动。
+引用 Primitive（亮色）或换指向（暗色）。组件代码零改动。
 
-- Brand：`--brand-primary` / `--brand-primary-hover` / `--brand-primary-light` / `--brand-tint` / `--brand-tint-hover`
-- State：`--color-success` / `--color-warning` / `--color-danger` / `--color-info`
-- Text（颜色）：`--text-primary` / `--text-secondary` / `--text-tertiary` / `--text-placeholder`
-- Background：`--bg-primary` / `--bg-secondary` / `--bg-tertiary` / `--bg-page` / `--bg-hover` / `--bg-navbar` / `--bg-navbar-scrolled` / `--bg-overlay`
-- Border：`--border-color` / `--border-color-strong`
-- Link/Tag：`--link-color` / `--link-hover-color` / `--tag-default-color`
-
-> 例外：`--bg-page: #f0eef5`（亮色）是品牌调色的页面底，未走 neutral 色阶，保留 raw 值。
+- **Background ⊃ Surface**：`--surface-page / chrome / card / raised / sunken`。Surface 是 Background 域子系统（空间层级），不与 Text（信息层级）并列。`--bg-*`（既有 API）路由 `--surface-*`：`--bg-page / primary / secondary / tertiary / hover / navbar / navbar-scrolled / overlay`。
+- **Text**：`--text-primary / secondary / muted / placeholder / on-brand`。存**最终色**，不存 alpha（ADR-002 §2）。`--text-tertiary` 为 deprecated alias → `--text-muted`。
+- **Border**：`--border-color / strong / on-brand`。opacity-based（`rgba`），自动适配任意 surface。
+- **Brand**：`--brand-primary / hover / light / tint / tint-hover`。
+- **Feedback**：`--color-success / warning / danger / info`。
+- **Content**（namespace `--content-*`）：`--content-code-inline-bg / code-bg / quote-bg`。Markdown 内容域，与 UI `--bg-*` 隔离。Inline/Block 拆分；Code ≠ Quote（API 独立，值暂同源）。其余（mark / kbd / table / math / diagram）Rule of Three 出现再建。
+- **Focus**：`--focus-ring-width / color / offset`。Always Visible（§9）。
 
 ### 1.3 Component
 
-**默认为空**。仅在出现重复时按 Rule of Three 抽取（如 `--button-bg`、`--card-bg`）。不要预建。
+按 Rule of Three 抽取。现有：`--gradient-brand`（`linear-gradient(135deg, --brand-500, --secondary-500)`，Login + Unauthorized 复用）。
 
 ---
 
@@ -59,7 +72,7 @@ Primitive Token   →  Semantic Token   →   Component Token（按需）
 
 ### 2.1 Color
 
-见 §1。Semantic Color 全部引用 Primitive。**禁止在组件里写 `#ffffff` / `#333333` / `rgba(...)` 原值**——用 `var(--bg-primary)` / `var(--text-primary)` / `var(--brand-tint)`。
+见 §1。**禁止在组件里写 `#ffffff` / `#1e1e1e` / `rgba(...)` 原值**——用 Semantic token。白字 on brand 用 `--text-on-brand`，不用 `#fff`。Border 用 `--border-color`（已含 opacity）。Text 存最终色不存 alpha；Border 用 opacity 不用实色（ADR-002 Alternative B / §2）。
 
 ### 2.2 Typography
 
@@ -71,11 +84,9 @@ Primitive Token   →  Semantic Token   →   Component Token（按需）
 | 行高 | `--line-height-tight` (1.2) / `normal` (1.5) / `relaxed` (1.8) |
 | 字重 | `--font-weight-normal` (400) / `medium` (500) / `semibold` (600) / `bold` (700) |
 
-> 历史命名 `--text-xs..5xl` 已改名（与 `--text-primary` 颜色重名），全仓 sweep 完成。
-
 ### 2.3 Spacing
 
-`--space-1` (4) / `2` (8) / `3` (12) / `4` (16) / `5` (20) / `6` (24) / `8` (32) / `10` (40) / `12` (48) / `16` (64)。**禁止 magic number**（`18px` / `22px` / `37px`）。
+`--space-1` (4) / `2` (8) / `3` (12) / `4` (16) / `5` (20) / `6` (24) / `8` (32) / `10` (40) / `12` (48) / `16` (64)。**禁止 magic number**。
 
 ### 2.4 Radius
 
@@ -83,144 +94,179 @@ Primitive Token   →  Semantic Token   →   Component Token（按需）
 
 ### 2.5 Shadow
 
-`--shadow-sm` / `md` / `hover`。暗色下自动加深（见 `styles/index.scss` `[data-theme='dark']`）。
+`--shadow-sm` / `md` / `hover`。暗色下自动加深（见 §3）。Dark 下 shadow 几乎不可见，不靠它分层（ADR-002 §4 Theme Budget 允许 shadow 变化）。
 
 ### 2.6 Motion
 
 | Token | 值 | 用途 |
 |---|---|---|
-| `--motion-fast` | 150ms | 即时反馈（按钮、toggle） |
-| `--motion-normal` | 250ms | 状态变化（菜单、tooltip） |
-| `--motion-slow` | 350ms | 布局变化（手风琴、抽屉） |
-| `--ease-standard` | cubic-bezier(0.16, 1, 0.3, 1) | 通用 ease-out-expo |
+| `--motion-fast` | 150ms | 即时反馈 |
+| `--motion-normal` | 250ms | 状态变化 |
+| `--motion-slow` | 350ms | 布局变化 |
+| `--ease-standard` | cubic-bezier(0.16, 1, 0.3, 1) | ease-out-expo |
 | `--ease-out-quart` | cubic-bezier(0.25, 1, 0.5, 1) | 平滑减速 |
 
-> `--transition-fast/base/slow` 为 legacy 稳定 API（150/200/300ms，原值保留），新代码用 `--motion-*`。
+> `--transition-fast/base/slow` 为 legacy 稳定 API（150/200/300ms）。Interaction（hover/active/focus/selected）是 Behavior，归 Motion + Surface `raised`，**不抽 color token**（ADR-002 §9）。
 
 ---
 
 ## 3. Theme Mapping
 
-亮色 / 暗色共享同一套 Semantic Token，只切换其 Primitive 指向。组件代码零改动。
+> **Theme = Semantic Mapping.** 亮/暗共享同一套 Semantic API，只换指向。Theme 是 data，不是 stylesheet（未来 `theme/*.ts` → CSS，ADR-002 §3）。
 
-```
-[data-theme='dark'] {
-  --text-primary: var(--neutral-100);   // 亮色是 --neutral-800
-  --bg-primary:   var(--neutral-900);   // 亮色是 --neutral-0
-  --brand-primary: var(--brand-400);    // 亮色是 --brand-600
-  ...
-}
-```
+亮色（`:root`）：Surface → Neutral，Text → dark-on-light，Border → black alpha，Brand → `--brand-500`。
 
-暗色由 `<html data-theme="dark">` + `.dark` 类（Element Plus 暗色）激活，由 `src/stores/theme.ts` 切换。
+暗色（`[data-theme='dark']`）：
+
+| Domain | 亮色 | 暗色 |
+|---|---|---|
+| Surface page | `#f0eef5`（lavender atmosphere） | `--ink-950` |
+| Surface chrome | `--neutral-50` | `--ink-900` |
+| Surface card | `--neutral-0` | `--ink-800` |
+| Surface raised | `--neutral-100` | `--ink-700` |
+| Surface sunken | `--neutral-100` | `--ink-850` |
+| Text primary | `--neutral-800` | `#e9eaed` |
+| Text secondary | `--neutral-700` | `#b3b5bc` |
+| Text muted | `--neutral-500` | `#8a8c95` |
+| Text on-brand | `--neutral-0` | `--neutral-0`（不变） |
+| Border default | `rgba(0,0,0,.12)` | `rgba(255,255,255,.08)` |
+| Brand primary | `--brand-500` | `--brand-400` |
+
+`--bg-*` / `--content-*` / `--gradient-brand` / `--focus-ring-color` 路由 surface/brand，自动跟随，暗色无需重声明。
+
+> 暗色由 `<html data-theme="dark">` + `.dark` 类（Element Plus）激活，`src/stores/theme.ts` 切换。
 
 ---
 
-## 4. Component Foundation
+## 4. Theme Budget
+
+Theme 只改 atmosphere，不改 structure（ADR-002 §4）。
+
+| 允许变化 | 禁止变化 |
+|---|---|
+| Surface / Text / Border / Brand Tint / Shadow | Spacing / Radius / Font / Motion / Component / Layout |
+
+「Dark Mode 顺便改圆角」= scope creep，拒绝。
+
+---
+
+## 5. Component Agnostic
+
+> Components should never know whether they are in Light or Dark mode.
+
+组件一律 `var(--surface-card)` / `var(--text-primary)`，**禁止** `:root.dark .x { ... }` 主题分支。Theme 是 Data，Component 是 Consumer。
+
+---
+
+## 6. Component Foundation
 
 现有：`AppNavbar` / `BlogLayout3Col` / `SidebarLeft` / `SidebarRight` / `BackToTop` / `ThemeToggle` / `GlobalLoading` / `ReadingProgress`。
 
-新增组件优先复用上述；确实需要新组件时，遵循 §5 Governance。组件样式用 Semantic Token，不直连 Primitive。
+新增组件优先复用；确实需要新组件时走 §7 Governance。组件样式用 Semantic Token，不直连 Primitive。
 
 ---
 
-## 5. Design Governance
+## 7. Design Governance
 
-新 UI 需求的决策流：
+新 UI 需求决策流（ADR-001 §5）：
 
 ```
-新 UI
-  ↓
-有现成 Token？ ─ YES → 用
-  ↓ NO
-有现成 Component？ ─ YES → 用
-  ↓ NO
-更新 DESIGN.md（本文件） + styles/index.scss（加 Token/规范）
-  ↓
-改/建 Component
-  ↓
-业务页面使用（永远在最后）
+新 UI → 有现成 Token? → 用
+       ↓ NO
+       有现成 Component? → 用
+       ↓ NO
+       更新 DESIGN.md + styles/index.scss → 改/建 Component → 业务页
 ```
 
-**禁止**：直接在业务页写 `#ffffff` / `18px` / 新颜色 / 新阴影。先回 Design System。
+**禁止**：业务页写 `#ffffff` / `18px` / 新颜色 / 新阴影。先回 Design System。
 
 ---
 
-## 6. Evolution Rules
+## 8. Evolution Rules
 
-Token 的新增与废弃遵循以下规则，避免过早抽象与僵尸 Token。
-
-### 6.1 Rule of Three
-
-> 第一次复制 → 复制。第二次 → 观察。第三次 → 抽 Token。
-
-不要看到一次重复就抽 Component Token。
-
-### 6.2 新增 Semantic
-
-必须至少有 **2 个组件**使用，否则继续复用已有 Semantic。
-
-### 6.3 新增 Component Token
-
-必须至少有 **2 个状态共享**（如 `--button-bg` 被 default + hover 复用），否则继续用 Semantic。
-
-### 6.4 新增 Primitive
-
-仅在现有 Primitive 色阶无法满足 Semantic 需求时新增；新增后立即被至少一个 Semantic 引用。
-
-### 6.5 废弃 Token
-
-废弃走 deprecate：先在文档标记 `@deprecated` 并给替代项，留一个发布周期后再删。不偷偷删。
+- **Rule of Three**：第一次复制 → 复制；第二次 → 观察；第三次 → 抽 Token。
+- **新增 Semantic** 需 ≥2 组件用。
+- **新增 Component Token** 需 ≥2 状态共享。
+- **新增 Primitive** 仅当现有色阶无法满足 Semantic。
+- **废弃 Token** 走 deprecate：标记 `@deprecated` + 替代项，留一周期再删。例：`--text-tertiary` → `--text-muted`。
+- **Palette 完整可超前**；Semantic / Component 严格 Rule of Three。
 
 ---
 
-## 7. Foundation Freeze
+## 9. Accessibility Constraints
 
-Stage 1 冻结后，Token 体系的改动必须走 §5 Governance + §6 Evolution Rules，**不允许直接改组件绕过系统**。
+WCAG 是 Architecture Constraint（ADR-002 §7），任何 token 修改不得突破：
+
+| Token | 最低对比度（on `--surface-card`） |
+|---|---|
+| `--text-primary` | ≥ 7:1（AAA） |
+| `--text-secondary` | ≥ 4.5:1（AA） |
+| `--text-muted` | ≥ 3:1（仅大字/非关键） |
+| Interactive | ≥ 4.5:1 |
+| Focus Ring | Always Visible |
+
+`--text-muted` 不用于正文。
+
+---
+
+## 10. Foundation Freeze
+
+ADR-001 冻结 Token 三层；ADR-002 v3 freeze Theme Architecture。Freeze 后不再讨论架构本身，精力转向实现。
 
 Freeze 不是"不能改"，而是"改要走治理"：
-
-- 调整 Primitive 值（如品牌换色）→ 改 Primitive，Semantic/组件不动。
-- 新增 Semantic → 走 §6.2。
-- 重命名 Semantic → 默认拒绝（Stable API Principle）；确有必要需强理由 + 全仓 sweep + 文档说明。
+- 调 Primitive 值（如品牌换色）→ 改 Primitive，Semantic / 组件不动。
+- 新增 Semantic → 走 §8。
+- 重命名 Semantic → 默认拒绝；确有必要需强理由 + 全仓 sweep + 文档。
 
 ---
 
-## 8. UI Task Review Matrix
+## 11. UI Task Review Matrix
 
-每个 UI / Theme / Component / Style 类任务，在实现前过一遍：
+UI / Theme / Component / Style 类任务，实现前过一遍：
 
 | 项 | 检查 |
 |---|---|
-| Product Identity | 符合 `PRODUCT.md` 定位 |
-| Design Principles | 符合 `PRODUCT.md` 设计原则 |
+| Product Identity | 符合 `PRODUCT.md` |
+| Design Principles | 符合 `PRODUCT.md` |
 | Semantic Token | 用 Semantic，没直连 Primitive / 写 hex |
 | Foundation | spacing / radius / shadow / motion 用 scale，无 magic number |
 | Component | 复用现成组件，不重造 |
-| Theme | light / dark 都过 |
-| Accessibility | 文本对比度 ≥ 4.5:1（大字 ≥ 3:1） |
+| Theme | light / dark 都过；组件无 theme 分支 |
+| Accessibility | 对比度 ≥ §9 约束；focus 可见 |
+| Theme Budget | 只改 atmosphere 不改 structure |
 
-全符合才开工。缺 Token/规范 → 先更 Design System（§5）。
+全符合才开工。缺 Token / 规范 → 先更 Design System（§7）。
 
 ---
 
-## 9. Success Criterion
+## 12. Success Criterion + Manifesto
 
 > **Design System 应该减少决策，而不是增加决策。**
 
-验收标准不是文档多详尽，而是连续做几个功能时——新增页面 / Card / Dialog / 设置页 / Dark Mode——大多数时候只是 `var(--brand-primary)` / `var(--space-4)` / `var(--radius-md)` 拿来用，不新增任何东西。
-
-- 如果每个 UI 都要回本文件加规则 → 系统还不够成熟，按 §5 / §6 补。
-- 如果大多数只是复用已有 Token / 组件 → 投入开始产生长期回报。
-
-判断 Design System 是否成功的标准：它是否减少了做 UI 时的决策，而不是增加了。
+验收：连续做几个功能时，大多数时候只是 `var(--brand-primary)` / `var(--space-4)` / `var(--radius-md)` 拿来用，不新增任何东西。
 
 ### 优先级：Reuse > Extend > Redesign
 
-面对新 UI 需求，优先级固定：
+1. **Reuse**：先找现成 Token / 组件。
+2. **Extend**：确实没有，走 §7 Governance。
+3. **Redesign**：改已有 Token / 组件，最后手段。
 
-1. **Reuse**：先在系统里找现成 Token / 组件，有就用。
-2. **Extend**：确实没有，走 §5 Governance（先更 DESIGN.md + styles，再组件，最后业务页）。
-3. **Redesign**：改已有 Token / 组件，最后手段，需强理由（Semantic 改名默认拒绝）。
+> Every abstraction should pay for itself.
 
-> Every abstraction should pay for itself. 抽象要自己挣回成本——不要反过来从"规范"推导"抽象"。
+### Manifesto（ADR-002 §10）
+
+> **Dark Mode is not Light Mode with inverted colors.** It has its own hierarchy, surface model, and reading rhythm — while sharing the same semantic API.
+>
+> **Themes express different atmospheres, not different interfaces.**
+>
+> **A theme changes perception, never structure.**
+>
+> **Every visual decision should improve readability, hierarchy, or interaction — or it doesn't belong.**
+
+---
+
+## 维护原则
+
+- **地图而非手册**：细节放链接文档，避免上下文膨胀。
+- **Bad case 驱动**：AI 每犯一次错，判断是否补规则。
+- **同步**：本文与 `ADR-001` / `ADR-002` / `src/styles/index.scss` 一致，改一处同步其余。

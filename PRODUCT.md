@@ -35,6 +35,14 @@ brand
 
 参考与我们对齐的：Anthropic 的文字质感、Stripe Press 的排版克制、Linear blog 的工程冷静感。我们学的是它们的"安静权威"，不是它们的视觉皮。
 
+## Brand
+
+**Brand Primary `#667eea`**（periwinkle）/ **Brand Secondary `#764ba2`**（muted purple）。
+
+品牌色是项目事实（Single Source of Truth）：`CLAUDE.md` / `uno.config.ts` / `src/styles/index.scss` `--brand-*` 三处必须一致。换品牌色相只改 Primitive 值，Semantic / 组件不动（ADR-001 §7）。
+
+**Brand Only for Interaction**——只用于链接、按钮、focus、active、selection，不用于标题 / 正文 / 大面积装饰（详见 `DESIGN.md`）。
+
 ## Anti-references
 
 明确不变成以下任何一种：
