@@ -813,7 +813,7 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    background: white;
+    background: var(--surface-card);
     border-bottom: 1px solid var(--border-color);
 
     h2 {
@@ -835,7 +835,7 @@ onMounted(() => {
 
     .config-sidebar {
       width: 320px;
-      background: white;
+      background: var(--surface-card);
       border-right: 1px solid var(--border-color);
       overflow-y: auto;
 
@@ -991,7 +991,7 @@ onMounted(() => {
 
     .config-preview {
       width: 400px;
-      background: white;
+      background: var(--surface-card);
       border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
@@ -1013,7 +1013,7 @@ onMounted(() => {
         background: var(--bg-tertiary);
 
         :deep(.preview-container) {
-          background: white;
+          background: var(--surface-card);
           padding: 16px;
           border-radius: 8px;
         }

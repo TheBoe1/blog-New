@@ -331,7 +331,7 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: var(--text-on-brand);
       }
 
       .stat-info {
@@ -390,13 +390,13 @@ onMounted(() => {
           .bar-value {
             font-size: 14px;
             font-weight: 600;
-            color: white;
+            color: var(--text-on-brand);
             margin-bottom: 8px;
           }
           
           .bar-label {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
+            color: color-mix(in srgb, var(--text-on-brand) 80%, transparent);
           }
         }
       }

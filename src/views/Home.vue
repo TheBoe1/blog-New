@@ -302,7 +302,7 @@ onMounted(async () => {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #ff6b6b, #f06595, #cc5de8, #845ef7, #5c7cfa, #339af0);
+    background: var(--gradient-brand);
     transition: width 0.3s ease;
   }
 
