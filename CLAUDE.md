@@ -3,6 +3,8 @@
 > 本文件是 `AGENTS.md` 的镜像。编辑请修改 `AGENTS.md`，然后运行 `cat AGENTS.md | sed "1s/AGENTS.md/CLAUDE.md/" > CLAUDE.md` 同步。
 > 给 AI Coding Agent 的项目指令。地图而非手册——核心信息在此，细节看链接。
 
+> **Workflow Principle**：Design System 是所有 UI 决策的唯一事实来源。工程实现 Design System，不重新定义它。详见 `DESIGN.md`。
+
 ## 0. 工作流（自动触发，无需用户手动指定）
 
 **任何任务——包括"改一行样式""删一个属性"——AI 都必须先输出签名块再动手。签名块是唯一证明你读了 AGENTS.md 的证据。没有签名 = 你没有读 = 你会犯错。**
@@ -51,6 +53,39 @@ ls -lt .ai/memory/ .ai/knowledge/ | head -5   # 最近产出时间戳
 
 > 如果 AI 的回复中**没有签名块**，说"你漏了引用清单"。
 > 与 `CLAUDE.md` 内容等价，已通过软链/同步保持一致。
+
+## 0.5 Design System 治理（UI 任务前置）
+
+项目采用**双阶段 Workflow**：Stage 1 Design Foundation（已冻结，见 `DESIGN.md`）→ Stage 2 Engineering Workflow（即 §0 日常流程）。Stage 1 的三层 token 体系（Primitive → Semantic → Component）已落地在 `src/styles/index.scss`。
+
+### Token 铁律（硬性）
+
+1. **业务组件禁止直接消费 Primitive Token**。用 Semantic（`var(--brand-primary)`），不用 Primitive（`var(--brand-600)`）或 raw hex（`#2563eb`）。
+2. **`--text-*` 专属颜色**；字号用 `--font-size-*`，行高 `--line-height-*`，字重 `--font-weight-*`。
+3. **新 UI 需要新 token/组件时，先更 `DESIGN.md` + `styles/index.scss`，再改组件，最后业务页**（Governance flow，见 `DESIGN.md` §5）。
+4. **Semantic Token 是公开 API，不重命名**（Stable API Principle）。确需改名要强理由 + 全仓 sweep + 文档说明。
+
+### UI 任务 Review Matrix
+
+UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍（详见 `DESIGN.md` §8）：
+
+| 项 | 检查 |
+|---|---|
+| Product Identity | 符合 `PRODUCT.md` |
+| Design Principles | 符合 `PRODUCT.md` |
+| Semantic Token | 用 Semantic，没直连 Primitive / 写 hex |
+| Foundation | spacing/radius/shadow/motion 用 scale，无 magic number |
+| Component | 复用现成组件，不重造 |
+| Theme | light/dark 都过 |
+| Accessibility | 对比度 ≥ 4.5:1 |
+
+缺 token/规范 → 先更 Design System（走 Governance），再开工。
+
+### Evolution Rules（摘要）
+
+- **Rule of Three**：第三次重复才抽 Component Token，不预建。
+- 新增 Semantic 需 ≥2 组件用；新增 Component 需 ≥2 状态共享；废弃走 deprecate。
+- 详见 `DESIGN.md` §6。
 
 ## 1. 项目概述
 
