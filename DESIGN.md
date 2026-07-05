@@ -31,6 +31,10 @@ Semantic Domains
                            block (code / quote / callout / table / math / diagram)
     Focus                : ring-width / ring-color / ring-offset
     ↓
+Adapter (Integration Layer; Semantic → Third-party, ADR-003)
+    ↓
+Third-party (md-editor / Element Plus / Monaco / Mermaid / ...)
+    ↓
 Component (Rule of Three; on-demand)
 ```
 
@@ -180,6 +184,17 @@ Theme 只改 atmosphere，不改 structure（ADR-002 §4）。
 
 **禁止**：业务页写 `#ffffff` / `18px` / 新颜色 / 新阴影。先回 Design System。
 
+### Third-party Integration（ADR-003）
+
+第三方组件通过 **Adapter** 接入，**绝不直接塑造 Design System**。
+
+- **Adapter 位置**：`src/styles/adapters/<lib>.scss`（全局生效，不进组件 scoped）。
+- **方向**：Semantic → 第三方变量（单向）。第三方消费我方 token，不反向。
+- **流程**（接入前必走）：① Visual Inventory → ② Visual Object → Semantic Domain 映射 → ③ Adapter。
+- **5-Question 自检**：① 有哪些 Visual Object？② 属于哪个 Semantic Domain？③ 哪些真需覆盖？④ 哪些保持默认？⑤ Adapter 是否只是映射？（否 = 已被第三方牵着走）
+- **禁止**：用第三方 theme prop 切外来调色盘；为第三方扩展 Token；组件内 `:deep()` 持颜色映射。
+- 换库 → 删 adapter → 写新 adapter，Design System 零改动。
+
 ---
 
 ## 8. Evolution Rules
@@ -234,6 +249,7 @@ UI / Theme / Component / Style 类任务，实现前过一遍：
 | Theme | light / dark 都过；组件无 theme 分支 |
 | Accessibility | 对比度 ≥ §9 约束；focus 可见 |
 | Theme Budget | 只改 atmosphere 不改 structure |
+| Third-party | 走 Adapter（ADR-003），不直接覆盖、不扩展 Token、不用 theme prop 切外来盘 |
 
 全符合才开工。缺 Token / 规范 → 先更 Design System（§7）。
 

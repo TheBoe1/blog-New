@@ -31,6 +31,7 @@ import { vLazyImg } from './directives/lazyImg'
 import 'md-editor-v3/lib/preview.css'
 import './styles/index.scss'
 import './styles/markdown.scss'
+import './styles/adapters/md-editor.scss'
 
 import pace from 'pace-js'
 pace.start({ restartOnRequestAfter: false, ajax: { trackMethods: ['GET', 'POST'] } })
