@@ -2,7 +2,7 @@
   <MdEditor
     v-model="content"
     :theme="theme"
-    :previewTheme="previewTheme"
+    previewTheme="github"
     :language="language"
     :toolbars="toolbars"
     :placeholder="placeholder"
@@ -20,6 +20,8 @@ import 'md-editor-v3/lib/style.css'
 import { ElMessage } from 'element-plus'
 import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
 import { articleApi } from '@/api/article'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '@/stores/theme'
 
 const props = defineProps<{
   modelValue: string
@@ -49,8 +51,10 @@ watch(content, (newVal) => {
   emit('update:modelValue', newVal)
 })
 
-const theme = computed(() => props.theme || 'light')
-const previewTheme = computed(() => props.theme || 'light')
+// 主题跟随站点 isDark (prop 优先, 否则自动检测; ADR-002 §5 Component Agnostic)
+const themeStore = useThemeStore()
+const { isDark } = storeToRefs(themeStore)
+const theme = computed<'light' | 'dark'>(() => props.theme ?? (isDark.value ? 'dark' : 'light'))
 const language = ref('zh-CN')
 const placeholder = computed(() => props.placeholder || '请输入 Markdown 内容...')
 
@@ -114,12 +118,12 @@ async function handleUploadImg(files: File[], callback: (urls: string[]) => void
   height: 100%;
   
   :deep(.md-editor) {
-    border: 1px solid #e4e7ed;
-    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
   }
-  
+
   :deep(.md-editor-toolbar-wrapper) {
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--border-color);
   }
   
   :deep(.md-editor-content) {

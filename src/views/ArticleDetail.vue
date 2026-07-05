@@ -45,15 +45,16 @@
         </header>
 
         <div class="article-content">
-          <MdPreview
-            v-if="isMarkdown"
-            :editorId="editorId"
-            :modelValue="articleContent"
-            :theme="theme"
-            previewTheme="github"
-            codeTheme="github"
-          />
-          <div v-else v-html="article.htmlContent"></div>
+          <div class="markdown-content" v-if="isMarkdown">
+            <MdPreview
+              :editorId="editorId"
+              :modelValue="articleContent"
+              :theme="theme"
+              previewTheme="github"
+              codeTheme="github"
+            />
+          </div>
+          <div class="markdown-content" v-else v-html="article.htmlContent"></div>
         </div>
 
         <footer class="article-footer">
@@ -158,7 +159,6 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { MdPreview, MdCatalog } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css'
 import { useBlogStore } from '@/stores/blog'
 import { useThemeStore } from '@/stores/theme'
 import { articleApi } from '@/api/article'
@@ -438,230 +438,9 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   }
 }
 
-// ── Article content (Editorial Blue accent, DESIGN.md compliant) ─
+// ── Article content (markdown 渲染交给全局 .markdown-content, 见 styles/markdown.scss) ──
 .article-content {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: var(--text-primary);
   animation: fadeInUp 0.6s ease-out 0.3s both;
-
-  :deep(h1),
-  :deep(h2),
-  :deep(h3),
-  :deep(h4),
-  :deep(h5),
-  :deep(h6) {
-    scroll-margin-top: 80px;
-    position: relative;
-    padding-left: 1rem;
-  }
-
-  :deep(h1) {
-    font-size: 1.75em;
-    font-weight: 700;
-    margin: var(--space-8) 0 var(--space-4);
-  }
-
-  :deep(h1)::before,
-  :deep(h2)::before,
-  :deep(h3)::before,
-  :deep(h4)::before,
-  :deep(h5)::before,
-  :deep(h6)::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.2em;
-    height: 0.8em;
-    width: 4px;
-    background: $grad-brand;
-    border-radius: 2px;
-  }
-
-  :deep(h2) {
-    font-size: 1.5em;
-    font-weight: 600;
-    margin: var(--space-8) 0 var(--space-4);
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  :deep(h3) {
-    font-size: 1.25em;
-    font-weight: 600;
-    margin: var(--space-6) 0 var(--space-3);
-  }
-
-  :deep(h4) {
-    font-size: 1.125em;
-    font-weight: 600;
-    margin: var(--space-5) 0 var(--space-3);
-  }
-
-  :deep(h5) {
-    font-size: 1em;
-    font-weight: 600;
-    margin: var(--space-4) 0 var(--space-2);
-  }
-
-  :deep(p) {
-    margin: var(--space-4) 0;
-  }
-
-  // Links: Editorial Blue with animated underline
-  :deep(a) {
-    color: var(--brand-primary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    position: relative;
-    transition: color 0.2s ease, text-decoration-color 0.2s ease;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: $grad-brand-h;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-    }
-
-    &:hover::after { transform: scaleX(1); }
-  }
-
-  // Inline code: Editorial Blue tint bg
-  :deep(code) {
-    font-family: 'Source Code Pro', 'Consolas', monospace;
-    font-size: 0.9em;
-    background: $grad-brand-soft;
-    color: var(--brand-primary);
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
-    font-weight: 500;
-    border: 1px solid var(--brand-tint-hover);
-    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      background: $grad-brand-soft-h;
-    }
-  }
-
-  :deep(pre) {
-    margin: var(--space-4) 0;
-    padding: var(--space-4);
-    background: #1e1e1e;
-    border-radius: var(--radius-lg);
-    overflow-x: auto;
-    font-size: 0.85em;
-
-    code {
-      background: transparent;
-      padding: 0;
-      color: #d4d4d4;
-      font-size: 1em;
-      -webkit-text-fill-color: #d4d4d4;
-      border: none;
-
-      &:hover {
-        background: transparent;
-        transform: none;
-        box-shadow: none;
-      }
-    }
-  }
-
-  // Blockquote: Editorial Blue tint bg + quote mark
-  :deep(blockquote) {
-    background: $grad-brand-soft;
-    border-left: 1px solid var(--brand-primary);
-    padding: var(--space-4) var(--space-5);
-    margin: var(--space-4) 0;
-    border-radius: var(--radius-sm);
-    position: relative;
-    color: var(--text-secondary);
-
-    &::before {
-      content: '"';
-      position: absolute;
-      top: -10px;
-      left: 10px;
-      font-size: 3rem;
-      color: var(--text-tertiary);
-      font-family: Georgia, serif;
-      line-height: 1;
-    }
-
-    p { margin: var(--space-1) 0; }
-  }
-
-  // Images: load animation + hover shadow
-  :deep(img) {
-    max-width: 100%;
-    border-radius: var(--radius-md);
-    transition: box-shadow 0.3s ease;
-    animation: imageLoad 0.5s ease-out;
-
-    &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      filter: brightness(1.02);
-      z-index: 10;
-      position: relative;
-    }
-  }
-
-  :deep(ul),
-  :deep(ol) {
-    margin: var(--space-4) 0;
-    padding-left: var(--space-6);
-  }
-
-  :deep(li) {
-    margin: var(--space-2) 0;
-  }
-
-  // Tables: Editorial Blue header + hover row
-  :deep(table) {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--space-4) 0;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    thead tr {
-      background: $grad-brand;
-
-      th {
-        color: #fff;
-        font-weight: 600;
-        padding: var(--space-3) var(--space-4);
-        text-align: left;
-        border: none;
-      }
-    }
-
-    tbody tr {
-      transition: background 0.2s ease, box-shadow 0.2s ease;
-      border-bottom: 1px solid var(--border-color);
-
-      &:hover {
-        background: var(--brand-tint);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      }
-
-      td {
-        padding: 0.75rem 1rem;
-        border: none;
-      }
-
-      &:nth-child(even) {
-        background-color: var(--bg-tertiary);
-      }
-    }
-  }
 }
 
 // ── Article footer ──────────────────────────────────────

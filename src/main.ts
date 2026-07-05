@@ -28,7 +28,9 @@ import App from './App.vue'
 import router from './router'
 import { vScrollAnimate } from './directives/scrollAnimate'
 import { vLazyImg } from './directives/lazyImg'
+import 'md-editor-v3/lib/preview.css'
 import './styles/index.scss'
+import './styles/markdown.scss'
 
 import pace from 'pace-js'
 pace.start({ restartOnRequestAfter: false, ajax: { trackMethods: ['GET', 'POST'] } })

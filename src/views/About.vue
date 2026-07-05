@@ -14,13 +14,15 @@
     </template>
 
     <article class="about-essay">
-      <MdPreview
-        :editorId="editorId"
-        :modelValue="aboutMd"
-        :theme="theme"
-        previewTheme="github"
-        codeTheme="github"
-      />
+      <div class="markdown-content">
+        <MdPreview
+          :editorId="editorId"
+          :modelValue="aboutMd"
+          :theme="theme"
+          previewTheme="github"
+          codeTheme="github"
+        />
+      </div>
     </article>
   </BlogLayout3Col>
 </template>
@@ -29,7 +31,6 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { MdPreview } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css'
 import { useThemeStore } from '@/stores/theme'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 import aboutMd from '@/data/about.md?raw'
@@ -43,76 +44,13 @@ const editorId = 'about-md-preview'
 </script>
 
 <style scoped lang="scss">
-// ── Essay (md-editor-v3 preview + brand overrides) ──
+// ── Essay (markdown 渲染交给全局 .markdown-content, 见 styles/markdown.scss) ──
 .about-essay {
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: var(--space-8);
   box-shadow: var(--shadow-sm);
   color: var(--text-primary);
-
-  :deep(.md-editor-preview-wrapper) {
-    padding: 0;
-  }
-
-  :deep(h1) {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0 0 var(--space-4);
-    color: var(--text-primary);
-  }
-
-  :deep(h2) {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: var(--space-8) 0 var(--space-3);
-    color: var(--text-primary);
-  }
-
-  :deep(p) {
-    margin: var(--space-4) 0;
-    line-height: 1.8;
-  }
-
-  :deep(ul) {
-    margin: var(--space-4) 0;
-    padding-left: var(--space-6);
-  }
-
-  :deep(li) {
-    margin: var(--space-2) 0;
-    line-height: 1.7;
-  }
-
-  :deep(a) {
-    color: var(--brand-primary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.2s ease;
-
-    &:hover { color: var(--brand-primary-hover); }
-  }
-
-  :deep(code) {
-    font-family: 'Source Code Pro', 'Consolas', monospace;
-    font-size: 0.9em;
-    background: var(--brand-tint);
-    color: var(--brand-primary);
-    padding: 0.15em 0.4em;
-    border-radius: 3px;
-  }
-
-  :deep(hr) {
-    border: none;
-    height: 1px;
-    background: var(--border-color);
-    margin: var(--space-8) 0;
-  }
-
-  :deep(strong) {
-    font-weight: 600;
-    color: var(--text-primary);
-  }
 }
 
 // ── Right sidebar: facts widget ──
