@@ -247,7 +247,7 @@ onUnmounted(() => {
     align-items: center;
     padding: 1.25rem 0.75rem;
     margin: 0;
-    font-size: var(--text-base);
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
     text-decoration: none;
     cursor: pointer;
@@ -369,7 +369,7 @@ onUnmounted(() => {
         padding: var(--space-2) var(--space-4);
         margin: 0;
         border-radius: 0;
-        font-size: var(--text-sm);
+        font-size: var(--font-size-sm);
         color: var(--text-primary);
         white-space: normal;
 
@@ -389,13 +389,13 @@ onUnmounted(() => {
       .navbar-dropdown-item-text {
         strong {
           display: block;
-          font-size: var(--text-sm);
+          font-size: var(--font-size-sm);
           font-weight: 600;
           color: var(--text-primary);
         }
 
         p {
-          font-size: var(--text-xs);
+          font-size: var(--font-size-xs);
           color: var(--text-tertiary);
           margin-top: 2px;
           line-height: 1.3;
@@ -451,7 +451,7 @@ onUnmounted(() => {
   flex: 1;
   border: none;
   outline: none;
-  font-size: var(--text-lg);
+  font-size: var(--font-size-lg);
   font-family: 'Ubuntu', 'PingFang SC', sans-serif;
   color: var(--text-primary);
   background: transparent;
@@ -466,7 +466,7 @@ onUnmounted(() => {
   background: none;
   border: none;
   color: var(--text-tertiary);
-  font-size: var(--text-xl);
+  font-size: var(--font-size-xl);
   cursor: pointer;
   padding: 0 var(--space-2);
   transition: color var(--transition-fast);

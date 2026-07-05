@@ -91,13 +91,13 @@ const stats = computed(() => ({
   }
 
   .profile-role {
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
     margin-bottom: 4px;
   }
 
   .profile-location {
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     color: var(--text-tertiary);
     .fas { margin-right: 4px; opacity: 0.6; }
   }
@@ -116,7 +116,7 @@ const stats = computed(() => ({
   }
 
   .profile-stat-heading {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.1em;

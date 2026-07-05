@@ -201,13 +201,13 @@ onMounted(async () => {
   }
 
   .category-desc {
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
     margin-bottom: var(--space-2);
   }
 
   .category-stats {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -278,7 +278,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -310,7 +310,7 @@ onMounted(async () => {
 }
 
 .article-content {
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   line-height: 1.7;
   color: var(--text-secondary);
 

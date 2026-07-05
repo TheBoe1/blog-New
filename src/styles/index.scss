@@ -2,11 +2,84 @@
 @use 'variables' as *;
 
 // =============================================
-// Design Tokens - cnkirito-inspired
+// Design Tokens — three-layer architecture
+// Primitive → Semantic → Component (on-demand)
+// Semantic tokens are public API: rename forbidden, extend preferred.
 // =============================================
 
 :root {
-  // ─── Spacing System ─────────────────────────────
+  // ─── Primitive: Brand (blue) ─────────────────────────
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --brand-900: #1e3a8a;
+
+  // ─── Primitive: Neutral ──────────────────────────────
+  // Half-steps (150/450/650/825) preserve legacy design values; may consolidate over time.
+  --neutral-0:   #ffffff;
+  --neutral-50:  #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-150: #d5d5d5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #dbdbdb;
+  --neutral-400: #b5b5b5;
+  --neutral-450: #a0a0a0;
+  --neutral-500: #7a7a7a;
+  --neutral-600: #525252;
+  --neutral-650: #6b6b6b;
+  --neutral-700: #4a4a4a;
+  --neutral-800: #363636;
+  --neutral-825: #232323;
+  --neutral-850: #2a2a2a;
+  --neutral-900: #1a1a1a;
+  --neutral-950: #14131a;
+
+  // ─── Primitive: State ────────────────────────────────
+  --success-500: #23d160;
+  --warning-500: #ffdd57;
+  --danger-500:  #ff3860;
+  --info-500:    #3298dc;
+
+  // ─── Semantic: Brand ─────────────────────────────────
+  --brand-primary:       var(--brand-600);
+  --brand-primary-hover: var(--brand-700);
+  --brand-primary-light: color-mix(in srgb, var(--brand-600) 10%, transparent);
+  --brand-tint:          color-mix(in srgb, var(--brand-600) 8%, transparent);
+  --brand-tint-hover:    color-mix(in srgb, var(--brand-600) 12%, transparent);
+
+  // ─── Semantic: State ─────────────────────────────────
+  --color-success: var(--success-500);
+  --color-warning: var(--warning-500);
+  --color-danger:  var(--danger-500);
+  --color-info:    var(--info-500);
+
+  // ─── Semantic: Text (color) — --text-* reserved for color ─
+  --text-primary:     var(--neutral-800);
+  --text-secondary:   var(--neutral-700);
+  --text-tertiary:    var(--neutral-500);
+  --text-placeholder: var(--neutral-400);
+
+  // ─── Semantic: Background ────────────────────────────
+  --bg-primary:         var(--neutral-0);
+  --bg-secondary:       var(--neutral-100);
+  --bg-tertiary:        var(--neutral-50);
+  --bg-page:            #f0eef5; // brand-tinted page neutral (documented exception)
+  --bg-hover:           var(--neutral-100);
+  --bg-navbar:          color-mix(in srgb, var(--neutral-0) 80%, transparent);
+  --bg-navbar-scrolled: color-mix(in srgb, var(--neutral-0) 95%, transparent);
+  --bg-overlay:         color-mix(in srgb, var(--neutral-0) 95%, transparent);
+
+  // ─── Semantic: Border ────────────────────────────────
+  --border-color:        var(--neutral-300);
+  --border-color-strong: var(--neutral-400);
+
+  // ─── Foundation: Spacing ─────────────────────────────
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -18,110 +91,98 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  // ─── Typography Scale ─────────────────────────────
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-base: 16px;
-  --text-lg: 18px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
-  --text-3xl: 30px;
-  --text-4xl: 36px;
-  --text-5xl: 48px;
+  // ─── Foundation: Typography — font-size ──────────────
+  // Renamed from --text-{size} to resolve the color/size naming conflict.
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
 
-  // ─── Brand Colors ──────────────────────────
-  /* Editorial Blue #2563eb — DESIGN.md 过渡值,待 colorize pass 替换 */
-  --brand-primary: #2563eb;
-  --brand-primary-hover: #1d4ed8;
-  --brand-primary-light: rgba(37, 99, 235, 0.1);
-  --brand-tint: rgba(37, 99, 235, 0.08);
-  --brand-tint-hover: rgba(37, 99, 235, 0.12);
+  // ─── Foundation: Typography — line-height ────────────
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.8;
 
-  // ─── Semantic Colors ────────────────────────────────
-  --color-success: #23d160;
-  --color-warning: #ffdd57;
-  --color-danger: #ff3860;
-  --color-info: #3298dc;
+  // ─── Foundation: Typography — font-weight ────────────
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
-  // ─── Text Colors (Bulma-style) ───────────────────────
-  --text-primary: #363636;
-  --text-secondary: #4a4a4a;
-  --text-tertiary: #7a7a7a;
-  --text-placeholder: #b5b5b5;
-
-  // ─── Background Colors ──────────────────────────────
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-tertiary: #fafafa;
-  --bg-page: #f0eef5; // 三栏留白底色，与卡片 --bg-primary 形成对比
-  --bg-hover: #f5f5f5;
-  --bg-navbar: rgba(255, 255, 255, 0.8);
-  --bg-navbar-scrolled: rgba(255, 255, 255, 0.95);
-  --bg-overlay: rgba(255, 255, 255, 0.95);
-
-  // ─── Border Colors ─────────────────────────────────
-  --border-color: #dbdbdb;
-  --border-color-strong: #b5b5b5;
-
-  // ─── Shadows (floating card style) ───────────────
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.05), 0 0 1px rgba(0, 0, 0, 0.1);
-  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
-
-  // ─── Border Radius ─────────────────────────────────
+  // ─── Foundation: Radius ──────────────────────────────
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
 
-  // ─── Transitions ───────────────────────────────────
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
+  // ─── Foundation: Shadow ──────────────────────────────
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.05), 0 0 1px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
 
-  // ─── Layout ─────────────────────────────────────────
+  // ─── Foundation: Motion ──────────────────────────────
+  // Canonical motion scale. New code uses --motion-* / --ease-*.
+  --motion-fast: 150ms;
+  --motion-normal: 250ms;
+  --motion-slow: 350ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  // Legacy transition tokens (stable API, exact values preserved; migrate to --motion-* over time)
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+
+  // ─── Layout ──────────────────────────────────────────
   --header-height: 64px;
   --content-max-width: 1440px;
   --article-max-width: 720px;
 
-  // ─── Component Tokens ───────────────────────────────
-  --tag-default-color: #2563eb;
-  --link-color: #2563eb;
-  --link-hover-color: #1d4ed8;
+  // ─── Component-adjacent (transitional) ───────────────
+  --tag-default-color: var(--brand-600);
+  --link-color: var(--brand-600);
+  --link-hover-color: var(--brand-700);
+
+  // Component tokens (empty by design — add via Rule of Three when duplication appears)
+  // e.g. --button-bg, --card-bg
 }
 
-// ─── Dark Mode ──────────────────────────────────────
+// ─── Dark Mode — only swap Semantic mappings ──────────
 [data-theme='dark'] {
-  --text-primary: #f5f5f5;
-  --text-secondary: #d5d5d5;
-  --text-tertiary: #a0a0a0;
-  --text-placeholder: #6b6b6b;
+  --text-primary:     var(--neutral-100);
+  --text-secondary:   var(--neutral-150);
+  --text-tertiary:    var(--neutral-450);
+  --text-placeholder: var(--neutral-650);
 
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #232323;
-  --bg-tertiary: #2a2a2a;
-  --bg-page: #14131a; // 暗色下的页面留白底，与卡片 #1a1a1a 形成对比
-  --bg-hover: #2a2a2a;
-  --bg-navbar: rgba(26, 26, 26, 0.8);
-  --bg-navbar-scrolled: rgba(26, 26, 26, 0.95);
-  --bg-overlay: rgba(34, 34, 34, 0.95);
+  --bg-primary:         var(--neutral-900);
+  --bg-secondary:       var(--neutral-825);
+  --bg-tertiary:        var(--neutral-850);
+  --bg-page:            var(--neutral-950);
+  --bg-hover:           var(--neutral-850);
+  --bg-navbar:          color-mix(in srgb, var(--neutral-900) 80%, transparent);
+  --bg-navbar-scrolled: color-mix(in srgb, var(--neutral-900) 95%, transparent);
+  --bg-overlay:         color-mix(in srgb, var(--neutral-850) 95%, transparent);
 
-  --border-color: #363636;
-  --border-color-strong: #4a4a4a;
+  --border-color:        var(--neutral-800);
+  --border-color-strong: var(--neutral-700);
 
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
   --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.5);
 
-  --brand-primary: #60a5fa;
-  --brand-primary-hover: #93c5fd;
-  --brand-primary-light: rgba(96, 165, 250, 0.15);
-  --brand-tint: rgba(96, 165, 250, 0.12);
-  --brand-tint-hover: rgba(96, 165, 250, 0.18);
+  --brand-primary:       var(--brand-400);
+  --brand-primary-hover: var(--brand-300);
+  --brand-primary-light: color-mix(in srgb, var(--brand-400) 15%, transparent);
+  --brand-tint:          color-mix(in srgb, var(--brand-400) 12%, transparent);
+  --brand-tint-hover:    color-mix(in srgb, var(--brand-400) 18%, transparent);
 
-  --tag-default-color: #60a5fa;
-  --link-color: #60a5fa;
-  --link-hover-color: #93c5fd;
+  --tag-default-color: var(--brand-400);
+  --link-color: var(--brand-400);
+  --link-hover-color: var(--brand-300);
 }
 
 // ─── Search Highlight ────────────────────────────────
@@ -147,7 +208,7 @@ html {
 
 body {
   font-family: 'Ubuntu', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.5;
   color: var(--text-secondary);

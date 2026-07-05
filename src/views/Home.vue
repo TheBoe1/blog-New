@@ -210,7 +210,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -242,7 +242,7 @@ onMounted(async () => {
 }
 
 .article-content {
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   line-height: 1.7;
   color: var(--text-secondary);
 
@@ -278,7 +278,7 @@ onMounted(async () => {
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   line-height: 1.4;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -322,7 +322,7 @@ onMounted(async () => {
   padding: 0 8px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   line-height: 1.6;
   color: var(--text-secondary);
   text-decoration: none;

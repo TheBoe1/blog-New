@@ -365,7 +365,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     display: flex;
     align-items: baseline;
     gap: var(--space-2);
-    font-size: var(--text-3xl);
+    font-size: var(--font-size-3xl);
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: -0.01em;
@@ -405,7 +405,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -718,14 +718,14 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     border-bottom: 1px dashed var(--border-color);
 
     .licensing-name {
-      font-size: var(--text-base);
+      font-size: var(--font-size-base);
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: var(--space-1);
     }
 
     .licensing-link {
-      font-size: var(--text-xs);
+      font-size: var(--font-size-xs);
       color: var(--text-tertiary);
       text-decoration: none;
       word-break: break-all;
@@ -740,7 +740,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 
     .meta-block {
       h6 {
-        font-size: var(--text-xs);
+        font-size: var(--font-size-xs);
         color: var(--text-tertiary);
         text-transform: uppercase;
         letter-spacing: 0.1em;
@@ -749,7 +749,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       }
 
       p {
-        font-size: var(--text-sm);
+        font-size: var(--font-size-sm);
         color: var(--text-primary);
         margin: 0;
       }
@@ -757,7 +757,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       .licensing-icons {
         display: flex;
         gap: var(--space-2);
-        font-size: var(--text-lg);
+        font-size: var(--font-size-lg);
         color: var(--text-secondary);
       }
     }
@@ -778,7 +778,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-5);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
@@ -793,7 +793,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   padding: 2px 10px;
   border: 1px solid var(--border-color);
   border-radius: 999px;
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   text-decoration: none;
   background: var(--bg-tertiary);
@@ -856,7 +856,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     padding: var(--space-3) var(--space-4);
     color: var(--text-tertiary);
     text-decoration: none;
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     line-height: 1.4;
     transition: color 0.3s ease;
 
@@ -897,7 +897,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 // Mirrors SidebarRight .menu-list .level animation:
 // ▸ arrow slide-in + tint bg + 2px left border.
 .widget-title {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -909,7 +909,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 .toc {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
 
   // 嵌套子目录缩进
   :deep(.md-editor-catalog-wrapper) {
@@ -1018,7 +1018,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 
 // ── Responsive ──────────────────────────────────────────
 @media (max-width: 768px) {
-  .article-header .article-title { font-size: var(--text-2xl); }
+  .article-header .article-title { font-size: var(--font-size-2xl); }
   .article-header .article-meta .is-hidden-mobile { display: none; }
 
   .post-navigation {

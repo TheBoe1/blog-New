@@ -124,7 +124,7 @@ onMounted(async () => {
   }
 
   .copyright {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
 
     a {
@@ -134,7 +134,7 @@ onMounted(async () => {
   }
 
   .icp {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
 
     a {

@@ -88,7 +88,7 @@ function formatDate(date: string) {
 }
 
 .widget-title {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -101,14 +101,14 @@ function formatDate(date: string) {
   padding: var(--space-2) 0;
 
   .widget-post-date {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     margin-bottom: 2px;
   }
 
   .widget-post-title {
     display: block;
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     color: var(--text-primary);
     text-decoration: none;
     line-height: 1.4;
@@ -118,7 +118,7 @@ function formatDate(date: string) {
   }
 
   .widget-post-category a {
-    font-size: var(--text-xs);
+    font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     text-decoration: none;
     &:hover { color: var(--brand-primary); }
@@ -170,7 +170,7 @@ function formatDate(date: string) {
       align-items: center;
       display: flex;
       justify-content: center;
-      font-size: var(--text-sm);
+      font-size: var(--font-size-sm);
       transition: color 0.3s ease;
     }
 

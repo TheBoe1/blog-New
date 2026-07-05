@@ -184,12 +184,12 @@ onMounted(async () => {
       span {
         color: var(--bg-primary);
         font-weight: 600;
-        font-size: var(--text-sm);
+        font-size: var(--font-size-sm);
       }
     }
 
     .logo-text {
-      font-size: var(--text-sm);
+      font-size: var(--font-size-sm);
       font-weight: 600;
       color: var(--text-primary);
       white-space: nowrap;
@@ -241,7 +241,7 @@ onMounted(async () => {
     gap: var(--space-4);
 
     .collapse-btn {
-      font-size: var(--text-lg);
+      font-size: var(--font-size-lg);
       cursor: pointer;
       color: var(--text-secondary);
       padding: var(--space-2);
@@ -274,7 +274,7 @@ onMounted(async () => {
       }
 
       .username {
-        font-size: var(--text-sm);
+        font-size: var(--font-size-sm);
         color: var(--text-primary);
       }
     }

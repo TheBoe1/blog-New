@@ -39,14 +39,14 @@ const router = useRouter()
   }
 
   .message {
-    font-size: var(--text-xl);
+    font-size: var(--font-size-xl);
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: var(--space-2);
   }
 
   .description {
-    font-size: var(--text-base);
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
     margin-bottom: var(--space-8);
   }

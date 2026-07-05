@@ -191,7 +191,7 @@ watch(
   border-radius: 999px;
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   font-family: inherit;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -224,7 +224,7 @@ watch(
     border: none;
     color: var(--brand-primary);
     cursor: pointer;
-    font-size: var(--text-sm);
+    font-size: var(--font-size-sm);
     text-decoration: underline;
 
     &:hover {
@@ -262,7 +262,7 @@ watch(
   padding: var(--space-1) var(--space-3);
   background: var(--brand-primary);
   color: #fff;
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-4);
@@ -317,7 +317,7 @@ watch(
 }
 
 .timeline-date {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   font-family: 'Source Code Pro', 'Consolas', monospace;
   flex-shrink: 0;
@@ -327,7 +327,7 @@ watch(
 .timeline-title {
   flex: 1;
   min-width: 0;
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 500;
   line-height: 1.5;
 
@@ -351,7 +351,7 @@ watch(
 
 .timeline-category {
   flex-shrink: 0;
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
 
   a {
     color: var(--text-tertiary);
