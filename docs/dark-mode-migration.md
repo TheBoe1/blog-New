@@ -17,6 +17,8 @@
 | **3 Validation** | build + WCAG 实测 + 亮暗浏览器对比 + Regression Checklist | 验收通过 |
 
 > **顺序原则**：`index.scss` → `DESIGN.md`（同步，防 drift）→ 组件迁移 → 浏览器 review。DESIGN.md 是 styles 的镜像，两者必须同步，不允许短暂 drift 窗口。
+>
+> **每 Batch 必 review**：Foundation → review → Batch A → review → Batch B → review → Batch C → review。**不堆积到最后**——否则发现问题无法定位是哪批造成。
 
 ## 2. Token System Gaps（audit 揭示）
 
@@ -165,11 +167,35 @@ Phase 1 必须补的 token：
 
 ## 7. Phase 3 Validation
 
+### 7.1 自动检查
 - [ ] `npx vue-tsc --noEmit` 0 error
 - [ ] `npm run build` 通过
 - [ ] WCAG 实测：Primary ≥7:1 / Secondary ≥4.5:1 / Muted ≥3:1（on `--surface-card`，亮暗各测）
-- [ ] 亮暗双主题浏览器对比（照 §8 Regression Checklist）
 - [ ] 无残余 hex in components（重跑 §3 扫描，仅剩 Primitive / uno.config / placeholder）
+
+### 7.2 Browser Review Focus（每个 Batch 后必过，人工 5 分钟）
+
+**① Surface Hierarchy**——Page 沉下去？Card 浮起？Code 不像黑洞？Hover 只提升一点？Navbar 不跟 Card 混？
+**② Reading**——长文滚两分钟：正文发光？Secondary 抢正文？Code 抢节奏？Quote 像广告？（GitHub 秘诀：阅读时感觉不到设计）
+**③ Brand**——按钮 / 链接 / Tag / Focus / Hover 统一成 `#667eea` 系？Brand 不抢戏？
+**④ Chrome**——Navbar / Sidebar / Search / Dropdown 属于一个系统？Chrome 不比内容亮？
+**⑤ Motion**——切主题 / Hover / Button / Card：有无突然太快 / 太慢？
+
+### 7.3 Theme Regression Checklist（每次 Theme 改动必过，人工 3 分钟）
+
+```
+□ Light / Dark 切换无闪烁
+□ 首页 Hero 正常
+□ 文章阅读正常
+□ Markdown Code 正常
+□ Navbar 正常
+□ Sidebar 正常
+□ Search 正常
+□ Login 正常
+□ Loading Overlay 正常
+□ Hover 正常
+□ Focus Ring 正常
+```
 
 ## 8. Design Regression Checklist（每次 Theme 改动必过，人工 3 分钟）
 
