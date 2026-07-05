@@ -201,3 +201,26 @@ Freeze 不是"不能改"，而是"改要走治理"：
 | Accessibility | 文本对比度 ≥ 4.5:1（大字 ≥ 3:1） |
 
 全符合才开工。缺 Token/规范 → 先更 Design System（§5）。
+
+---
+
+## 9. Success Criterion
+
+> **Design System 应该减少决策，而不是增加决策。**
+
+验收标准不是文档多详尽，而是连续做几个功能时——新增页面 / Card / Dialog / 设置页 / Dark Mode——大多数时候只是 `var(--brand-primary)` / `var(--space-4)` / `var(--radius-md)` 拿来用，不新增任何东西。
+
+- 如果每个 UI 都要回本文件加规则 → 系统还不够成熟，按 §5 / §6 补。
+- 如果大多数只是复用已有 Token / 组件 → 投入开始产生长期回报。
+
+判断 Design System 是否成功的标准：它是否减少了做 UI 时的决策，而不是增加了。
+
+### 优先级：Reuse > Extend > Redesign
+
+面对新 UI 需求，优先级固定：
+
+1. **Reuse**：先在系统里找现成 Token / 组件，有就用。
+2. **Extend**：确实没有，走 §5 Governance（先更 DESIGN.md + styles，再组件，最后业务页）。
+3. **Redesign**：改已有 Token / 组件，最后手段，需强理由（Semantic 改名默认拒绝）。
+
+> Every abstraction should pay for itself. 抽象要自己挣回成本——不要反过来从"规范"推导"抽象"。
