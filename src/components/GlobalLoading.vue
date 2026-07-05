@@ -32,7 +32,7 @@ const loadingStore = useLoadingStore()
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-overlay);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -45,11 +45,11 @@ const loadingStore = useLoadingStore()
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 20px 32px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.1);
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-8);
+  background: var(--surface-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
 }
 
 .loading-spinner {
@@ -64,22 +64,22 @@ const loadingStore = useLoadingStore()
 }
 
 .path {
-  stroke: #79bbff;
+  stroke: var(--brand-primary);
   stroke-width: 3;
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
 
 .loading-text {
-  font-size: 14px;
-  color: #409eff;
+  font-size: var(--font-size-sm);
+  color: var(--brand-primary);
   font-weight: 500;
   letter-spacing: 1px;
 }
 
 .loading-fade-enter-active,
 .loading-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
 }
 
 .loading-fade-enter-from,

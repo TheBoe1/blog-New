@@ -1,0 +1,118 @@
+// ════════════════════════════════════════════════════════════════════════════
+// Adapter: Element Plus → Semantic Token
+// ════════════════════════════════════════════════════════════════════════════
+// ADR-003 Third-party Integration Architecture.
+// 方向: Semantic → Element Plus (NOT EP → Semantic).
+// EP 没有自己的颜色系统——它消费我们的 Semantic token.
+//
+// Visual Inventory → Semantic Domain:
+//   Card / Dialog / Input bg       → Surface → Card
+//   Page bg                        → Surface → Page
+//   Popover / Dropdown bg          → Surface → Raised
+//   Menu / Sidebar fill            → Surface → Chrome
+//   Primary / Regular / Secondary  → Text
+//   Border (default / light / dark)→ Border
+//   Button primary                 → Brand
+//   Button success/warning/danger  → Feedback (State)
+//   Dialog mask                    → Background → Overlay
+//   Box shadow                     → Shadow
+//
+// 覆盖 :root 上的 EP CSS 变量. main.ts 中 load after dark/css-vars.css,
+// 我方 adapter 生效 (EP 自带 light/dark 盘被覆盖, 颜色全走我方 token).
+// 换掉 EP → 删本文件. Design System 不动.
+// ════════════════════════════════════════════════════════════════════════════
+
+:root {
+  // ── Surface → Card: Card / Dialog / Input bg ──
+  --el-bg-color:        var(--surface-card);
+  --el-bg-color-overlay: var(--surface-raised);
+  --el-card-bg-color:   var(--surface-card);
+
+  // ── Surface → Page ──
+  --el-bg-color-page:   var(--surface-page);
+
+  // ── Text ──
+  --el-text-color-primary:     var(--text-primary);
+  --el-text-color-regular:     var(--text-secondary);
+  --el-text-color-secondary:   var(--text-muted);
+  --el-text-color-placeholder: var(--text-placeholder);
+  --el-text-color-disabled:    var(--text-muted);
+
+  // ── Border ──
+  --el-border-color:            var(--border-color);
+  --el-border-color-light:      var(--border-color);
+  --el-border-color-lighter:    var(--border-color);
+  --el-border-color-extra-light: var(--border-color);
+  --el-border-color-dark:       var(--border-color-strong);
+  --el-border-color-darker:     var(--border-color-strong);
+
+  // ── Surface → Raised / Chrome: Fill (input hover / disabled / menu bg) ──
+  --el-fill-color:           var(--surface-raised);
+  --el-fill-color-light:     var(--surface-raised);
+  --el-fill-color-lighter:   var(--surface-card);
+  --el-fill-color-extra-light: var(--surface-card);
+  --el-fill-color-blank:     var(--surface-card);
+  --el-fill-color-dark:      var(--surface-chrome);
+  --el-fill-color-darker:    var(--surface-chrome);
+
+  // ── Brand: Primary button / link / focus ──
+  --el-color-primary:       var(--brand-primary);
+  --el-color-primary-dark-2: var(--brand-primary-hover);
+  // Primary light variants — transparent-based, 适配任意 surface (亮暗通用)
+  --el-color-primary-light-3: color-mix(in srgb, var(--brand-primary) 70%, transparent);
+  --el-color-primary-light-5: color-mix(in srgb, var(--brand-primary) 50%, transparent);
+  --el-color-primary-light-7: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  --el-color-primary-light-8: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  --el-color-primary-light-9: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+
+  // ── Feedback: State colors ──
+  --el-color-success: var(--color-success);
+  --el-color-warning: var(--color-warning);
+  --el-color-danger:  var(--color-danger);
+  --el-color-error:   var(--color-danger);
+  --el-color-info:    var(--color-info);
+  --el-color-success-dark-2: var(--color-success);
+  --el-color-warning-dark-2: var(--color-warning);
+  --el-color-danger-dark-2:  var(--color-danger);
+  --el-color-error-dark-2:   var(--color-danger);
+  --el-color-info-dark-2:    var(--color-info);
+  // State light variants — transparent-based
+  --el-color-success-light-3: color-mix(in srgb, var(--color-success) 70%, transparent);
+  --el-color-success-light-5: color-mix(in srgb, var(--color-success) 50%, transparent);
+  --el-color-success-light-7: color-mix(in srgb, var(--color-success) 30%, transparent);
+  --el-color-success-light-8: color-mix(in srgb, var(--color-success) 20%, transparent);
+  --el-color-success-light-9: color-mix(in srgb, var(--color-success) 10%, transparent);
+  --el-color-warning-light-3: color-mix(in srgb, var(--color-warning) 70%, transparent);
+  --el-color-warning-light-5: color-mix(in srgb, var(--color-warning) 50%, transparent);
+  --el-color-warning-light-7: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  --el-color-warning-light-8: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  --el-color-warning-light-9: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  --el-color-danger-light-3: color-mix(in srgb, var(--color-danger) 70%, transparent);
+  --el-color-danger-light-5: color-mix(in srgb, var(--color-danger) 50%, transparent);
+  --el-color-danger-light-7: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  --el-color-danger-light-8: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  --el-color-danger-light-9: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  --el-color-error-light-3: color-mix(in srgb, var(--color-danger) 70%, transparent);
+  --el-color-error-light-5: color-mix(in srgb, var(--color-danger) 50%, transparent);
+  --el-color-error-light-7: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  --el-color-error-light-8: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  --el-color-error-light-9: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  --el-color-info-light-3: color-mix(in srgb, var(--color-info) 70%, transparent);
+  --el-color-info-light-5: color-mix(in srgb, var(--color-info) 50%, transparent);
+  --el-color-info-light-7: color-mix(in srgb, var(--color-info) 30%, transparent);
+  --el-color-info-light-8: color-mix(in srgb, var(--color-info) 20%, transparent);
+  --el-color-info-light-9: color-mix(in srgb, var(--color-info) 10%, transparent);
+
+  // ── Shadow ──
+  --el-box-shadow:         var(--shadow-md);
+  --el-box-shadow-light:   var(--shadow-sm);
+  --el-box-shadow-lighter: var(--shadow-sm);
+  --el-box-shadow-dark:    var(--shadow-hover);
+
+  // ── Background → Overlay: Dialog mask ──
+  --el-mask-color:            var(--bg-overlay);
+  --el-mask-color-extra-light: var(--bg-overlay);
+
+  // ── Button disabled ──
+  --el-button-disabled-text-color: var(--text-muted);
+}
