@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <el-card shadow="never" class="project-content">
+    <el-card shadow="never" class="project-content markdown-content">
       <div class="section">
         <h3>项目简介</h3>
         <p>{{ project.description }}</p>
@@ -110,104 +110,83 @@ onMounted(() => {
 <style scoped lang="scss">
 .project-detail {
   .project-header {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
 
     h1 {
-      font-size: 28px;
+      font-size: var(--font-size-3xl);
       font-weight: 700;
-      color: #303133;
-      margin: 16px 0;
+      color: var(--text-primary);
+      margin: var(--space-4) 0;
     }
 
     .project-meta {
       display: flex;
-      gap: 20px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      color: #909399;
+      gap: var(--space-5);
+      margin-bottom: var(--space-3);
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
 
       span {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: var(--space-1);
       }
     }
 
     .project-tags {
       display: flex;
-      gap: 8px;
+      gap: var(--space-2);
     }
   }
 
+  // .markdown-content (on .project-content) 提供 h3/p/ul/li 共享渲染样式 — 与文章详情一致 (Reuse, ADR-002 §5)
   .project-content {
     .section {
-      margin-bottom: 32px;
+      margin-bottom: var(--space-8);
 
       &:last-child {
         margin-bottom: 0;
       }
 
-      h3 {
-        font-size: 18px;
-        font-weight: 600;
-        color: #303133;
-        margin: 0 0 16px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #e4e7ed;
-      }
-
-      p {
-        font-size: 15px;
-        color: #606266;
-        line-height: 1.8;
-        margin: 0;
-      }
-
       .tech-list {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+        gap: var(--space-4);
 
         .tech-item {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          padding: 16px;
-          background: #f5f7fa;
-          border-radius: 8px;
+          gap: var(--space-1);
+          padding: var(--space-4);
+          background: var(--surface-raised);
+          border-radius: var(--radius-lg);
 
           .tech-name {
             font-weight: 600;
-            color: #303133;
+            color: var(--text-primary);
           }
 
           .tech-desc {
-            font-size: 13px;
-            color: #909399;
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
           }
         }
       }
 
       .feature-list {
         margin: 0;
-        padding-left: 20px;
-
-        li {
-          font-size: 15px;
-          color: #606266;
-          line-height: 2;
-        }
+        padding-left: var(--space-5);
       }
 
       .screenshots {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+        gap: var(--space-4);
 
         .screenshot-item {
-          border-radius: 8px;
+          border-radius: var(--radius-lg);
           overflow: hidden;
-          background: #f5f7fa;
+          background: var(--surface-raised);
 
           img {
             width: 100%;
@@ -220,9 +199,9 @@ onMounted(() => {
 
   .project-actions {
     display: flex;
-    gap: 12px;
-    padding-top: 24px;
-    border-top: 1px solid #e4e7ed;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-color);
   }
 }
 </style>
