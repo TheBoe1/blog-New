@@ -178,12 +178,12 @@ onUnmounted(() => {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
     transition: background 0.3s ease, box-shadow 0.3s ease;
 
     &.navbar-scrolled {
       background: var(--bg-navbar-scrolled);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-sm);
     }
   }
 
@@ -354,7 +354,7 @@ onUnmounted(() => {
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-md);
       border-top: 2px solid var(--brand-primary);
       padding: var(--space-2) 0;
       opacity: 0;
@@ -422,7 +422,7 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--bg-overlay);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -438,12 +438,12 @@ onUnmounted(() => {
   max-width: 90vw;
   display: flex;
   gap: var(--space-3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-hover);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:focus-within {
     transform: scale(1.02);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-hover);
   }
 }
 

@@ -195,7 +195,7 @@ onMounted(async () => {
       left: 0;
       width: 60px;
       height: 3px;
-      background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+      background: linear-gradient(90deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 30%, transparent) 100%);
       border-radius: 2px;
     }
   }
@@ -241,7 +241,7 @@ onMounted(async () => {
     left: 0;
     width: 60px;
     height: 3px;
-    background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+    background: linear-gradient(90deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 30%, transparent) 100%);
     border-radius: 2px;
     transition: width 0.3s ease;
   }

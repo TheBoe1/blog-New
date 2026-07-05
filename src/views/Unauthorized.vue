@@ -2,7 +2,7 @@
   <div class="unauthorized-container">
     <div class="unauthorized-content">
       <div class="icon-wrapper">
-        <el-icon :size="80" color="#f56c6c">
+        <el-icon :size="80" color="var(--color-danger)">
           <Lock />
         </el-icon>
       </div>
@@ -40,18 +40,18 @@ function handleBackToLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand);
   padding: 20px;
 }
 
 .unauthorized-content {
-  background: white;
+  background: var(--surface-card);
   border-radius: 16px;
   padding: 60px 40px;
   max-width: 500px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-hover);
 }
 
 .icon-wrapper {
@@ -68,20 +68,20 @@ function handleBackToLogin() {
 .title {
   font-size: 32px;
   font-weight: bold;
-  color: #303133;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
 .description {
   font-size: 18px;
-  color: #606266;
+  color: var(--text-secondary);
   margin-bottom: 15px;
   font-weight: 500;
 }
 
 .detail {
   font-size: 14px;
-  color: #909399;
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 40px;
 }

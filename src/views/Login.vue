@@ -165,27 +165,27 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand);
   padding: 20px;
 
   .login-container {
     display: flex;
-    background: white;
+    background: var(--surface-card);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-hover);
     max-width: 900px;
     width: 100%;
   }
 
   .login-left {
     flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-brand);
     padding: 60px 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: white;
+    color: var(--text-on-brand);
 
     .brand {
       display: flex;
@@ -196,7 +196,7 @@ onMounted(() => {
       .logo-icon {
         width: 48px;
         height: 48px;
-        background: rgba(255, 255, 255, 0.2);
+        background: color-mix(in srgb, var(--text-on-brand) 20%, transparent);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -254,7 +254,7 @@ onMounted(() => {
       h2 {
         font-size: 24px;
         font-weight: 600;
-        color: #303133;
+        color: var(--text-primary);
         margin: 0 0 32px;
         text-align: center;
       }
@@ -271,14 +271,14 @@ onMounted(() => {
         .captcha-img {
           width: 120px;
           height: 40px;
-          border: 1px solid #dcdfe6;
+          border: 1px solid var(--border-color);
           border-radius: 4px;
           cursor: pointer;
           overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f5f7fa;
+          background: var(--surface-raised);
           
           img {
             width: 100%;
@@ -288,7 +288,7 @@ onMounted(() => {
           
           .loading-icon {
             font-size: 20px;
-            color: #909399;
+            color: var(--text-muted);
             animation: spin 1s linear infinite;
           }
         }
@@ -299,7 +299,7 @@ onMounted(() => {
         text-align: center;
         p {
           font-size: 12px;
-          color: #909399;
+          color: var(--text-muted);
           margin: 0;
         }
       }

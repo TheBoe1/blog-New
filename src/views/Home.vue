@@ -173,7 +173,7 @@ onMounted(async () => {
     left: 0;
     width: 60px;
     height: 3px;
-    background: linear-gradient(90deg, var(--brand-primary) 0%, rgba(50, 115, 220, 0.3) 100%);
+    background: linear-gradient(90deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 30%, transparent) 100%);
     border-radius: 2px;
     transition: width 0.3s ease;
   }
@@ -339,7 +339,7 @@ onMounted(async () => {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text-primary) 15%, transparent), transparent);
     transition: left 0.5s ease;
     pointer-events: none;
   }
@@ -350,7 +350,7 @@ onMounted(async () => {
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-sm);
 
     &::before { left: 100%; }
     i { transform: translateX(3px); }
@@ -403,9 +403,9 @@ onMounted(async () => {
     &:hover {
       background: var(--brand-primary);
       border-color: var(--brand-primary);
-      color: #fff;
+      color: var(--text-on-brand);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--shadow-md);
     }
   }
 }

@@ -63,13 +63,13 @@ const router = useRouter()
     h1 {
       font-size: 32px;
       font-weight: 700;
-      color: #303133;
+      color: var(--text-primary);
       margin: 0 0 12px;
     }
 
     p {
       font-size: 16px;
-      color: #909399;
+      color: var(--text-muted);
       margin: 0;
     }
   }
@@ -93,11 +93,11 @@ const router = useRouter()
 
       .project-cover {
         height: 200px;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
+        background: var(--surface-raised);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #c0c4cc;
+        color: var(--text-placeholder);
 
         img {
           width: 100%;
@@ -112,13 +112,13 @@ const router = useRouter()
         .project-name {
           font-size: 18px;
           font-weight: 600;
-          color: #303133;
+          color: var(--text-primary);
           margin: 0 0 12px;
         }
 
         .project-description {
           font-size: 14px;
-          color: #606266;
+          color: var(--text-secondary);
           line-height: 1.6;
           margin: 0 0 16px;
           display: -webkit-box;
@@ -138,7 +138,7 @@ const router = useRouter()
           justify-content: space-between;
           align-items: center;
           font-size: 13px;
-          color: #909399;
+          color: var(--text-muted);
 
           .stars {
             display: flex;

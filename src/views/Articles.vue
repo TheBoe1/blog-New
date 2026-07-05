@@ -205,7 +205,7 @@ watch(
   &.active {
     background: var(--brand-primary);
     border-color: var(--brand-primary);
-    color: #fff;
+    color: var(--text-on-brand);
   }
 }
 
@@ -261,7 +261,7 @@ watch(
   display: inline-block;
   padding: var(--space-1) var(--space-3);
   background: var(--brand-primary);
-  color: #fff;
+  color: var(--text-on-brand);
   font-size: var(--font-size-base);
   font-weight: 600;
   border-radius: var(--radius-sm);

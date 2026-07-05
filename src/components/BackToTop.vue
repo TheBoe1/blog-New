@@ -137,7 +137,7 @@ onUnmounted(() => {
   font-size: 16px;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 #back-to-top.is-rounded {
@@ -158,7 +158,7 @@ onUnmounted(() => {
 
 #back-to-top:hover {
   transform: translateY(-5px) scale(1.1);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-hover);
 }
 
 #back-to-top:active {
@@ -171,10 +171,10 @@ onUnmounted(() => {
 
 @keyframes back-to-top-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(50, 115, 220, 0.7);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-primary) 70%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(50, 115, 220, 0);
+    box-shadow: 0 0 0 10px transparent;
   }
 }
 

@@ -99,13 +99,13 @@ function getListItems(content: string) {
     &.element-label {
       display: block;
       font-weight: 500;
-      color: #606266;
+      color: var(--text-secondary);
     }
     
     &.element-text {
       margin: 0;
       line-height: 1.6;
-      color: #303133;
+      color: var(--text-primary);
     }
     
     &.element-html {
@@ -117,7 +117,7 @@ function getListItems(content: string) {
       }
       
       :deep(a) {
-        color: #667eea;
+        color: var(--brand-primary);
         text-decoration: none;
         
         &:hover {
@@ -136,7 +136,7 @@ function getListItems(content: string) {
     
     &.element-link {
       a {
-        color: #667eea;
+        color: var(--brand-primary);
         text-decoration: none;
         
         &:hover {
@@ -153,7 +153,7 @@ function getListItems(content: string) {
         li {
           margin: 8px 0;
           line-height: 1.6;
-          color: #606266;
+          color: var(--text-secondary);
         }
       }
     }

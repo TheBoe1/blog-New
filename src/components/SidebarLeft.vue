@@ -73,7 +73,7 @@ const stats = computed(() => ({
     margin: 0 auto var(--space-3);
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid rgba(255, 255, 255, 0.6);
+    border: 3px solid var(--surface-raised);
     box-shadow: var(--shadow-sm);
 
     img {

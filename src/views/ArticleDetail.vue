@@ -248,7 +248,7 @@ function tagStyle(tagName: string): Record<string, string> {
   const color = colorMap[tagName]
   if (!color) return {}
   return {
-    color: '#ffffff',
+    color: 'var(--text-on-brand)',
     backgroundColor: color,
     borderColor: color
   }
@@ -488,7 +488,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   &:hover {
     border-left-color: var(--brand-primary);
     background: var(--bg-tertiary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
   }
 
   .licensing-title {
@@ -595,7 +595,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   &:hover {
     color: var(--brand-primary);
     border-color: var(--brand-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
   }
 
   &:hover::before { transform: scaleX(1); }
@@ -611,7 +611,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     transition: box-shadow 0.2s ease;
 
     &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-sm);
     }
   }
 }
