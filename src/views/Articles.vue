@@ -23,6 +23,21 @@
         </div>
       </div>
 
+      <!-- Skeleton during loading -->
+      <div v-if="loading && groupedArticles.length === 0" class="card">
+        <div class="card-content">
+          <el-skeleton animated>
+            <template #template>
+              <el-skeleton-item variant="rect" style="width: 64px; height: 28px; border-radius: 4px; margin-bottom: 20px;" />
+              <div v-for="i in 7" :key="i" class="timeline-skeleton-row">
+                <el-skeleton-item variant="text" style="width: 80px; flex-shrink: 0;" />
+                <el-skeleton-item variant="text" style="flex: 1;" />
+              </div>
+            </template>
+          </el-skeleton>
+        </div>
+      </div>
+
       <!-- Empty state -->
       <div v-if="groupedArticles.length === 0 && !loading" class="empty-state">
         <p class="empty-text">{{ isSearchResult ? '未找到相关文章' : '暂无文章' }}</p>
@@ -69,7 +84,7 @@ const route = useRoute()
 const blogStore = useBlogStore()
 
 const selectedCategory = ref('')
-const loading = ref(false)
+const loading = ref(true)
 const allArticles = ref<Article[]>([])
 
 const categories = ref<Array<{ id: string; name: string }>>([])
@@ -232,6 +247,13 @@ watch(
 
 .card-content {
   padding: var(--space-6);
+}
+
+.timeline-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
 }
 
 // ─── Year tag ───────────────────────────────────────────

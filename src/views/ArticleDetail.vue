@@ -8,6 +8,7 @@
             :editorId="editorId"
             :modelValue="articleContent"
             :scrollElement="scrollElement"
+            :theme="theme"
             class="toc"
           />
         </div>
@@ -154,10 +155,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { MdPreview, MdCatalog } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { useBlogStore } from '@/stores/blog'
+import { useThemeStore } from '@/stores/theme'
 import { articleApi } from '@/api/article'
 import { isHtmlContent, htmlToMarkdown } from '@/utils/markdown'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
@@ -168,7 +171,10 @@ const blogStore = useBlogStore()
 const editorId = 'article-md-preview'
 const scrollElement = document.documentElement
 
-const theme = ref<'light' | 'dark'>('light')
+const themeStore = useThemeStore()
+const { isDark } = storeToRefs(themeStore)
+// md-editor-v3 预览主题跟随站点暗色模式（写死 light 会导致暗色下正文不可读）
+const theme = computed<'light' | 'dark'>(() => (isDark.value ? 'dark' : 'light'))
 const loading = ref(true)
 
 const article = ref<any>({
@@ -639,7 +645,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 
     tbody tr {
       transition: background 0.2s ease, box-shadow 0.2s ease;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--border-color);
 
       &:hover {
         background: var(--brand-tint);
@@ -652,7 +658,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
       }
 
       &:nth-child(even) {
-        background-color: rgba(0, 0, 0, 0.02);
+        background-color: var(--bg-tertiary);
       }
     }
   }

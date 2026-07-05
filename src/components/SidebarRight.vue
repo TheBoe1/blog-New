@@ -6,15 +6,24 @@
       <div class="card widget">
         <div class="card-content">
           <h3 class="widget-title">最新文章</h3>
-          <article v-for="article in recentArticles" :key="article.id" class="widget-post">
-            <p class="widget-post-date">{{ formatDate(article.createTime) }}</p>
-            <router-link :to="`/article/${article.slug || article.id}`" class="widget-post-title">
-              {{ article.title }}
-            </router-link>
-            <p v-if="article.categoryName" class="widget-post-category">
-              <router-link :to="`/category/${article.categoryId}`">{{ article.categoryName }}</router-link>
-            </p>
-          </article>
+          <el-skeleton :loading="isLoading" animated>
+            <template #template>
+              <div v-for="i in 5" :key="i" class="widget-post">
+                <el-skeleton-item variant="text" style="width: 60px; margin-bottom: 6px;" />
+                <el-skeleton-item variant="text" style="width: 92%; margin-bottom: 6px;" />
+                <el-skeleton-item variant="text" style="width: 50px;" />
+              </div>
+            </template>
+            <article v-for="article in recentArticles" :key="article.id" class="widget-post">
+              <p class="widget-post-date">{{ formatDate(article.createTime) }}</p>
+              <router-link :to="`/article/${article.slug || article.id}`" class="widget-post-title">
+                {{ article.title }}
+              </router-link>
+              <p v-if="article.categoryName" class="widget-post-category">
+                <router-link :to="`/category/${article.categoryId}`">{{ article.categoryName }}</router-link>
+              </p>
+            </article>
+          </el-skeleton>
         </div>
       </div>
 
@@ -49,6 +58,7 @@ const blogStore = useBlogStore()
 
 const recentArticles = computed(() => blogStore.recentArticles.slice(0, 5))
 const categories = computed(() => blogStore.categories)
+const isLoading = computed(() => blogStore.loading && recentArticles.value.length === 0)
 
 function formatDate(date: string) {
   if (!date) return ''

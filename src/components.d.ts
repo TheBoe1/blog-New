@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AppNavbar: typeof import('./components/AppNavbar.vue')['default']
     BackToTop: typeof import('./components/BackToTop.vue')['default']
     BlogLayout3Col: typeof import('./components/BlogLayout3Col.vue')['default']
     DynamicSection: typeof import('./components/DynamicSection.vue')['default']
