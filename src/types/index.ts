@@ -101,9 +101,50 @@ export interface LoginParams {
   uuid?: string
 }
 
+// ===== 两步验证（2FA / TOTP）=====
+// 与后端 LoginResultStatus 枚举一致，不预留 SMS / WebAuthn
+export type LoginStatus = 'SUCCESS' | 'NEED_2FA'
+
+// 两步验证业务错误码（与后端 TwoFactorErrorCode.code() / i18n key 一致，零映射）
+// BusinessException 携带: required / invalid / replay / locked
+// CustomException 辅助场景: expired / password.error
+export type TwoFactorErrorCode =
+  | 'two.factor.required'
+  | 'two.factor.invalid'
+  | 'two.factor.replay'
+  | 'two.factor.locked'
+  | 'two.factor.expired'
+  | 'two.factor.password.error'
+
+// POST /login 响应（code=200 时按 status 分流）
+//   status=SUCCESS    → 含 token（正式 JWT）
+//   status=NEED_2FA   → 含 preAuthToken（5min 临时令牌，不持久化）
+export interface LoginResponse {
+  status: LoginStatus
+  token?: string
+  preAuthToken?: string
+}
+
+// 登录流程结果（userStore.login / completeTwoFactor / completeBackup 返回）
+//   SUCCESS    → token + user
+//   NEED_2FA   → preAuthToken（Login.vue 存本地 ref，进二次验证步骤）
 export interface LoginResult {
-  token: string
-  user: User
+  status: LoginStatus
+  token?: string
+  preAuthToken?: string
+  user?: User
+}
+
+// POST /login/2fa/verify 请求体
+export interface TwoFactorVerifyParams {
+  preAuthToken: string
+  otpCode: string
+}
+
+// POST /login/2fa/backup 请求体
+export interface TwoFactorBackupParams {
+  preAuthToken: string
+  backupCode: string
 }
 
 export interface UploadResult {

@@ -109,11 +109,21 @@ instance.interceptors.response.use(
       }
       return data
     }
-    
+
+    // 业务失败（code=500 等）：携带 errorCode 供调用方按业务错误码路由
+    // 2FA 场景: two.factor.invalid / replay / locked / expired / password.error
     if (!shouldSilentError(config?.url || '', config?.method || 'get')) {
       ElMessage.error(data.msg || data.message || '请求失败')
     }
-    return Promise.reject(new Error(data.msg || data.message))
+    const err = new Error(data.msg || data.message || '请求失败') as Error & {
+      errorCode?: string
+      data?: any
+    }
+    if (data.errorCode) {
+      err.errorCode = data.errorCode
+    }
+    err.data = data
+    return Promise.reject(err)
   },
   (error) => {
     const loadingStore = useLoadingStore()
