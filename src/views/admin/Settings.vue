@@ -698,7 +698,7 @@ onMounted(() => {
 
         .twofa-desc {
           font-size: 13px;
-          color: var(--text-muted);
+          color: var(--text-secondary);
         }
 
         .twofa-backup {
@@ -728,7 +728,7 @@ onMounted(() => {
       border-radius: 8px;
 
       .qr-loading {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 13px;
       }
     }

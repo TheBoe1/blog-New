@@ -515,7 +515,7 @@ onMounted(() => {
 
       .step-tip {
         font-size: 13px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         text-align: center;
         margin: 0 0 24px;
         line-height: 1.5;
