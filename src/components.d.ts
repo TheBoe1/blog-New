@@ -11,6 +11,7 @@ declare module 'vue' {
     BackToTop: typeof import('./components/BackToTop.vue')['default']
     BlogLayout3Col: typeof import('./components/BlogLayout3Col.vue')['default']
     DynamicSection: typeof import('./components/DynamicSection.vue')['default']
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']

@@ -5,6 +5,9 @@ import type {
   LoginResponse,
   TwoFactorVerifyParams,
   TwoFactorBackupParams,
+  TwoFactorStatusResponse,
+  TwoFactorSetupResponse,
+  TwoFactorEnableResponse,
 } from '@/types'
 
 export const authApi = {
@@ -44,6 +47,42 @@ export const authApi = {
       status: res.status,
       token: res.token,
     }))
+  },
+
+  // ===== 个人中心 2FA 管理（绑定/解绑/状态）=====
+
+  /** 查询 2FA 开启状态与备用码剩余数量 */
+  getTwoFactorStatus(): Promise<TwoFactorStatusResponse> {
+    return request.get('/system/user/profile/2fa/status').then((res: any) => ({
+      enabled: !!res.enabled,
+      backupCodesRemaining: res.backupCodesRemaining || 0,
+    }))
+  },
+
+  /** 发起 2FA 绑定，返回 qrUri（secret 暂存 Redis 10min，不入库） */
+  setupTwoFactor(): Promise<TwoFactorSetupResponse> {
+    return request.post('/system/user/profile/2fa/setup').then((res: any) => ({
+      qrUri: res.qrUri,
+    }))
+  },
+
+  /**
+   * 确认绑定：验证动态码，成功后 secret 加密入库
+   * 返回 10 个明文备用码（仅此一次，DB 只存 SHA-256 散列）
+   * 失败 → reject，error.errorCode 为 two.factor.invalid / two.factor.expired
+   */
+  enableTwoFactor(otpCode: string): Promise<TwoFactorEnableResponse> {
+    return request.post('/system/user/profile/2fa/enable', { otpCode }).then((res: any) => ({
+      backupCodes: res.backupCodes || [],
+    }))
+  },
+
+  /**
+   * 关闭 2FA：需校验登录密码（防止 session 劫持后直接关闭）
+   * 失败 → reject（two.factor.password.error，CustomException 无 errorCode）
+   */
+  disableTwoFactor(password: string): Promise<void> {
+    return request.post('/system/user/profile/2fa/disable', { password })
   },
 
   logout(): Promise<void> {

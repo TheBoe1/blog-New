@@ -147,6 +147,29 @@ export interface TwoFactorBackupParams {
   backupCode: string
 }
 
+// ===== 个人中心 2FA 管理（绑定/解绑/状态）=====
+
+// GET /system/user/profile/2fa/status 响应
+export interface TwoFactorStatusResponse {
+  enabled: boolean
+  backupCodesRemaining: number
+}
+
+// POST /system/user/profile/2fa/setup 响应（qrUri，secret 暂存 Redis 10min）
+export interface TwoFactorSetupResponse {
+  qrUri: string
+}
+
+// POST /system/user/profile/2fa/enable 响应（10 个明文备用码，仅此一次返回）
+export interface TwoFactorEnableResponse {
+  backupCodes: string[]
+}
+
+// POST /system/user/profile/2fa/disable 请求体
+export interface TwoFactorDisableParams {
+  password: string
+}
+
 export interface UploadResult {
   url: string
   filename: string

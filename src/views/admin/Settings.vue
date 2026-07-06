@@ -113,12 +113,109 @@
         </el-form-item>
       </el-form>
     </el-card>
+
+    <!-- 安全设置：两步验证 -->
+    <el-card shadow="never" style="margin-top: 20px">
+      <template #header>
+        <span>安全设置</span>
+      </template>
+      <div class="twofa-section">
+        <!-- 未开启 -->
+        <div v-if="!twoFactorStatus.enabled" class="twofa-status">
+          <div class="twofa-info">
+            <span class="twofa-label">两步验证（TOTP）</span>
+            <span class="twofa-desc">未开启 — 使用 Google Authenticator 增强账号安全</span>
+          </div>
+          <el-button type="primary" :loading="twoFactorLoading" @click="openBindDialog">开启两步验证</el-button>
+        </div>
+        <!-- 已开启 -->
+        <div v-else class="twofa-status">
+          <div class="twofa-info">
+            <span class="twofa-label">两步验证（TOTP）</span>
+            <el-tag type="success" size="small">已开启</el-tag>
+            <span class="twofa-backup">备用码剩余 {{ twoFactorStatus.backupCodesRemaining }}/10</span>
+            <el-tag v-if="twoFactorStatus.backupCodesRemaining <= 3" type="warning" size="small">备用码不足，建议解绑重绑</el-tag>
+          </div>
+          <el-button type="danger" plain @click="disableDialogVisible = true">关闭</el-button>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 绑定弹窗 -->
+    <el-dialog v-model="bindDialogVisible" title="开启两步验证" width="480px" :close-on-click-modal="false" @closed="onBindDialogClosed">
+      <!-- 步骤 1：扫码 + 动态码 -->
+      <div v-if="bindStep === 'qr'" class="bind-qr-step">
+        <p class="bind-tip">1. 用 Google Authenticator 扫描下方二维码</p>
+        <div class="qr-container">
+          <canvas ref="qrCanvasRef" />
+          <div v-if="!qrUri" class="qr-loading">加载中...</div>
+        </div>
+        <el-button text @click="refreshQr">刷新二维码</el-button>
+        <p class="bind-tip" style="margin-top: 16px">2. 输入 App 显示的 6 位动态码</p>
+        <div class="otp-inputs">
+          <input
+            v-for="i in 6"
+            :key="i"
+            :ref="(el) => setOtpRef(el, i - 1)"
+            v-model="otpDigits[i - 1]"
+            type="text"
+            inputmode="numeric"
+            maxlength="1"
+            class="otp-cell"
+            @input="onOtpInput(i - 1)"
+            @keydown.delete="onOtpDelete(i - 1)"
+            @paste="onOtpPaste"
+          />
+        </div>
+        <div class="bind-actions">
+          <el-button @click="bindDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="binding" @click="handleEnable">确认绑定</el-button>
+        </div>
+      </div>
+      <!-- 步骤 2：备用码展示（仅一次） -->
+      <div v-else class="bind-backup-step">
+        <el-alert type="warning" :closable="false" show-icon>
+          <span>⚠️ 此为唯一一次展示，关闭后无法再查看。请妥善保存备用码。</span>
+        </el-alert>
+        <div class="backup-codes-grid">
+          <div v-for="(code, i) in backupCodes" :key="i" class="backup-code-item">{{ code }}</div>
+        </div>
+        <div class="backup-actions">
+          <el-button @click="copyBackupCodes">复制全部</el-button>
+          <el-button @click="downloadBackupCodes">下载文本</el-button>
+        </div>
+        <el-checkbox v-model="savedConfirmed" style="margin: 12px 0">我已妥善保存备用码</el-checkbox>
+        <div class="bind-actions">
+          <el-button type="primary" :disabled="!savedConfirmed" @click="finishBind">完成</el-button>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- 解绑弹窗 -->
+    <el-dialog v-model="disableDialogVisible" title="关闭两步验证" width="420px" :close-on-click-modal="false" @closed="disablePassword = ''">
+      <el-form @submit.prevent>
+        <el-form-item label="登录密码">
+          <el-input
+            v-model="disablePassword"
+            type="password"
+            show-password
+            placeholder="请输入登录密码以确认"
+            @keyup.enter="handleDisable"
+          />
+        </el-form-item>
+      </el-form>
+      <div class="bind-actions">
+        <el-button @click="disableDialogVisible = false">取消</el-button>
+        <el-button type="danger" :loading="disabling" @click="handleDisable">确认关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import QRCode from 'qrcode'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
 import { request } from '@/api/request'
@@ -345,8 +442,200 @@ async function beforeAvatarUpload(file: File) {
   return false
 }
 
+// ===== 两步验证（2FA / TOTP）=====
+const twoFactorStatus = reactive({ enabled: false, backupCodesRemaining: 0 })
+const twoFactorLoading = ref(false)
+
+// 绑定弹窗
+const bindDialogVisible = ref(false)
+const bindStep = ref<'qr' | 'backup'>('qr')
+const qrUri = ref('')
+const qrCanvasRef = ref<HTMLCanvasElement>()
+const otpDigits = ref<string[]>(['', '', '', '', '', ''])
+const otpRefs = ref<HTMLInputElement[]>([])
+const otpCode = computed(() => otpDigits.value.join(''))
+const binding = ref(false)
+const backupCodes = ref<string[]>([])
+const savedConfirmed = ref(false)
+
+// 解绑弹窗
+const disableDialogVisible = ref(false)
+const disablePassword = ref('')
+const disabling = ref(false)
+
+async function loadTwoFactorStatus() {
+  twoFactorLoading.value = true
+  try {
+    const res = await authApi.getTwoFactorStatus()
+    twoFactorStatus.enabled = res.enabled
+    twoFactorStatus.backupCodesRemaining = res.backupCodesRemaining
+  } catch (error) {
+    console.error('Failed to load 2FA status:', error)
+  } finally {
+    twoFactorLoading.value = false
+  }
+}
+
+async function openBindDialog() {
+  bindStep.value = 'qr'
+  resetOtp()
+  backupCodes.value = []
+  savedConfirmed.value = false
+  qrUri.value = ''
+  bindDialogVisible.value = true
+  await refreshQr()
+}
+
+async function refreshQr() {
+  try {
+    const res = await authApi.setupTwoFactor()
+    qrUri.value = res.qrUri
+    await nextTick()
+    renderQr()
+  } catch (error) {
+    console.error('Failed to setup 2FA:', error)
+    ElMessage.error('获取二维码失败')
+  }
+}
+
+function renderQr() {
+  if (qrCanvasRef.value && qrUri.value) {
+    QRCode.toCanvas(qrCanvasRef.value, qrUri.value, { width: 220, margin: 1 }, (err: Error | null | undefined) => {
+      if (err) console.error('QR render error:', err)
+    })
+  }
+}
+
+async function handleEnable() {
+  if (binding.value) return
+  if (otpCode.value.length !== 6) {
+    ElMessage.warning('请输入 6 位动态码')
+    return
+  }
+  binding.value = true
+  try {
+    const res = await authApi.enableTwoFactor(otpCode.value)
+    backupCodes.value = res.backupCodes
+    bindStep.value = 'backup'
+    ElMessage.success('绑定成功，请保存备用码')
+  } catch (error: any) {
+    handleBindError(error)
+  } finally {
+    binding.value = false
+  }
+}
+
+// 绑定错误处理（文档 §5.3）：拦截器已弹 msg，这里只做状态管理
+function handleBindError(error: any) {
+  const errorCode = error?.errorCode
+  if (errorCode === 'two.factor.invalid') {
+    resetOtp()
+    nextTick(() => otpRefs.value[0]?.focus())
+  } else if (errorCode === 'two.factor.expired') {
+    resetOtp()
+    ElMessage.warning('二维码已过期，正在刷新')
+    refreshQr()
+  }
+}
+
+function finishBind() {
+  bindDialogVisible.value = false
+  loadTwoFactorStatus()
+}
+
+function onBindDialogClosed() {
+  bindStep.value = 'qr'
+  qrUri.value = ''
+  resetOtp()
+  backupCodes.value = []
+  savedConfirmed.value = false
+}
+
+// OTP 6 位分离输入交互
+function setOtpRef(el: Element | any, index: number) {
+  if (el) otpRefs.value[index] = el as HTMLInputElement
+}
+
+function onOtpInput(i: number) {
+  const val = otpDigits.value[i]
+  if (val && !/\d/.test(val)) {
+    otpDigits.value[i] = ''
+    return
+  }
+  if (val && i < 5) otpRefs.value[i + 1]?.focus()
+  if (i === 5 && otpDigits.value.every(d => d)) {
+    handleEnable()
+  }
+}
+
+function onOtpDelete(i: number) {
+  if (!otpDigits.value[i] && i > 0) {
+    otpRefs.value[i - 1]?.focus()
+  }
+}
+
+function onOtpPaste(e: ClipboardEvent) {
+  e.preventDefault()
+  const text = e.clipboardData?.getData('text') || ''
+  const digits = text.replace(/\D/g, '').slice(0, 6).split('')
+  if (digits.length === 0) return
+  digits.forEach((d, idx) => {
+    otpDigits.value[idx] = d
+  })
+  if (digits.length === 6) {
+    handleEnable()
+  } else {
+    otpRefs.value[digits.length]?.focus()
+  }
+}
+
+function resetOtp() {
+  otpDigits.value = ['', '', '', '', '', '']
+}
+
+async function copyBackupCodes() {
+  try {
+    await navigator.clipboard.writeText(backupCodes.value.join('\n'))
+    ElMessage.success('备用码已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败，请手动选择复制')
+  }
+}
+
+function downloadBackupCodes() {
+  const text = `两步验证备用码（${new Date().toLocaleString()}）\n\n${backupCodes.value.join('\n')}\n\n⚠️ 此为唯一一次展示，请妥善保存。`
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'backup-codes.txt'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function handleDisable() {
+  if (!disablePassword.value) {
+    ElMessage.warning('请输入登录密码')
+    return
+  }
+  disabling.value = true
+  try {
+    await authApi.disableTwoFactor(disablePassword.value)
+    ElMessage.success('两步验证已关闭')
+    disableDialogVisible.value = false
+    disablePassword.value = ''
+    loadTwoFactorStatus()
+  } catch {
+    // 拦截器已弹 msg（密码错误），清密码可重试
+    disablePassword.value = ''
+  } finally {
+    disabling.value = false
+  }
+}
+
 onMounted(() => {
   loadSettings()
+  loadTwoFactorStatus()
 })
 </script>
 
@@ -385,6 +674,122 @@ onMounted(() => {
       height: 100px;
       text-align: center;
       line-height: 100px;
+    }
+  }
+
+  // ===== 两步验证 =====
+  .twofa-section {
+    .twofa-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 600px;
+
+      .twofa-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .twofa-label {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .twofa-desc {
+          font-size: 13px;
+          color: var(--text-muted);
+        }
+
+        .twofa-backup {
+          font-size: 13px;
+          color: var(--text-secondary);
+        }
+      }
+    }
+  }
+
+  .bind-qr-step,
+  .bind-backup-step {
+    .bind-tip {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 0 0 12px;
+    }
+
+    .qr-container {
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-raised);
+      border-radius: 8px;
+
+      .qr-loading {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+    }
+
+    .otp-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 12px 0;
+
+      .otp-cell {
+        width: 40px;
+        height: 48px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--surface-raised);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &:focus {
+          border-color: var(--brand-primary);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+        }
+      }
+    }
+
+    .bind-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 16px;
+    }
+  }
+
+  .bind-backup-step {
+    .backup-codes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+      padding: 16px;
+      background: var(--surface-raised);
+      border-radius: 8px;
+
+      .backup-code-item {
+        font-family: 'Courier New', monospace;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+        letter-spacing: 1px;
+      }
+    }
+
+    .backup-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
     }
   }
 }
