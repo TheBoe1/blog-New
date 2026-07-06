@@ -2,6 +2,8 @@
 
 > Phase 0 产出。架构已 freeze 于 ADR-002 v3。本文档列出 **改什么 / 改哪里 / 什么顺序**，Phase 1-3 执行时不再重新决策。
 
+> **状态（2026-07-05）**：Phase 2 全 batch 已完成（Batch A/B/C/D，见 git log `batch-b` `batch-cd` 等 commit；ArticleDetail / GlobalLoading / Home / Dashboard / PageConfigEditor 等均全 token 化）。§3 Hardcoded Color Audit 为 2026-06-27 历史快照，**勿按清单重复迁移**。本文档保留作 Phase 3 Validation（§7）与 Theme Regression Checklist（§7.3/§8）参考。
+
 ## 0. Supreme Principle
 
 > **Every visual decision should answer one question: does it improve readability, hierarchy, or interaction? If it improves none of them, it probably doesn't belong.**

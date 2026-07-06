@@ -134,7 +134,20 @@
       "Bash(node *)",
       "Bash(grep -n \"#[0-9a-fA-F]\\\\{3,6\\\\}\" src/views/admin/ArticleList.vue)",
       "Bash(grep -nE \":[ ]*#[0-9a-fA-F]{3,6}|color: '#[0-9a-f]{3,6}'|#[0-9a-fA-F]{6}\" src/views/admin/Settings.vue src/views/admin/TagList.vue src/views/admin/CategoryList.vue src/views/admin/ArticleList.vue)",
-      "Skill(impeccable)"
+      "Skill(impeccable)",
+      "Bash(git commit -m 'feat\\(ui\\): TOC 选中态位移动画 + 白名单接口跳过全局 loading *)",
+      "Bash(time curl -sI --max-time 12 \"https://fonts.googleapis.com/css2?family=Inter:wght@400\" -o /dev/null -w \"http_code=%{http_code} time=%{time_total}s\\\\n\")",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(tee /tmp/tsc.log)",
+      "Bash(npm i *)",
+      "Bash(grep -rn '#[0-9a-fA-F]\\\\{3,8\\\\}\\\\b\\\\|rgba\\\\?\\(' src/views src/components src/layouts src/composables --include='*.vue' --include='*.ts')",
+      "Bash(grep -rn '#[0-9a-fA-F]\\\\{3,8\\\\}\\\\b\\\\|rgba\\\\?\\(.*[0-9]\\\\|: white\\\\|: black' src/views src/components src/layouts src/composables --include='*.vue' --include='*.ts')",
+      "Bash(PYTHONIOENCODING=utf-8 python *)",
+      "Bash(grep -nE '#[0-9a-fA-F]{3,8}|rgba?\\\\\\(|hsla?\\\\\\(' src/views/ArticleDetail.vue)",
+      "Bash(grep -v '//')",
+      "Bash(grep -n '\\\\$grad-brand' src/views/ArticleDetail.vue)",
+      "Read(//d/Stday/个人简历/项目/后端初始框架/**)",
+      "Read(//d/Stday/个人简历/ECS/develop/7m5d两步验证/**)"
     ]
   }
 }

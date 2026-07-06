@@ -332,8 +332,6 @@ onMounted(async () => {
 /* Editorial Blue single-color tokens (DESIGN.md compliant, 过渡值) */
 $grad-brand: var(--brand-primary);
 $grad-brand-h: var(--brand-primary);
-$grad-brand-soft: var(--brand-tint);
-$grad-brand-soft-h: var(--brand-tint-hover);
 
 // ── Card frame ──────────────────────────────────────────
 .card {
@@ -406,7 +404,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     align-items: center;
     gap: var(--space-3);
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     animation: fadeInUp 0.6s ease-out 0.2s both;
@@ -429,7 +427,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     }
 
     .meta-link {
-      color: var(--text-tertiary);
+      color: var(--text-muted);
       text-decoration: none;
       &:hover { color: var(--brand-primary); }
     }
@@ -505,7 +503,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 
     .licensing-link {
       font-size: var(--font-size-xs);
-      color: var(--text-tertiary);
+      color: var(--text-muted);
       text-decoration: none;
       word-break: break-all;
       &:hover { color: var(--brand-primary); }
@@ -520,7 +518,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     .meta-block {
       h6 {
         font-size: var(--font-size-xs);
-        color: var(--text-tertiary);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: var(--space-1);
@@ -562,7 +560,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   letter-spacing: 0.05em;
 
   > .fas {
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     opacity: 0.7;
   }
 }
@@ -573,7 +571,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   border: 1px solid var(--border-color);
   border-radius: 999px;
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-decoration: none;
   background: var(--bg-tertiary);
   position: relative;
@@ -622,7 +620,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   flex-wrap: wrap;
   animation: fadeInUp 0.6s ease-out 0.4s both;
 
@@ -633,7 +631,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     flex: 1;
     min-width: 0;
     padding: var(--space-3) var(--space-4);
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     text-decoration: none;
     font-size: var(--font-size-sm);
     line-height: 1.4;
@@ -646,7 +644,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
     }
 
     .fas {
-      color: var(--text-tertiary);
+      color: var(--text-muted);
       transition: transform 0.3s ease, color 0.3s ease;
       flex-shrink: 0;
     }
@@ -678,7 +676,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 .widget-title {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: var(--space-3);
@@ -769,7 +767,7 @@ $grad-brand-soft-h: var(--brand-tint-hover);
 .loading-text {
   text-align: center;
   padding: var(--space-8) 0;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 // ── Keyframes (Editorial Blue accent, DESIGN.md compliant) ─────────

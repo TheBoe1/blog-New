@@ -1,6 +1,4 @@
 # CLAUDE.md
-
-> 本文件是 `AGENTS.md` 的镜像。编辑请修改 `AGENTS.md`，然后运行 `cat AGENTS.md | sed "1s/AGENTS.md/CLAUDE.md/" > CLAUDE.md` 同步。
 > 给 AI Coding Agent 的项目指令。地图而非手册——核心信息在此，细节看链接。
 
 > **Workflow Principle**：Design System 是所有 UI 决策的唯一事实来源。工程实现 Design System，不重新定义它。详见 `DESIGN.md`。
@@ -80,6 +78,18 @@ UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍
 | Accessibility | 对比度 ≥ 4.5:1 |
 
 缺 token/规范 → 先更 Design System（走 Governance），再开工。
+
+### Third-party Integration Check（涉及第三方组件时必过，ADR-003）
+
+把 `DESIGN.md` §7 变成可执行检查项——第三方组件接入前逐条确认：
+
+- [ ] Visual Inventory 已完成（列出组件视觉对象，与实现无关）
+- [ ] Visual Object → Semantic Domain 映射已完成（我方设计语言，不提第三方）
+- [ ] Adapter 仅做 Semantic → Vendor API 映射（单向，不反向）
+- [ ] 未使用第三方 palette 作为设计来源（不用 `theme="dark"` 切外来调色盘）
+- [ ] 任何例外已登记到 `.ai/memory/exceptions.json`
+
+> 这不是新 Design Rule，是 §7 的可执行化。违反任一条 = 被第三方牵着走。
 
 ### Evolution Rules（摘要）
 
