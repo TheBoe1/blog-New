@@ -84,6 +84,14 @@ export default defineConfig({
         target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,
+        // 浏览器刷新/导航 GET /login（Accept: text/html）不转发后端登录接口（仅 POST），
+        // 否则后端返回 500 "Request method 'GET' not supported"。交由 Vite 返回 SPA index.html。
+        // POST /login、/login/2fa/verify、/login/2fa/backup（Accept: application/json）正常转发。
+        bypass(req) {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html'
+          }
+        },
       },
       '/logout': {
         target: 'http://localhost:9090',
