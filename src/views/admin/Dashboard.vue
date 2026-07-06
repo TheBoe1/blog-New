@@ -132,29 +132,29 @@ const maxPv = ref(100)
 const stats = computed(() => {
   const dashboardStats = blogStore.dashboardStats
   return [
-    { 
-      title: '文章总数', 
-      value: dashboardStats?.articleCount ?? blogStore.articles.length, 
-      icon: 'Document', 
-      color: 'var(--brand-primary)' 
+    {
+      title: '文章总数',
+      value: dashboardStats?.articleCount ?? blogStore.articles.length,
+      icon: 'Document',
+      color: 'var(--brand-primary)'
     },
-    { 
-      title: '今日访问', 
-      value: dashboardStats?.todayPV ?? 0, 
-      icon: 'View', 
-      color: 'var(--brand-primary-hover)' 
+    {
+      title: '今日访问',
+      value: dashboardStats?.todayPV ?? 0,
+      icon: 'View',
+      color: 'var(--brand-primary)'
     },
-    { 
-      title: '今日访客', 
-      value: dashboardStats?.todayUV ?? 0, 
-      icon: 'User', 
-      color: 'var(--brand-tint-hover)' 
+    {
+      title: '今日访客',
+      value: dashboardStats?.todayUV ?? 0,
+      icon: 'User',
+      color: 'var(--brand-primary)'
     },
-    { 
-      title: '分类数', 
-      value: dashboardStats?.categoryCount ?? blogStore.categories.length, 
-      icon: 'Folder', 
-      color: 'var(--brand-tint)' 
+    {
+      title: '分类数',
+      value: dashboardStats?.categoryCount ?? blogStore.categories.length,
+      icon: 'Folder',
+      color: 'var(--brand-primary)'
     }
   ]
 })
@@ -210,9 +210,9 @@ const categoryStats = computed(() => {
 
 const quickActions = ref([
   { title: '新建文章', icon: 'Edit', color: 'var(--brand-primary)', path: '/admin/article/create' },
-  { title: '分类管理', icon: 'Folder', color: 'var(--brand-primary-hover)', path: '/admin/categories' },
-  { title: '标签管理', icon: 'PriceTag', color: 'var(--brand-tint-hover)', path: '/admin/tags' },
-  { title: '系统设置', icon: 'Setting', color: 'var(--brand-tint)', path: '/admin/settings' }
+  { title: '分类管理', icon: 'Folder', color: 'var(--brand-primary)', path: '/admin/categories' },
+  { title: '标签管理', icon: 'PriceTag', color: 'var(--brand-primary)', path: '/admin/tags' },
+  { title: '系统设置', icon: 'Setting', color: 'var(--brand-primary)', path: '/admin/settings' }
 ])
 
 function getBarHeight(pv: number): number {
@@ -285,14 +285,14 @@ async function handlePeriodChange() {
 async function loadDashboardData() {
   loading.value = true
   try {
-    await Promise.all([
+    const { startDate, endDate } = getDateRange(chartPeriod.value)
+    const results = await Promise.all([
       blogStore.fetchDashboardStats(),
       blogStore.fetchArticles({}),
-      blogStore.fetchCategories()
+      blogStore.fetchCategories(),
+      blogStore.fetchVisitTrend(startDate, endDate, 'day')
     ])
-    
-    const { startDate, endDate } = getDateRange(chartPeriod.value)
-    const data = await blogStore.fetchVisitTrend(startDate, endDate, 'day')
+    const data = results[3] || []
     trendData.value = data
     if (data.length > 0) {
       maxPv.value = Math.max(...data.map(d => d.pv), 1)

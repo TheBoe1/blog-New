@@ -43,7 +43,10 @@ instance.interceptors.request.use(
     const loadingStore = useLoadingStore()
     const token = userStore.token
 
-    if (!isWhiteListUrl(config.url || '')) {
+    const isAdminApi = config.url?.startsWith('/api/admin')
+
+    // admin API 走页面级 loading（v-loading），不触发全局遮罩，避免路由切换时全屏闪烁
+    if (!isWhiteListUrl(config.url || '') && !isAdminApi) {
       loadingStore.showLoading()
     }
     
@@ -52,7 +55,6 @@ instance.interceptors.request.use(
     }
     
     if (import.meta.env.DEV) {
-      const isAdminApi = config.url?.startsWith('/api/admin')
       console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, {
         hasToken: !!token,
         isAdminApi,

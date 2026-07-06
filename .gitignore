@@ -42,3 +42,6 @@ vite.config.ts.timestamp-*
 # 数据库/配置备份（勿提交）
 carbon_*.yml
 carbon_*.sql
+# ruflo generated
+.swarm/
+ruvector.db

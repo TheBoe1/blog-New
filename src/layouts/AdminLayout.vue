@@ -96,11 +96,7 @@
         </el-header>
 
         <el-main class="admin-main">
-          <router-view v-slot="{ Component }">
-            <transition name="slide-fade" mode="out-in">
-              <component :is="Component" :key="route.fullPath" />
-            </transition>
-          </router-view>
+          <router-view :key="route.fullPath" />
         </el-main>
       </el-container>
     </el-container>

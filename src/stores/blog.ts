@@ -53,41 +53,28 @@ export const useBlogStore = defineStore('blog', () => {
   }
 
   async function fetchAdminArticles(params?: ArticleQuery): Promise<{ list: Article[]; total: number }> {
-    console.log('fetchAdminArticles called with params:', params)
     loading.value = true
     try {
       const response = await request.get('/api/admin/articles', { params: params || {} })
-      console.log('Response from API:', response)
       const list = response.rows || response.list || []
       const totalNum = response.total || 0
-      console.log('Processed data:', { list, totalNum })
-      
+
       // Filter out undefined or null items and ensure tags is an array
       articles.value = list.filter((item: any) => item != null).map((item: any) => {
-        console.log('Processing article:', item.title, 'tags:', item.tags, 'tags type:', typeof item.tags)
-        
         // Ensure tags is an array
         if (!item.tags) {
           item.tags = []
-          console.log('Tags is null/undefined, set to empty array')
         } else if (typeof item.tags === 'string') {
           // If tags is a string, split it into an array
           item.tags = item.tags.split(',').map((tag: string) => tag.trim())
-          console.log('Tags is string, converted to array:', item.tags)
         } else if (!Array.isArray(item.tags)) {
           // If tags is neither string nor array, set to empty array
           item.tags = []
-          console.log('Tags is neither string nor array, set to empty array')
-        } else {
-          console.log('Tags is already an array:', item.tags)
         }
-        
         return item
       })
-      
-      console.log('Final articles with tags:', articles.value.map(a => ({ title: a.title, tags: a.tags })))
+
       total.value = totalNum
-      console.log('Updated store:', { articles: articles.value, total: total.value })
       return { list: articles.value, total: total.value }
     } catch (error) {
       console.error('Failed to fetch admin articles:', error)

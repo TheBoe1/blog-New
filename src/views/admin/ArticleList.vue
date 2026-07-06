@@ -121,13 +121,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useBlogStore } from '@/stores/blog'
 
 const router = useRouter()
-const route = useRoute()
 const blogStore = useBlogStore()
 
 const loading = ref(false)
@@ -211,10 +210,7 @@ function handlePageChange() {
 }
 
 function handleEdit(id: string) {
-  console.log('Editing article with id:', id)
-  console.log('Navigating to:', `/admin/article/edit/${id}`)
   router.push(`/admin/article/edit/${id}`)
-  console.log('Navigation completed')
 }
 
 function handlePreview(article: any) {
@@ -240,51 +236,6 @@ onMounted(async () => {
     pagination.total = blogStore.articles.length
   } finally {
     loading.value = false
-  }
-})
-
-onBeforeRouteUpdate(async (to, from) => {
-  console.log('onBeforeRouteUpdate triggered:', { to: to.path, from: from.path })
-  if (to.path === '/admin/articles') {
-    console.log('Refreshing article list...')
-    loading.value = true
-    try {
-      const result = await Promise.all([
-        blogStore.fetchAdminArticles({}),
-        blogStore.fetchTags()
-      ])
-      console.log('Fetch result:', result)
-      console.log('Articles in store:', blogStore.articles)
-      pagination.total = blogStore.articles.length
-      console.log('Pagination total:', pagination.total)
-    } catch (error) {
-      console.error('Error refreshing articles:', error)
-    } finally {
-      loading.value = false
-      console.log('Refresh completed')
-    }
-  }
-})
-
-// Watch for route changes
-watch(() => route.path, async (newPath, oldPath) => {
-  console.log('Route changed:', { newPath, oldPath })
-  if (newPath === '/admin/articles') {
-    console.log('Route watcher: Refreshing article list...')
-    loading.value = true
-    try {
-      const result = await Promise.all([
-        blogStore.fetchAdminArticles({}),
-        blogStore.fetchTags()
-      ])
-      console.log('Route watcher: Fetch result:', result)
-      pagination.total = blogStore.articles.length
-      console.log('Route watcher: Refresh completed')
-    } catch (error) {
-      console.error('Route watcher: Error refreshing articles:', error)
-    } finally {
-      loading.value = false
-    }
   }
 })
 </script>
