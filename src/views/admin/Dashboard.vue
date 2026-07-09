@@ -116,9 +116,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
+import { statsApi } from '@/api/stats'
 import type { VisitTrend } from '@/types'
 
 const router = useRouter()
@@ -128,6 +129,8 @@ const loading = ref(true)
 const chartPeriod = ref('week')
 const trendData = ref<VisitTrend[]>([])
 const maxPv = ref(100)
+const realtimeStats = ref<{ onlineUsers: number; todayIP: number } | null>(null)
+let realtimeTimer: ReturnType<typeof setInterval> | null = null
 
 const stats = computed(() => {
   const dashboardStats = blogStore.dashboardStats
@@ -160,6 +163,18 @@ const stats = computed(() => {
       title: '分类数',
       value: dashboardStats?.categoryCount ?? blogStore.categories.length,
       icon: 'Folder',
+      color: 'var(--brand-primary)'
+    },
+    {
+      title: '实时在线',
+      value: realtimeStats.value?.onlineUsers ?? 0,
+      icon: 'User',
+      color: 'var(--brand-primary)'
+    },
+    {
+      title: '今日IP',
+      value: realtimeStats.value?.todayIP ?? 0,
+      icon: 'Link',
       color: 'var(--brand-primary)'
     }
   ]
@@ -288,6 +303,15 @@ async function handlePeriodChange() {
   }
 }
 
+async function fetchRealtime() {
+  try {
+    const data = await statsApi.getRealtime()
+    realtimeStats.value = { onlineUsers: data.onlineUsers, todayIP: data.todayIP }
+  } catch (error) {
+    console.error('Failed to fetch realtime stats:', error)
+  }
+}
+
 async function loadDashboardData() {
   loading.value = true
   try {
@@ -308,10 +332,19 @@ async function loadDashboardData() {
   } finally {
     loading.value = false
   }
+  // 实时统计:首次拉取 + 每 30s 轮询(后端 realtime 缓存 30s)
+  fetchRealtime()
+  realtimeTimer = setInterval(fetchRealtime, 30000)
 }
 
 onMounted(() => {
   loadDashboardData()
+})
+
+onUnmounted(() => {
+  if (realtimeTimer) {
+    clearInterval(realtimeTimer)
+  }
 })
 </script>
 

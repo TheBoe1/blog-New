@@ -135,7 +135,21 @@ const router = createRouter({
   }
 })
 
+// 访问统计:停留时长追踪(离开页面时上报,fire-and-forget)
+let currentSession: { sessionId: string; enterTime: number } | null = null
+function reportDuration() {
+  if (currentSession) {
+    const duration = Math.round((Date.now() - currentSession.enterTime) / 1000)
+    if (duration > 0) {
+      statsApi.updateDuration({ sessionId: currentSession.sessionId, duration }).catch(() => {})
+    }
+    currentSession = null
+  }
+}
+window.addEventListener('beforeunload', reportDuration)
+
 router.beforeEach((to, _from, next) => {
+  reportDuration()
   document.title = `${to.meta.title || '我的博客'} - 个人博客`
   
   if (to.meta.requiresAuth) {
@@ -176,6 +190,9 @@ router.afterEach((to) => {
       title: (to.meta.title as string) || document.title,
       referer: document.referrer || undefined,
       timestamp: Date.now()
+    })
+    .then((res) => {
+      currentSession = { sessionId: res.sessionId, enterTime: Date.now() }
     })
     .catch(() => {
       // 统计失败不影响正常浏览

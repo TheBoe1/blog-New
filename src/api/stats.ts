@@ -27,6 +27,10 @@ export const statsApi = {
 
   getSummary(): Promise<VisitSummary> {
     return request.get('/api/stats/summary')
+  },
+
+  getRealtime(): Promise<{ onlineUsers: number; todayPV: number; todayUV: number; todayIP: number }> {
+    return request.get('/api/admin/stats/realtime')
   }
 }
 
