@@ -138,6 +138,12 @@ const stats = computed(() => {
       icon: 'Document',
       color: 'var(--brand-primary)'
     },
+	{
+	  title: '分类数',
+	  value: dashboardStats?.categoryCount ?? blogStore.categories.length,
+	  icon: 'Folder',
+	  color: 'var(--brand-primary)'
+	},
     {
       title: '累计访客',
       value: dashboardStats?.totalVisitors ?? 0,
@@ -154,12 +160,6 @@ const stats = computed(() => {
       title: '今日访客',
       value: dashboardStats?.todayUV ?? 0,
       icon: 'User',
-      color: 'var(--brand-primary)'
-    },
-    {
-      title: '分类数',
-      value: dashboardStats?.categoryCount ?? blogStore.categories.length,
-      icon: 'Folder',
       color: 'var(--brand-primary)'
     }
   ]
