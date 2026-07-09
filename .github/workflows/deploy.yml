@@ -26,6 +26,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_API_BASE_URL: https://api.lianlab.top
         run: npm run build
 
       - name: Install ossutil
