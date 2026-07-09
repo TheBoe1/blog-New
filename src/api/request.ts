@@ -13,6 +13,7 @@ const WHITE_LIST = [
   '/api/tags',
   '/api/settings',
   '/api/stats/visit',
+  '/api/stats/summary',
   '/api/page-config'
 ]
 

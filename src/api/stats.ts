@@ -1,6 +1,14 @@
 import { request } from './request'
 import type { BlogSettings } from '@/types'
 
+export interface VisitSummary {
+  totalVisitors: number
+  todayVisitors: number
+  todayPv: number
+  visitorIp: string
+  visitorLocation: string
+}
+
 export const statsApi = {
   recordVisit(data: {
     url: string
@@ -15,6 +23,10 @@ export const statsApi = {
 
   updateDuration(data: { sessionId: string; duration: number }): Promise<void> {
     return request.put('/api/stats/visit/duration', data)
+  },
+
+  getSummary(): Promise<VisitSummary> {
+    return request.get('/api/stats/summary')
   }
 }
 

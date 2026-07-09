@@ -179,6 +179,7 @@ export interface UploadResult {
 
 export interface DashboardStats {
   articleCount: number
+  totalVisitors: number
   viewCount: number
   likeCount: number
   categoryCount: number

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import { statsApi } from '@/api/stats'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -155,6 +156,30 @@ router.beforeEach((to, _from, next) => {
   }
   
   next()
+})
+
+// 访问统计:公开页面访问记录(fire-and-forget,失败静默,不阻塞导航)
+// 仅统计公开页面,跳过管理端/登录/无权限页;同路径不重复计
+let lastVisitPath = ''
+router.afterEach((to) => {
+  if (to.path.startsWith('/admin') || to.path === '/login' || to.path === '/unauthorized') {
+    return
+  }
+  if (to.path === lastVisitPath) {
+    return
+  }
+  lastVisitPath = to.path
+  statsApi
+    .recordVisit({
+      url: window.location.href,
+      path: to.path,
+      title: (to.meta.title as string) || document.title,
+      referer: document.referrer || undefined,
+      timestamp: Date.now()
+    })
+    .catch(() => {
+      // 统计失败不影响正常浏览
+    })
 })
 
 export default router

@@ -305,6 +305,7 @@ export const useBlogStore = defineStore('blog', () => {
       const data = response.data
       dashboardStats.value = {
         articleCount: data.articleCount,
+        totalVisitors: data.totalVisitors ?? 0,
         viewCount: 0,
         likeCount: 0,
         categoryCount: data.categoryCount,

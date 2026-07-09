@@ -139,6 +139,12 @@ const stats = computed(() => {
       color: 'var(--brand-primary)'
     },
     {
+      title: '累计访客',
+      value: dashboardStats?.totalVisitors ?? 0,
+      icon: 'DataAnalysis',
+      color: 'var(--brand-primary)'
+    },
+    {
       title: '今日访问',
       value: dashboardStats?.todayPV ?? 0,
       icon: 'View',
@@ -313,7 +319,7 @@ onMounted(() => {
 .dashboard {
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
 
