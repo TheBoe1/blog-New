@@ -98,6 +98,12 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminPageConfig',
         component: () => import('@/views/admin/PageConfigEditor.vue'),
         meta: { title: '页面配置' }
+      },
+      {
+        path: 'visit-logs',
+        name: 'AdminVisitLogs',
+        component: () => import('@/views/admin/VisitLogs.vue'),
+        meta: { title: '访问日志' }
       }
     ]
   },

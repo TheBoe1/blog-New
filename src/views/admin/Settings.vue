@@ -251,10 +251,7 @@ const passwordForm = reactive({
 async function loadSettings() {
   try {
     console.log('Loading settings...')
-    const response = await request.get('/api/admin/settings')
-    console.log('Settings response:', response)
-    const settings = response.data || response
-    console.log('Settings data:', settings)
+    const settings = await request.get('/api/admin/settings')
     
     if (settings) {
       basicForm.siteName = settings.siteName || ''

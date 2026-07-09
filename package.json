@@ -21,6 +21,7 @@
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.6.2",
     "dayjs": "^1.11.10",
+    "echarts": "^6.1.0",
     "element-plus": "^2.4.2",
     "highlight.js": "^11.11.1",
     "md-editor-v3": "^6.4.2",

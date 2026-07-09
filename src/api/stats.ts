@@ -1,5 +1,5 @@
 import { request } from './request'
-import type { BlogSettings } from '@/types'
+import type { BlogSettings, VisitLog } from '@/types'
 
 export interface VisitSummary {
   totalVisitors: number
@@ -27,6 +27,10 @@ export const statsApi = {
 
   getSummary(): Promise<VisitSummary> {
     return request.get('/api/stats/summary')
+  },
+
+  getVisitLogs(params: Record<string, any>): Promise<{ rows: VisitLog[]; total: number }> {
+    return request.get('/api/admin/stats/visit/logs', { params })
   }
 }
 

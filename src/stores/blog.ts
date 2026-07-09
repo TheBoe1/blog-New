@@ -13,6 +13,8 @@ export const useBlogStore = defineStore('blog', () => {
   const total = ref(0)
   const dashboardStats = ref<DashboardStats | null>(null)
   const visitTrend = ref<VisitTrend[]>([])
+  const trendSummary = ref<any>(null)
+  const trendComparison = ref<any>(null)
 
   const articleCount = computed(() => total.value || articles.value.length)
   const categoryCount = computed(() => categories.value.length)
@@ -119,8 +121,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function createArticle(article: Partial<Article>): Promise<Article> {
     loading.value = true
     try {
-      const response = await request.post('/api/admin/articles', article)
-      const newArticle = response.data
+      const newArticle = await request.post('/api/admin/articles', article)
       articles.value.unshift(newArticle)
       total.value++
       return newArticle
@@ -135,8 +136,7 @@ export const useBlogStore = defineStore('blog', () => {
   async function updateArticle(id: string, article: Partial<Article>): Promise<Article> {
     loading.value = true
     try {
-      const response = await request.put(`/api/admin/articles/${id}`, article)
-      const updatedArticle = response.data
+      const updatedArticle = await request.put(`/api/admin/articles/${id}`, article)
       const index = articles.value.findIndex(a => a.id === id)
       if (index !== -1) {
         articles.value[index] = updatedArticle
@@ -180,8 +180,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function createCategory(category: Partial<Category>): Promise<Category> {
     try {
-      const response = await request.post('/api/admin/categories', category)
-      const newCategory = response.data
+      const newCategory = await request.post('/api/admin/categories', category)
       categories.value.push(newCategory)
       return newCategory
     } catch (error) {
@@ -192,8 +191,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function updateCategory(id: string, category: Partial<Category>): Promise<Category> {
     try {
-      const response = await request.put(`/api/admin/categories/${id}`, category)
-      const updatedCategory = response.data
+      const updatedCategory = await request.put(`/api/admin/categories/${id}`, category)
       const index = categories.value.findIndex(c => c.id === id)
       if (index !== -1) {
         categories.value[index] = updatedCategory
@@ -231,8 +229,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function createTag(tag: Partial<Tag>): Promise<Tag> {
     try {
-      const response = await request.post('/api/admin/tags', tag)
-      const newTag = response.data
+      const newTag = await request.post('/api/admin/tags', tag)
       tags.value.push(newTag)
       return newTag
     } catch (error) {
@@ -243,8 +240,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function updateTag(id: string, tag: Partial<Tag>): Promise<Tag> {
     try {
-      const response = await request.put(`/api/admin/tags/${id}`, tag)
-      const updatedTag = response.data
+      const updatedTag = await request.put(`/api/admin/tags/${id}`, tag)
       const index = tags.value.findIndex(t => t.id === id)
       const oldTagName = index !== -1 ? tags.value[index].name : null
       
@@ -301,8 +297,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function fetchDashboardStats(): Promise<DashboardStats | null> {
     try {
-      const response = await request.get('/api/admin/stats/dashboard')
-      const data = response.data
+      const data = await request.get('/api/admin/stats/dashboard')
       dashboardStats.value = {
         articleCount: data.articleCount,
         totalVisitors: data.totalVisitors ?? 0,
@@ -325,10 +320,12 @@ export const useBlogStore = defineStore('blog', () => {
 
   async function fetchVisitTrend(startDate: string, endDate: string, granularity: string = 'day'): Promise<VisitTrend[]> {
     try {
-      const response = await request.get('/api/admin/stats/trend', {
+      const data = await request.get('/api/admin/stats/trend', {
         params: { startDate, endDate, granularity }
       })
-      visitTrend.value = response.data?.trend || []
+      visitTrend.value = data?.trend || []
+      trendSummary.value = data?.summary || null
+      trendComparison.value = data?.comparison || null
       return visitTrend.value
     } catch (error) {
       console.error('Failed to fetch visit trend:', error)
@@ -345,6 +342,8 @@ export const useBlogStore = defineStore('blog', () => {
     total,
     dashboardStats,
     visitTrend,
+    trendSummary,
+    trendComparison,
     articleCount,
     categoryCount,
     tagCount,

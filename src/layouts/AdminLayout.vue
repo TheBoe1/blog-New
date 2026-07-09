@@ -52,6 +52,11 @@
             <el-icon><EditPen /></el-icon>
             <template #title>页面配置</template>
           </el-menu-item>
+
+          <el-menu-item index="/admin/visit-logs">
+            <el-icon><View /></el-icon>
+            <template #title>访问日志</template>
+          </el-menu-item>
         </el-menu>
       </el-aside>
 
