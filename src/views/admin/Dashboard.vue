@@ -248,6 +248,7 @@ const provinceCoordinates: Record<string, [number, number]> = {
   台湾: [121.56, 25.04]
 }
 let visitorMapRegistered = false
+let locationMapZoom = 1.16
 
 function buildChartOption(): echarts.EChartsOption {
   const mk = (key: 'pv' | 'uv' | 'ip', label: string) => ({
@@ -420,6 +421,14 @@ function getProvinceColor(count: number): string {
   return '#667eea'
 }
 
+function getProvinceSymbolSize(value: number[]): number {
+  const count = Math.max(Number(value?.[2]) || 0, 0)
+  const maxCount = maxProvinceCount.value
+  const normalized = maxCount > 0 ? Math.sqrt(count / maxCount) : 0
+  const zoomFactor = Math.min(Math.max(locationMapZoom / 1.16, 0.82), 1.35)
+  return Math.round((5 + normalized * 7) * zoomFactor)
+}
+
 async function ensureVisitorMapRegistered() {
   if (visitorMapRegistered) return
   mapLoading.value = true
@@ -462,7 +471,7 @@ function buildLocationOption(): echarts.EChartsOption {
     geo: {
       map: CHINA_MAP_NAME,
       roam: true,
-      zoom: 1.16,
+      zoom: locationMapZoom,
       scaleLimit: { min: 0.9, max: 6 },
       top: 8,
       bottom: 4,
@@ -492,18 +501,25 @@ function buildLocationOption(): echarts.EChartsOption {
         type: 'effectScatter',
         coordinateSystem: 'geo',
         data: points,
-        symbolSize: (value: number[]) => Math.max(9, Math.min(26, value[2] * 4)),
+        symbolSize: getProvinceSymbolSize,
         rippleEffect: {
           brushType: 'stroke',
-          scale: 3
+          scale: 1.8,
+          period: 4
         },
         itemStyle: {
           color: '#0ea5e9',
-          shadowBlur: 12,
-          shadowColor: 'rgba(14, 165, 233, 0.45)'
+          shadowBlur: 6,
+          shadowColor: 'rgba(14, 165, 233, 0.28)'
+        },
+        emphasis: {
+          scale: 1.25,
+          label: {
+            show: true
+          }
         },
         label: {
-          show: true,
+          show: false,
           formatter: '{b}',
           position: 'right',
           fontSize: 11,
@@ -719,6 +735,15 @@ onMounted(() => {
     }
     if (locationChartRef.value) {
       locationChart = echarts.init(locationChartRef.value)
+      locationChart.on('georoam', () => {
+        const option = locationChart?.getOption()
+        const geoOption = Array.isArray(option?.geo) ? option.geo[0] : option?.geo
+        const zoom = Number((geoOption as any)?.zoom)
+        if (Number.isFinite(zoom) && zoom > 0) {
+          locationMapZoom = zoom
+          scheduleLocationRender()
+        }
+      })
       locationResizeObserver = new ResizeObserver(scheduleLocationRender)
       locationResizeObserver.observe(locationChartRef.value)
       scheduleLocationRender()
