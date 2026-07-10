@@ -196,10 +196,21 @@ const trendChartRef = ref<HTMLElement | null>(null)
 const locationChartRef = ref<HTMLElement | null>(null)
 let trendChart: echarts.ECharts | null = null
 let locationChart: echarts.ECharts | null = null
+let trendResizeObserver: ResizeObserver | null = null
+let locationResizeObserver: ResizeObserver | null = null
+let trendRenderTimer: number | null = null
+let locationRenderTimer: number | null = null
 
 const seriesColors: Record<string, string> = { pv: '#667eea', uv: '#14b8a6', ip: '#f59e0b' }
 const CHINA_MAP_NAME = 'chinaVisitorMap'
-const CHINA_MAP_URL = 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json'
+
+function resolvePublicAsset(path: string): string {
+  const base = import.meta.env.BASE_URL || '/'
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`
+  return `${normalizedBase}${path.replace(/^\/+/, '')}`
+}
+
+const CHINA_MAP_URL = resolvePublicAsset('maps/china.json')
 const provinceCoordinates: Record<string, [number, number]> = {
   北京: [116.40, 39.90],
   天津: [117.20, 39.12],
@@ -284,29 +295,62 @@ function buildChartOption(): echarts.EChartsOption {
   }
 }
 
+function hasUsableChartSize(el: HTMLElement | null): el is HTMLElement {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  return rect.width >= 120 && rect.height >= 120
+}
+
+function scheduleTrendRender() {
+  if (trendRenderTimer !== null) {
+    window.clearTimeout(trendRenderTimer)
+  }
+  trendRenderTimer = window.setTimeout(() => {
+    trendRenderTimer = null
+    if (!trendChart || !hasUsableChartSize(trendChartRef.value)) return
+    trendChart.resize()
+    updateChart()
+  }, 80)
+}
+
+function scheduleLocationRender() {
+  if (locationRenderTimer !== null) {
+    window.clearTimeout(locationRenderTimer)
+  }
+  locationRenderTimer = window.setTimeout(() => {
+    locationRenderTimer = null
+    if (!locationChart || !hasUsableChartSize(locationChartRef.value)) return
+    locationChart.resize()
+    updateLocationChart()
+  }, 80)
+}
+
 function updateChart() {
   if (!trendChart) return
+  if (!hasUsableChartSize(trendChartRef.value)) {
+    scheduleTrendRender()
+    return
+  }
   if (trendData.value.length === 0) {
     trendChart.clear()
     return
   }
+  trendChart.resize()
   trendChart.setOption(buildChartOption(), true)
 }
 
 function handleResize() {
-  trendChart?.resize()
-  locationChart?.resize()
+  scheduleTrendRender()
+  scheduleLocationRender()
 }
 
 function toggleChartView() {
   chartView.value = chartView.value === 'trend' ? 'map' : 'trend'
   nextTick(() => {
     if (chartView.value === 'trend') {
-      trendChart?.resize()
-      updateChart()
+      scheduleTrendRender()
     } else {
-      locationChart?.resize()
-      updateLocationChart()
+      scheduleLocationRender()
     }
   })
 }
@@ -382,7 +426,7 @@ async function ensureVisitorMapRegistered() {
   try {
     const response = await fetch(CHINA_MAP_URL)
     if (!response.ok) {
-      throw new Error(`Failed to load China map: ${response.status}`)
+      throw new Error(`Failed to load China map from ${CHINA_MAP_URL}: ${response.status}`)
     }
     const chinaGeoJson = await response.json()
     echarts.registerMap(CHINA_MAP_NAME, chinaGeoJson)
@@ -472,8 +516,13 @@ function buildLocationOption(): echarts.EChartsOption {
 
 async function updateLocationChart() {
   if (!locationChart) return
+  if (!hasUsableChartSize(locationChartRef.value)) {
+    scheduleLocationRender()
+    return
+  }
   try {
     await ensureVisitorMapRegistered()
+    locationChart.resize()
     locationChart.setOption(buildLocationOption(), true)
   } catch (error) {
     console.error('Failed to render location map:', error)
@@ -663,18 +712,34 @@ onMounted(() => {
   nextTick(() => {
     if (trendChartRef.value) {
       trendChart = echarts.init(trendChartRef.value)
+      trendResizeObserver = new ResizeObserver(scheduleTrendRender)
+      trendResizeObserver.observe(trendChartRef.value)
       window.addEventListener('resize', handleResize)
-      updateChart()
+      scheduleTrendRender()
     }
     if (locationChartRef.value) {
       locationChart = echarts.init(locationChartRef.value)
-      updateLocationChart()
+      locationResizeObserver = new ResizeObserver(scheduleLocationRender)
+      locationResizeObserver.observe(locationChartRef.value)
+      scheduleLocationRender()
     }
   })
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (trendRenderTimer !== null) {
+    window.clearTimeout(trendRenderTimer)
+    trendRenderTimer = null
+  }
+  if (locationRenderTimer !== null) {
+    window.clearTimeout(locationRenderTimer)
+    locationRenderTimer = null
+  }
+  trendResizeObserver?.disconnect()
+  trendResizeObserver = null
+  locationResizeObserver?.disconnect()
+  locationResizeObserver = null
   trendChart?.dispose()
   trendChart = null
   locationChart?.dispose()
@@ -682,11 +747,11 @@ onUnmounted(() => {
 })
 
 watch([trendData, chartMetric], () => {
-  updateChart()
+  scheduleTrendRender()
 }, { deep: true })
 
 watch(provinceStats, () => {
-  updateLocationChart()
+  scheduleLocationRender()
 }, { deep: true })
 </script>
 
