@@ -1,5 +1,6 @@
 <template>
   <div class="front-layout">
+    <ParticleMouseBackground />
     <ReadingProgress />
 
     <AppNavbar :site-settings="siteSettings" />
@@ -51,6 +52,7 @@ import { settingsApi } from '@/api/stats'
 import { useEntranceAnim } from '@/composables/useEntranceAnim'
 import BackToTop from '@/components/BackToTop.vue'
 import AppNavbar from '@/components/AppNavbar.vue'
+import ParticleMouseBackground from '@/components/ParticleMouseBackground.vue'
 
 const route = useRoute()
 
@@ -71,6 +73,8 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .front-layout {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -78,6 +82,8 @@ onMounted(async () => {
 
 // ─── Main content ─────────────────────────────────────
 .main-content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   padding: var(--space-8) var(--space-6);
   max-width: var(--content-max-width);
@@ -87,6 +93,8 @@ onMounted(async () => {
 
 // ─── Footer (cnkirito.moe style) ──────────────────────
 .footer {
+  position: relative;
+  z-index: 1;
   padding: var(--space-8) var(--space-6);
   border-top: 1px solid var(--border-color);
 

@@ -63,6 +63,7 @@ declare module 'vue' {
     IconMdiGithub: typeof import('~icons/mdi/github')['default']
     IconMdiRss: typeof import('~icons/mdi/rss')['default']
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
+    ParticleMouseBackground: typeof import('./components/ParticleMouseBackground.vue')['default']
     ReadingProgress: typeof import('./components/ReadingProgress.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
