@@ -147,7 +147,16 @@
       "Bash(grep -v '//')",
       "Bash(grep -n '\\\\$grad-brand' src/views/ArticleDetail.vue)",
       "Read(//d/Stday/个人简历/项目/后端初始框架/**)",
-      "Read(//d/Stday/个人简历/ECS/develop/7m5d两步验证/**)"
+      "Read(//d/Stday/个人简历/ECS/develop/7m5d两步验证/**)",
+      "mcp__anysearch__search",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Read(//c/Users/kang/**)",
+      "Bash(npm ls *)",
+      "Bash(git rev-list *)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(nslookup github.com)",
+      "Bash(git merge *)"
     ]
   }
 }

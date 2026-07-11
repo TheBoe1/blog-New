@@ -157,7 +157,21 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { statsApi } from '@/api/stats'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { LineChart, EffectScatterChart } from 'echarts/charts'
+import {
+  TitleComponent, TooltipComponent, LegendComponent,
+  GeoComponent, GridComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+import type { EChartsCoreOption as EChartsOption } from 'echarts/core'
+
+echarts.use([
+  LineChart, EffectScatterChart,
+  TitleComponent, TooltipComponent, LegendComponent,
+  GeoComponent, GridComponent,
+  CanvasRenderer
+])
 import type { VisitLog, VisitTrend } from '@/types'
 
 const router = useRouter()
@@ -250,7 +264,7 @@ const provinceCoordinates: Record<string, [number, number]> = {
 let visitorMapRegistered = false
 let locationMapZoom = 1.16
 
-function buildChartOption(): echarts.EChartsOption {
+function buildChartOption(): EChartsOption {
   const mk = (key: 'pv' | 'uv' | 'ip', label: string) => ({
     name: label,
     type: 'line' as const,
@@ -445,7 +459,7 @@ async function ensureVisitorMapRegistered() {
   }
 }
 
-function buildLocationOption(): echarts.EChartsOption {
+function buildLocationOption(): EChartsOption {
   const regions = provinceStats.value.map(stat => ({
       name: getMapProvinceName(stat.province),
       itemStyle: {

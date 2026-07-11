@@ -106,16 +106,41 @@
 
   <Teleport to="body">
     <Transition name="mobile-menu">
-      <div v-if="mobileMenuOpen" id="mobile-navigation" class="mobile-navigation">
+      <div v-if="mobileMenuOpen" id="mobile-navigation" class="mobile-navigation" @click.self="mobileMenuOpen = false">
         <div class="mobile-navigation__panel">
           <router-link
-            v-for="item in mobileNavItems"
+            v-for="item in navItems"
             :key="item.path"
             :to="item.path"
             class="mobile-navigation__link"
             :class="{ 'is-active': isActive(item.path) }"
             @click="mobileMenuOpen = false"
           >{{ item.title }}</router-link>
+          <button
+            class="mobile-navigation__link mobile-navigation__parent"
+            type="button"
+            :class="{ 'is-active': route.path.startsWith('/project/') }"
+            :aria-expanded="mobileProjectsOpen"
+            aria-controls="mobile-project-list"
+            @click="mobileProjectsOpen = !mobileProjectsOpen"
+          >
+            <span>项目</span>
+            <i class="fas fa-chevron-down" :class="{ 'is-open': mobileProjectsOpen }"></i>
+          </button>
+          <Transition name="mobile-submenu">
+            <div v-if="mobileProjectsOpen" id="mobile-project-list" class="mobile-navigation__project-list">
+              <router-link
+                v-for="project in projects"
+                :key="project.id"
+                :to="`/project/${project.id}`"
+                class="mobile-navigation__project"
+                @click="mobileMenuOpen = false"
+              >
+                <strong>{{ project.name }}</strong>
+                <span>{{ project.description }}</span>
+              </router-link>
+            </div>
+          </Transition>
         </div>
       </div>
     </Transition>
@@ -157,6 +182,7 @@ const searchKeyword = ref('')
 const scrolled = ref(false)
 const showSearch = ref(false)
 const mobileMenuOpen = ref(false)
+const mobileProjectsOpen = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 let ticking = false
 
@@ -166,11 +192,6 @@ const navItems = computed(() => [
   { path: '/', title: '主页' },
   { path: '/articles', title: '归档' },
   { path: '/about', title: '关于' }
-])
-
-const mobileNavItems = computed(() => [
-  ...navItems.value,
-  { path: '/projects', title: '项目' }
 ])
 
 const isProjectsActive = ref(false)
@@ -201,10 +222,16 @@ function onScroll() {
 }
 
 function onSearchKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') showSearch.value = false
+  if (e.key === 'Escape') {
+    showSearch.value = false
+    mobileMenuOpen.value = false
+  }
 }
 
-watch(() => route.fullPath, () => { mobileMenuOpen.value = false })
+watch(() => route.fullPath, () => {
+  mobileMenuOpen.value = false
+  mobileProjectsOpen.value = false
+})
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -676,13 +703,35 @@ onUnmounted(() => {
 .mobile-navigation__link > .fa-chevron-right { color: var(--text-tertiary); font-size: var(--font-size-xs); }
 .mobile-navigation__link:active { color: var(--brand-primary); background: var(--brand-tint); }
 .mobile-navigation__link.is-active { color: var(--brand-primary); background: var(--brand-tint); }
-.mobile-menu-enter-active, .mobile-menu-leave-active { transition: opacity var(--motion-fast) ease; }
+.mobile-navigation__parent { justify-content: space-between; }
+.mobile-navigation__parent .fa-chevron-down { flex: 0 0 auto; color: var(--text-tertiary); font-size: var(--font-size-xs); transition: transform var(--motion-normal) var(--ease-standard); }
+.mobile-navigation__parent .fa-chevron-down.is-open { transform: rotate(180deg); }
+.mobile-navigation__project-list { display: grid; gap: 4px; padding: var(--space-1) 0 var(--space-2) var(--space-3); overflow: hidden; }
+.mobile-navigation__project { display: grid; gap: 2px; min-width: 0; padding: var(--space-2) var(--space-3); border-left: 2px solid var(--border-color); color: var(--text-primary); }
+.mobile-navigation__project strong { overflow: hidden; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-overflow: ellipsis; white-space: nowrap; }
+.mobile-navigation__project span { overflow: hidden; color: var(--text-tertiary); font-size: var(--font-size-xs); text-overflow: ellipsis; white-space: nowrap; }
+.mobile-navigation__project:active { color: var(--brand-primary); border-left-color: var(--brand-primary); background: var(--brand-tint); }
+
+.mobile-menu-enter-active, .mobile-menu-leave-active { transition: opacity var(--motion-normal) var(--ease-standard); }
+.mobile-menu-enter-active .mobile-navigation__panel,
+.mobile-menu-leave-active .mobile-navigation__panel { transition: opacity var(--motion-normal) var(--ease-standard), transform var(--motion-normal) var(--ease-standard); transform-origin: top center; }
 .mobile-menu-enter-from, .mobile-menu-leave-to { opacity: 0; }
+.mobile-menu-enter-from .mobile-navigation__panel,
+.mobile-menu-leave-to .mobile-navigation__panel { opacity: 0; transform: translateY(-14px) scale(0.985); }
+
+.mobile-submenu-enter-active, .mobile-submenu-leave-active {
+  will-change: transform, opacity;
+  transition: opacity var(--motion-fast) ease, transform var(--motion-normal) var(--ease-standard);
+}
+.mobile-submenu-enter-from, .mobile-submenu-leave-to { opacity: 0; transform: translateY(-6px) scaleY(0.96); }
 
 // ─── Reduced motion: kill navbar underline + logo rotate ──
 @media (prefers-reduced-motion: reduce) {
   .navbar-item::after,
-  .navbar-logo img {
+  .navbar-logo img,
+  .mobile-navigation__panel,
+  .mobile-navigation__parent .fa-chevron-down,
+  .mobile-navigation__project-list {
     transition: none !important;
   }
 }

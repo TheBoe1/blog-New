@@ -128,8 +128,36 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'framework': ['vue', 'vue-router', 'pinia'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // echarts 按需引入后体积已小，但仍独立 chunk 便于缓存
+            if (id.includes('echarts')) return 'vendor-echarts'
+            // 编辑器只在懒加载路由使用。返回 undefined 交给 Rollup 跟随路由拆包，
+            // 避免命名公共块被入口 modulepreload 提前下载。
+            if (
+              id.includes('@wangeditor') ||
+              id.includes('md-editor-v3') ||
+              id.includes('codemirror') ||
+              id.includes('@codemirror') ||
+              id.includes('@lezer/') ||
+              id.includes('@replit') ||
+              id.includes('crelt') ||
+              id.includes('style-mod') ||
+              id.includes('w3c-keyboard') ||
+              id.includes('lucide-vue-next') ||
+              id.includes('lucide') ||
+              id.includes('medium-zoom') ||
+              id.includes('@vavt')
+            ) return undefined
+            // Element Plus 独立 chunk，缓存友好
+            if (id.includes('element-plus')) return 'vendor-element-plus'
+            // Iconify 图标数据（纯 JSON，体积大，独立拆分利于缓存）
+            if (id.includes('@iconify-json') || id.includes('@iconify/iconify')) return 'vendor-icons'
+            // 框架核心
+            if (id.includes('/vue/') || id.includes('pinia') || id.includes('@vueuse')) return 'framework'
+            // 其他小依赖合入 vendor
+            return 'vendor'
+          }
         },
       },
     },
