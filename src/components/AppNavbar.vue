@@ -12,6 +12,31 @@
         </router-link>
       </div>
 
+      <button
+        class="mobile-menu-toggle"
+        type="button"
+        :aria-expanded="mobileMenuOpen"
+        aria-controls="mobile-navigation"
+        aria-label="打开导航菜单"
+        @click="mobileMenuOpen = !mobileMenuOpen"
+      >
+        <span class="mobile-menu-toggle__glyph" aria-hidden="true">{{ mobileMenuOpen ? '×' : '☰' }}</span>
+      </button>
+
+      <div class="mobile-navbar-actions">
+        <ThemeToggle />
+        <button type="button" aria-label="搜索" title="搜索" @click="showSearch = true">
+          <i class="fas fa-search"></i>
+        </button>
+        <router-link
+          :to="userStore.isLoggedIn ? '/admin' : '/login'"
+          :aria-label="userStore.isLoggedIn ? '管理后台' : '登录'"
+          :title="userStore.isLoggedIn ? '管理后台' : '登录'"
+        >
+          <i :class="userStore.isLoggedIn ? 'fas fa-cog' : 'fas fa-sign-in-alt'"></i>
+        </router-link>
+      </div>
+
       <!-- Menu: start (nav links) + end (search icon) -->
       <div class="navbar-menu">
         <div class="navbar-start">
@@ -79,6 +104,23 @@
     </div>
   </nav>
 
+  <Teleport to="body">
+    <Transition name="mobile-menu">
+      <div v-if="mobileMenuOpen" id="mobile-navigation" class="mobile-navigation">
+        <div class="mobile-navigation__panel">
+          <router-link
+            v-for="item in mobileNavItems"
+            :key="item.path"
+            :to="item.path"
+            class="mobile-navigation__link"
+            :class="{ 'is-active': isActive(item.path) }"
+            @click="mobileMenuOpen = false"
+          >{{ item.title }}</router-link>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
   <!-- Search modal -->
   <Teleport to="body">
     <div v-if="showSearch" class="search-modal" @click.self="showSearch = false">
@@ -99,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { projects as projectList } from '@/data/projects'
@@ -114,6 +156,7 @@ const userStore = useUserStore()
 const searchKeyword = ref('')
 const scrolled = ref(false)
 const showSearch = ref(false)
+const mobileMenuOpen = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 let ticking = false
 
@@ -123,6 +166,11 @@ const navItems = computed(() => [
   { path: '/', title: '主页' },
   { path: '/articles', title: '归档' },
   { path: '/about', title: '关于' }
+])
+
+const mobileNavItems = computed(() => [
+  ...navItems.value,
+  { path: '/projects', title: '项目' }
 ])
 
 const isProjectsActive = ref(false)
@@ -155,6 +203,8 @@ function onScroll() {
 function onSearchKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') showSearch.value = false
 }
+
+watch(() => route.fullPath, () => { mobileMenuOpen.value = false })
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -478,8 +528,107 @@ onUnmounted(() => {
 
 // ─── Responsive ───────────────────────────────────────
 @media (max-width: 768px) {
-  .navbar-menu {
-    display: none;
+  .navbar .container {
+    position: relative;
+    width: 100%;
+    min-height: 3.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-3);
+  }
+
+  .navbar .navbar-brand {
+    position: absolute;
+    left: 50%;
+    min-height: 3.75rem;
+    transform: translateX(-50%);
+  }
+
+  .navbar .navbar-brand .navbar-logo {
+    padding: 0;
+  }
+
+  .navbar .navbar-brand .navbar-logo img {
+    width: 34px;
+    height: 34px;
+    max-height: none;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3px var(--border-color);
+  }
+
+  .navbar .navbar-menu,
+  .navbar .navbar-start,
+  .navbar .navbar-end {
+    display: none !important;
+  }
+
+  .mobile-menu-toggle {
+    position: absolute;
+    left: var(--space-3);
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+    box-shadow: var(--shadow-sm);
+    font-size: var(--font-size-base);
+    line-height: 1;
+    z-index: 2;
+    cursor: pointer;
+    transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+  }
+
+  .mobile-menu-toggle__glyph {
+    font-size: 20px;
+    font-weight: var(--font-weight-normal);
+    line-height: 1;
+  }
+
+  .mobile-navbar-actions {
+    position: absolute;
+    right: var(--space-3);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .mobile-navbar-actions > button,
+  .mobile-navbar-actions > a {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    background: transparent;
+    font-size: 17px;
+    cursor: pointer;
+  }
+
+  .mobile-navbar-actions :deep(.theme-toggle .theme-icon) {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .mobile-navbar-actions > button:active,
+  .mobile-navbar-actions > a:active {
+    color: var(--brand-primary);
+    background: var(--brand-tint);
+  }
+
+  .mobile-menu-toggle:active {
+    color: var(--brand-primary);
+    border-color: color-mix(in srgb, var(--brand-primary) 45%, transparent);
+    background: var(--brand-tint);
   }
 
   // Hide animated underline on touch — no hover state meaningful on mobile
@@ -487,6 +636,48 @@ onUnmounted(() => {
     display: none;
   }
 }
+
+@media (min-width: 769px) { .mobile-menu-toggle, .mobile-navbar-actions { display: none; } }
+
+.mobile-navigation {
+  position: fixed;
+  inset: 60px 0 0;
+  z-index: 99;
+  width: 100%;
+  max-width: 100vw;
+  padding: var(--space-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--bg-page) 68%, transparent);
+  backdrop-filter: blur(8px);
+}
+.mobile-navigation__panel {
+  display: grid;
+  gap: 2px;
+  width: min(100%, 560px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-hover);
+}
+.mobile-navigation__link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+}
+.mobile-navigation__link { width: 100%; gap: var(--space-3); border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.mobile-navigation__link span { min-width: 0; flex: 1; }
+.mobile-navigation__link > .fa-chevron-right { color: var(--text-tertiary); font-size: var(--font-size-xs); }
+.mobile-navigation__link:active { color: var(--brand-primary); background: var(--brand-tint); }
+.mobile-navigation__link.is-active { color: var(--brand-primary); background: var(--brand-tint); }
+.mobile-menu-enter-active, .mobile-menu-leave-active { transition: opacity var(--motion-fast) ease; }
+.mobile-menu-enter-from, .mobile-menu-leave-to { opacity: 0; }
 
 // ─── Reduced motion: kill navbar underline + logo rotate ──
 @media (prefers-reduced-motion: reduce) {

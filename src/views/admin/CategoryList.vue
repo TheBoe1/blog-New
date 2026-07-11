@@ -8,6 +8,7 @@
     </div>
 
     <el-card shadow="never">
+      <div class="admin-table-scroll">
       <el-table :data="categories" style="width: 100%" v-loading="loading">
         <el-table-column prop="name" label="分类名称" min-width="150" />
         <el-table-column prop="slug" label="别名" width="120" />
@@ -37,6 +38,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
     </el-card>
 
     <el-dialog
