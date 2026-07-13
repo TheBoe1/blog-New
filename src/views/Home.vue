@@ -46,6 +46,10 @@
               <i class="far fa-calendar-alt"></i>
               <time>{{ formatDate(article.createTime) }}</time>
             </span>
+			<span class="meta-item">
+			  <i class="far fa-eye"></i>
+			  <p>{{article.viewCount}}</p>
+			</span>
             <span v-if="article.categoryName" class="meta-item">
               <router-link :to="`/category/${article.categoryId}`" class="meta-link">
                 {{ article.categoryName }}
