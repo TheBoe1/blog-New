@@ -395,24 +395,6 @@ img.lazy-load.loaded {
   opacity: 1;
 }
 
-// ─── Pace progress bar ────────────────────────────────
-.pace {
-  pointer-events: none;
-  user-select: none;
-}
-.pace .pace-progress {
-  position: fixed;
-  top: 0;
-  right: 100%;
-  width: 100%;
-  height: 2px;
-  z-index: 2000;
-  background: var(--brand-primary);
-}
-.pace-inactive {
-  display: none;
-}
-
 // ─── Card hover micro-interaction (cnkirito/lexburner signature) ──
 // Cards lift 8px on hover with stronger shadow + brand-tinted border.
 // Scoped to .front-layout so admin el-card variants are unaffected.
@@ -441,7 +423,6 @@ img.lazy-load.loaded {
     transform: none !important;
     transition: none !important;
   }
-  .pace { display: none !important; }
   .front-layout .card,
   .front-layout .card:hover {
     transition: none !important;

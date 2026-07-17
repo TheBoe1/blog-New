@@ -3,6 +3,14 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useLoadingStore } from '@/stores/loading'
 
+interface RequestConfig extends AxiosRequestConfig {
+  showGlobalLoading?: boolean
+}
+
+interface LoadingAwareRequestConfig extends RequestConfig {
+  globalLoadingStarted?: boolean
+}
+
 const WHITE_LIST = [
   '/login',
   '/logout',
@@ -28,6 +36,14 @@ function shouldSilentError(url: string, method: string): boolean {
   return false
 }
 
+function hideGlobalLoading(config?: AxiosRequestConfig) {
+  const loadingConfig = config as LoadingAwareRequestConfig | undefined
+  if (!loadingConfig?.globalLoadingStarted) return
+
+  useLoadingStore().hideLoading()
+  loadingConfig.globalLoadingStarted = false
+}
+
 let isRedirecting = false
 
 const instance: AxiosInstance = axios.create({
@@ -42,13 +58,15 @@ instance.interceptors.request.use(
   (config) => {
     const userStore = useUserStore()
     const loadingStore = useLoadingStore()
+    const loadingConfig = config as typeof config & LoadingAwareRequestConfig
     const token = userStore.token
 
     const isAdminApi = config.url?.startsWith('/api/admin')
 
     // admin API 走页面级 loading（v-loading），不触发全局遮罩，避免路由切换时全屏闪烁
-    if (!isWhiteListUrl(config.url || '') && !isAdminApi) {
+    if (loadingConfig.showGlobalLoading !== false && !isWhiteListUrl(config.url || '') && !isAdminApi) {
       loadingStore.showLoading()
+      loadingConfig.globalLoadingStarted = true
     }
     
     if (token) {
@@ -72,16 +90,14 @@ instance.interceptors.request.use(
     return config
   },
   (error) => {
-    const loadingStore = useLoadingStore()
-    loadingStore.hideLoading()
+    hideGlobalLoading(error.config)
     return Promise.reject(error)
   }
 )
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
-    const loadingStore = useLoadingStore()
-    loadingStore.hideLoading()
+    hideGlobalLoading(response.config)
     
     const { data, config } = response
     
@@ -129,8 +145,7 @@ instance.interceptors.response.use(
     return Promise.reject(err)
   },
   (error) => {
-    const loadingStore = useLoadingStore()
-    loadingStore.hideLoading()
+    hideGlobalLoading(error.config)
     
     const { response, config } = error
     
@@ -222,16 +237,16 @@ function handleTokenExpired(requestUrl: string) {
 }
 
 export const request = {
-  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  get<T = any>(url: string, config?: RequestConfig): Promise<T> {
     return instance.get(url, config)
   },
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
     return instance.post(url, data, config)
   },
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
     return instance.put(url, data, config)
   },
-  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  delete<T = any>(url: string, config?: RequestConfig): Promise<T> {
     return instance.delete(url, config)
   },
   upload<T = any>(url: string, file: File, onProgress?: (percent: number) => void, fieldName: string = 'file', params?: Record<string, any>): Promise<T> {

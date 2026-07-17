@@ -18,15 +18,15 @@ export const statsApi = {
     articleId?: string
     timestamp?: number
   }): Promise<{ sessionId: string; visitorId: string }> {
-    return request.post('/api/stats/visit', data)
+    return request.post<{ sessionId: string; visitorId: string }>('/api/stats/visit', data, { showGlobalLoading: false })
   },
 
   updateDuration(data: { sessionId: string; duration: number }): Promise<void> {
-    return request.put('/api/stats/visit/duration', data)
+    return request.put<void>('/api/stats/visit/duration', data, { showGlobalLoading: false })
   },
 
   getSummary(): Promise<VisitSummary> {
-    return request.get('/api/stats/summary')
+    return request.get<VisitSummary>('/api/stats/summary', { showGlobalLoading: false })
   },
 
   getVisitLogs(params: Record<string, any>): Promise<{ rows: VisitLog[]; total: number }> {
