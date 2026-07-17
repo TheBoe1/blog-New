@@ -32,7 +32,7 @@
         </el-card>
 
         <el-card shadow="never" class="editor-card">
-          <div class="editor-wrapper">
+          <div v-if="editorReady" class="editor-wrapper">
             <MarkdownEditor
               v-if="editorType === 'markdown'"
               v-model="form.markdownContent"
@@ -41,13 +41,13 @@
               @save="handleSaveDraft"
             />
             <template v-else>
-              <Toolbar
+              <WangToolbar
                 :editor="editorRef"
                 :defaultConfig="toolbarConfig"
                 mode="default"
                 class="wang-toolbar"
               />
-              <Editor
+              <WangEditor
                 v-model="form.htmlContent"
                 :defaultConfig="editorConfig"
                 mode="default"
@@ -166,16 +166,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, shallowRef, markRaw, watch } from 'vue'
+import { ref, computed, defineAsyncComponent, onMounted, onBeforeUnmount, shallowRef, markRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import '@wangeditor/editor/dist/css/style.css'
 import { useBlogStore } from '@/stores/blog'
 import { articleApi } from '@/api/article'
-import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
+
+const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
+
+let wangEditorModule: Promise<typeof import('@wangeditor/editor-for-vue')> | undefined
+async function loadWangEditor() {
+  await import('@wangeditor/editor/dist/css/style.css')
+  wangEditorModule ||= import('@wangeditor/editor-for-vue')
+  return wangEditorModule
+}
+
+const WangToolbar = defineAsyncComponent(() => loadWangEditor().then(module => module.Toolbar))
+const WangEditor = defineAsyncComponent(() => loadWangEditor().then(module => module.Editor))
 
 const route = useRoute()
 const router = useRouter()
@@ -187,6 +196,7 @@ const editorRef = shallowRef<IDomEditor>()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const editorType = ref<'markdown' | 'richtext'>('markdown')
+const editorReady = ref(!isEdit.value)
 const articleHash = ref('')
 
 function generateHash(): string {
@@ -423,6 +433,7 @@ async function loadArticle() {
       }
     } finally {
       loading.value = false
+      editorReady.value = true
     }
   }
 }
@@ -440,8 +451,7 @@ onMounted(async () => {
   } else {
     articleHash.value = generateHash()
   }
-  await loadData()
-  await loadArticle()
+  await Promise.all([loadData(), loadArticle()])
 })
 
 onBeforeUnmount(() => {
