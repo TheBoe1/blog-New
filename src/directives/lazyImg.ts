@@ -35,6 +35,8 @@ export const vLazyImg: Directive = {
   mounted(el: HTMLImageElement, binding: DirectiveBinding) {
     const src = (binding.value as string) || el.src
     if (!src) return
+    el.loading = 'lazy'
+    el.decoding = 'async'
     el.classList.add('lazy-load')
     el.dataset.src = src
     el.src = ''

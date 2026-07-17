@@ -7,7 +7,9 @@
           <img
             :src="settings.siteLogo || 'https://oss.lianlab.top/main/img/avatar.jpg'"
             :alt="settings.siteName || '个人博客'"
+            width="28"
             height="28"
+            decoding="async"
           />
         </router-link>
       </div>

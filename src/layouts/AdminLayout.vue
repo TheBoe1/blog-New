@@ -4,7 +4,15 @@
       <el-aside :width="isCollapsed ? '64px' : '220px'" class="admin-aside">
         <div class="logo-area">
           <div class="logo-icon">
-            <img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" />
+            <img
+              v-if="siteSettings.siteLogo"
+              :src="siteSettings.siteLogo"
+              alt="Logo"
+              class="logo-img"
+              width="32"
+              height="32"
+              decoding="async"
+            />
             <span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span>
           </div>
           <span v-show="!isCollapsed" class="logo-text">

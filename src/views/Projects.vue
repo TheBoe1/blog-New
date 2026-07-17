@@ -14,7 +14,15 @@
         @click="router.push(`/project/${project.id}`)"
       >
         <div class="project-cover">
-          <img v-if="project.cover" :src="project.cover" :alt="project.name" />
+          <img
+            v-if="project.cover"
+            :src="project.cover"
+            :alt="project.name"
+            width="640"
+            height="400"
+            loading="lazy"
+            decoding="async"
+          />
           <div v-else class="cover-placeholder">
             <el-icon :size="48"><FolderOpened /></el-icon>
           </div>

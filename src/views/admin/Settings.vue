@@ -25,7 +25,15 @@
             :show-file-list="false"
             :before-upload="beforeLogoUpload"
           >
-            <img v-if="basicForm.siteLogo" :src="basicForm.siteLogo" class="logo-preview" />
+            <img
+              v-if="basicForm.siteLogo"
+              :src="basicForm.siteLogo"
+              alt="站点 Logo 预览"
+              class="logo-preview"
+              width="100"
+              height="100"
+              decoding="async"
+            />
             <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
@@ -55,7 +63,15 @@
             :show-file-list="false"
             :before-upload="beforeAvatarUpload"
           >
-            <img v-if="profileForm.avatar" :src="profileForm.avatar" class="avatar-preview" />
+            <img
+              v-if="profileForm.avatar"
+              :src="profileForm.avatar"
+              alt="头像预览"
+              class="avatar-preview"
+              width="100"
+              height="100"
+              decoding="async"
+            />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>

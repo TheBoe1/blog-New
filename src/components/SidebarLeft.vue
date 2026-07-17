@@ -4,7 +4,13 @@
       <div class="card-content">
         <div class="profile">
           <figure class="profile-avatar">
-            <img :src="profile.avatar" :alt="profile.name" />
+            <img
+              :src="profile.avatar"
+              :alt="profile.name"
+              width="128"
+              height="128"
+              decoding="async"
+            />
           </figure>
           <p class="profile-name">{{ profile.name }}</p>
           <p class="profile-role">{{ profile.role }}</p>

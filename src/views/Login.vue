@@ -59,7 +59,14 @@
                     @keyup.enter="handleLogin"
                   />
                   <div class="captcha-img" @click="getCaptcha">
-                    <img v-if="captchaImg" :src="captchaImg" alt="验证码" />
+                    <img
+                      v-if="captchaImg"
+                      :src="captchaImg"
+                      alt="验证码"
+                      width="120"
+                      height="40"
+                      decoding="async"
+                    />
                     <el-icon v-else class="loading-icon"><Loading /></el-icon>
                   </div>
                 </div>

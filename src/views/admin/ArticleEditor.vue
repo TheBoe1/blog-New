@@ -124,7 +124,15 @@
                 :before-upload="beforeCoverUpload"
                 :http-request="handleCoverUpload"
               >
-                <img v-if="form.cover" :src="form.cover" class="cover-preview" />
+                <img
+                  v-if="form.cover"
+                  :src="form.cover"
+                  alt="文章封面预览"
+                  class="cover-preview"
+                  width="640"
+                  height="320"
+                  decoding="async"
+                />
                 <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
               </el-upload>
             </el-form-item>

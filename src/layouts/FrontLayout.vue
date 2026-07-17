@@ -20,7 +20,10 @@
               <img
                 :src="siteSettings.siteLogo || 'https://oss.lianlab.top/main/img/avatar.jpg'"
                 :alt="siteSettings.siteName || '个人博客'"
+                width="28"
                 height="28"
+                loading="lazy"
+                decoding="async"
               />
             </router-link>
             <p class="copyright">

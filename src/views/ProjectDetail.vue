@@ -42,7 +42,14 @@
         <h3>项目截图</h3>
         <div class="screenshots">
           <div v-for="(screenshot, index) in project.screenshots" :key="index" class="screenshot-item">
-            <img :src="screenshot" :alt="`截图${index + 1}`" />
+            <img
+              :src="screenshot"
+              :alt="`截图${index + 1}`"
+              width="1200"
+              height="675"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         </div>
       </div>

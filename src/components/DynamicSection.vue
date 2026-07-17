@@ -9,7 +9,12 @@
       :class="`dynamic-element element-${element.elementType}`"
     >
       <template v-if="element.elementType === 'image'">
-        <img :src="element.content" :alt="element.elementKey" />
+        <img
+          :src="element.content"
+          :alt="element.elementKey"
+          loading="lazy"
+          decoding="async"
+        />
       </template>
       <template v-else-if="element.elementType === 'link'">
         <a :href="element.content" target="_blank" rel="noopener">{{ element.content }}</a>

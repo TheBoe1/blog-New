@@ -60,6 +60,8 @@
               v-lazy-img="article.cover"
               :alt="article.title"
               class="article-cover"
+              width="960"
+              height="540"
             />
           </div>
           <hr class="article-divider" />
