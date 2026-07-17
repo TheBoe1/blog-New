@@ -7,7 +7,7 @@
             <h1 class="category-title">{{ category.name }}</h1>
             <p v-if="category.description" class="category-desc">{{ category.description }}</p>
             <p class="category-stats">
-              <i class="fas fa-folder-open"></i>
+              <i class="i-ep-folder-opened category-icon" aria-hidden="true"></i>
               共 {{ total }} 篇文章
             </p>
           </header>
@@ -29,12 +29,12 @@
         <div class="card-content">
           <h2 class="article-title">
             <router-link :to="`/article/${article.slug || article.id}`">
-              <i class="fas fa-angle-double-right"></i>{{ article.title }}
+              <i class="i-mdi-chevron-double-right article-title-icon" aria-hidden="true"></i>{{ article.title }}
             </router-link>
           </h2>
           <div class="article-meta">
             <span class="meta-item">
-              <i class="far fa-calendar-alt"></i>
+              <i class="i-ep-calendar meta-icon" aria-hidden="true"></i>
               <time>{{ formatDate(article.createTime) }}</time>
             </span>
             <span v-if="article.categoryName" class="meta-item">
@@ -43,7 +43,7 @@
               </router-link>
             </span>
             <span class="meta-item">
-              <i class="far fa-eye"></i>
+              <i class="i-ep-view meta-icon" aria-hidden="true"></i>
               {{ article.viewCount }} 阅读
             </span>
           </div>
@@ -212,7 +212,7 @@ onMounted(async () => {
     text-transform: uppercase;
     letter-spacing: 0.05em;
 
-    .fas {
+    .category-icon {
       margin-right: 4px;
       opacity: 0.7;
     }
@@ -255,7 +255,7 @@ onMounted(async () => {
     text-decoration: none;
     transition: color 0.3s ease;
 
-    .fas {
+    .article-title-icon {
       display: inline-block;
       margin-right: var(--space-2);
       color: var(--brand-primary);
@@ -266,7 +266,7 @@ onMounted(async () => {
     &:hover {
       color: var(--brand-primary);
 
-      .fas {
+      .article-title-icon {
         transform: translateX(5px);
       }
     }
@@ -289,13 +289,12 @@ onMounted(async () => {
     align-items: center;
     gap: 4px;
 
-    .fas, .far {
+    .meta-icon {
       opacity: 0.7;
       transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    &:hover .fas,
-    &:hover .far {
+    &:hover .meta-icon {
       transform: rotate(360deg);
       color: var(--brand-primary);
       opacity: 1;
@@ -329,9 +328,8 @@ onMounted(async () => {
   .article-card,
   .article-title::after,
   .article-title a,
-  .article-title a .fas,
-  .article-meta .meta-item .fas,
-  .article-meta .meta-item .far {
+  .article-title-icon,
+  .meta-icon {
     transition: none !important;
     transform: none !important;
     animation: none !important;

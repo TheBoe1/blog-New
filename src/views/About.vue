@@ -31,6 +31,7 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 import { useThemeStore } from '@/stores/theme'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 import aboutMd from '@/data/about.md?raw'

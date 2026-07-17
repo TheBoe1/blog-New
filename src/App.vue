@@ -21,6 +21,6 @@ html, body, #app {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: 'Inter', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'Ubuntu', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
 }
 </style>

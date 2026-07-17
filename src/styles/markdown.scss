@@ -1,6 +1,6 @@
 // Shared markdown content rendering — single source of truth for all MdPreview / v-html content.
 // Used by: ArticleDetail (article body), About (essay). Apply class `.markdown-content` to the
-// wrapper holding rendered markdown/HTML. Must load AFTER md-editor-v3/lib/preview.css (main.ts).
+// wrapper holding rendered markdown/HTML. Route views load md-editor-v3/lib/preview.css first.
 // Token-based (ADR-002 v3) — 无 hex, 无 $grad-brand SCSS 变量, 全走 Semantic/Component token.
 
 .markdown-content {

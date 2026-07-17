@@ -9,7 +9,7 @@
           <p class="profile-name">{{ profile.name }}</p>
           <p class="profile-role">{{ profile.role }}</p>
           <p class="profile-location">
-            <i class="fas fa-map-marker-alt"></i>
+            <i class="i-ep-location location-icon" aria-hidden="true"></i>
             <span>{{ profile.location }}</span>
           </p>
         </div>
@@ -99,7 +99,7 @@ const stats = computed(() => ({
   .profile-location {
     font-size: var(--font-size-sm);
     color: var(--text-tertiary);
-    .fas { margin-right: 4px; opacity: 0.6; }
+    .location-icon { margin-right: 4px; opacity: 0.6; }
   }
 }
 

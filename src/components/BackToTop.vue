@@ -6,7 +6,7 @@
     :style="btnStyle"
     @click="scrollTop"
   >
-    <i class="fas fa-chevron-up"></i>
+    <i class="i-ep-arrow-up" aria-hidden="true"></i>
   </button>
 </template>
 

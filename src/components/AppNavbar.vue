@@ -56,7 +56,7 @@
         <div class="navbar-end">
           <ThemeToggle />
           <a class="navbar-item search" title="搜索" @click="showSearch = true">
-            <i class="fas fa-search"></i>
+            <i class="i-ep-search" aria-hidden="true"></i>
           </a>
           <router-link
             v-if="!userStore.isLoggedIn"
@@ -64,7 +64,7 @@
             class="navbar-item"
             title="登录"
           >
-            <i class="fas fa-sign-in-alt"></i>
+            <i class="i-mdi-login" aria-hidden="true"></i>
           </router-link>
           <router-link
             v-else
@@ -72,7 +72,7 @@
             class="navbar-item"
             title="管理后台"
           >
-            <i class="fas fa-cog"></i>
+            <i class="i-ep-setting" aria-hidden="true"></i>
           </router-link>
         </div>
       </div>
@@ -91,7 +91,7 @@
           @keyup.enter="handleSearch"
         />
         <button class="search-modal-close" @click="showSearch = false">
-          <i class="fas fa-times"></i>
+          <i class="i-ep-close" aria-hidden="true"></i>
         </button>
       </div>
     </div>

@@ -19,16 +19,16 @@
       <div class="card-content">
         <header class="article-header">
           <h1 class="article-title">
-            <i class="fas fa-angle-double-right"></i>
+            <i class="i-mdi-chevron-double-right article-title-icon" aria-hidden="true"></i>
             <span>{{ article.title }}</span>
           </h1>
           <div class="article-meta">
             <span class="meta-item">
-              <i class="far fa-calendar-alt"></i>
+              <i class="i-ep-calendar meta-icon" aria-hidden="true"></i>
               <time>{{ formatDate(article.createTime) }}</time>
             </span>
             <span v-if="article.updateTime && article.updateTime !== article.createTime" class="meta-item is-hidden-mobile">
-              <i class="far fa-calendar-check"></i>
+              <i class="i-carbon-calendar-tools meta-icon" aria-hidden="true"></i>
               <time>{{ formatDate(article.updateTime) }}</time>
             </span>
             <span v-if="article.categoryName" class="meta-item">
@@ -37,7 +37,7 @@
               </router-link>
             </span>
             <span class="meta-item">
-              <i class="far fa-eye"></i>
+              <i class="i-ep-view meta-icon" aria-hidden="true"></i>
               {{ article.viewCount }} 阅读
             </span>
             <span class="meta-item">{{ readingTime }} 分钟读完 (大约{{ wordCount }}个字)</span>
@@ -79,9 +79,8 @@
               <div class="meta-block">
                 <h6>许可协议</h6>
                 <p class="licensing-icons">
-                  <i class="fab fa-creative-commons" title="Creative Commons"></i>
-                  <i class="fab fa-creative-commons-by" title="Attribution"></i>
-                  <i class="fab fa-creative-commons-nc" title="Noncommercial"></i>
+                  <i class="i-mdi-creative-commons" aria-hidden="true"></i>
+                  <span>CC BY-NC 4.0</span>
                 </p>
               </div>
             </div>
@@ -90,7 +89,7 @@
           <hr class="article-divider" />
 
           <div v-if="article.tags?.length" class="article-tags">
-            <i class="fas fa-tags"></i>
+            <i class="i-ep-price-tag tag-icon" aria-hidden="true"></i>
             <router-link
               v-for="tag in article.tags"
               :key="tag"
@@ -112,12 +111,12 @@
 
     <nav v-if="prevArticle || nextArticle" class="post-navigation">
       <router-link v-if="prevArticle" :to="`/article/${prevArticle.slug || prevArticle.id}`" class="nav-link nav-prev">
-        <i class="fas fa-chevron-left"></i>
+        <i class="i-ep-arrow-left nav-icon" aria-hidden="true"></i>
         <span>{{ prevArticle.title }}</span>
       </router-link>
       <router-link v-if="nextArticle" :to="`/article/${nextArticle.slug || nextArticle.id}`" class="nav-link nav-next">
         <span>{{ nextArticle.title }}</span>
-        <i class="fas fa-chevron-right"></i>
+        <i class="i-ep-arrow-right nav-icon" aria-hidden="true"></i>
       </router-link>
     </nav>
 
@@ -159,6 +158,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { MdPreview, MdCatalog } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 import { useBlogStore } from '@/stores/blog'
 import { useThemeStore } from '@/stores/theme'
 import { articleApi } from '@/api/article'
@@ -387,13 +387,13 @@ $grad-brand-h: var(--brand-primary);
 
     &:hover::after { width: 100%; }
 
-    .fas {
+    .article-title-icon {
       color: var(--text-primary);
       font-size: 0.85em;
       transition: color 0.3s ease;
     }
 
-    &:hover .fas {
+    &:hover .article-title-icon {
       color: var(--brand-primary);
     }
   }
@@ -415,13 +415,12 @@ $grad-brand-h: var(--brand-primary);
       gap: 4px;
       transition: color 0.3s ease;
 
-      .far, .fas {
+      .meta-icon {
         opacity: 0.7;
         transition: color 0.3s ease;
       }
 
-      &:hover .far,
-      &:hover .fas {
+      &:hover .meta-icon {
         color: var(--brand-primary);
       }
     }
@@ -559,7 +558,7 @@ $grad-brand-h: var(--brand-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
-  > .fas {
+  > .tag-icon {
     color: var(--text-muted);
     opacity: 0.7;
   }
@@ -643,7 +642,7 @@ $grad-brand-h: var(--brand-primary);
       white-space: nowrap;
     }
 
-    .fas {
+    .nav-icon {
       color: var(--text-muted);
       transition: transform 0.3s ease, color 0.3s ease;
       flex-shrink: 0;
@@ -652,10 +651,10 @@ $grad-brand-h: var(--brand-primary);
     &:hover {
       color: var(--brand-primary);
 
-      .fas { color: var(--brand-primary); }
+      .nav-icon { color: var(--brand-primary); }
     }
 
-    &.nav-prev:hover .fas {
+    &.nav-prev:hover .nav-icon {
       transform: translateX(-5px);
     }
 
@@ -663,7 +662,7 @@ $grad-brand-h: var(--brand-primary);
       justify-content: flex-end;
       text-align: right;
 
-      &:hover .fas {
+      &:hover .nav-icon {
         transform: translateX(5px);
       }
     }
@@ -819,7 +818,7 @@ $grad-brand-h: var(--brand-primary);
     animation: none !important;
   }
 
-  .article-title .fas,
+  .article-title-icon,
   .article-tag,
   .nav-link,
   .article-content :deep(img),

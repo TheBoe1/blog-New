@@ -4,7 +4,6 @@ import {
   presetIcons,
   presetTypography,
   presetUno,
-  presetWebFonts,
   transformerDirectives,
   transformerVariantGroup
 } from 'unocss'
@@ -66,12 +65,6 @@ export default defineConfig({
       },
     }),
     presetTypography(),
-    presetWebFonts({
-      fonts: {
-        sans: 'Inter:400,500,600,700',
-        mono: 'JetBrains Mono',
-      },
-    }),
   ],
   transformers: [
     transformerDirectives(),

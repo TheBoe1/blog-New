@@ -38,12 +38,12 @@
         <div class="card-content">
           <h2 class="article-title">
             <router-link :to="`/article/${article.slug || article.id}`">
-              <i class="fas fa-angle-double-right"></i>{{ article.title }}
+              <i class="i-mdi-chevron-double-right article-title-icon" aria-hidden="true"></i>{{ article.title }}
             </router-link>
           </h2>
           <div class="article-meta">
             <span class="meta-item">
-              <i class="far fa-calendar-alt"></i>
+              <i class="i-ep-calendar meta-icon" aria-hidden="true"></i>
               <time>{{ formatDate(article.createTime) }}</time>
             </span>
             <span v-if="article.categoryName" class="meta-item">
@@ -65,7 +65,7 @@
           <hr class="article-divider" />
           <div class="article-footer">
             <div v-if="article.tags?.length" class="article-tags">
-              <i class="fas fa-tags"></i>
+              <i class="i-ep-price-tag tag-icon" aria-hidden="true"></i>
               <router-link
                 v-for="tag in article.tags.slice(0, 3)"
                 :key="tag"
@@ -74,7 +74,7 @@
               >{{ tag }}</router-link>
             </div>
             <router-link :to="`/article/${article.slug || article.id}`" class="article-more">
-              <i class="fas fa-book-reader"></i>阅读更多
+              <i class="i-ep-reading article-more-icon" aria-hidden="true"></i>阅读更多
             </router-link>
           </div>
         </div>
@@ -187,7 +187,7 @@ onMounted(async () => {
     text-decoration: none;
     transition: color 0.3s ease;
 
-    .fas {
+    .article-title-icon {
       display: inline-block;
       margin-right: var(--space-2);
       color: var(--brand-primary);
@@ -198,7 +198,7 @@ onMounted(async () => {
     &:hover {
       color: var(--brand-primary);
 
-      .fas {
+      .article-title-icon {
         transform: translateX(5px);
       }
     }
@@ -221,13 +221,12 @@ onMounted(async () => {
     align-items: center;
     gap: 4px;
 
-    .fas, .far {
+    .meta-icon {
       opacity: 0.7;
       transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    &:hover .fas,
-    &:hover .far {
+    &:hover .meta-icon {
       transform: rotate(360deg);
       color: var(--brand-primary);
       opacity: 1;
@@ -283,7 +282,7 @@ onMounted(async () => {
   color: var(--text-tertiary);
   text-transform: uppercase;
 
-  > .fas {
+  > .tag-icon {
     opacity: 0.6;
   }
 }
@@ -417,9 +416,8 @@ onMounted(async () => {
 @media (prefers-reduced-motion: reduce) {
   .article-title::after,
   .article-title a,
-  .article-title a .fas,
-  .article-meta .meta-item .fas,
-  .article-meta .meta-item .far,
+  .article-title-icon,
+  .meta-icon,
   .article-tag,
   .article-tag::before,
   .article-more,
