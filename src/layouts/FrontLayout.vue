@@ -1,6 +1,5 @@
 <template>
   <div class="front-layout">
-    <ParticleMouseBackground />
     <ReadingProgress />
 
     <AppNavbar :site-settings="siteSettings" />
@@ -52,7 +51,6 @@ import { settingsApi } from '@/api/stats'
 import { useEntranceAnim } from '@/composables/useEntranceAnim'
 import BackToTop from '@/components/BackToTop.vue'
 import AppNavbar from '@/components/AppNavbar.vue'
-import ParticleMouseBackground from '@/components/ParticleMouseBackground.vue'
 
 const route = useRoute()
 
