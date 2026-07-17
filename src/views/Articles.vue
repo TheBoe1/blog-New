@@ -7,7 +7,7 @@
           <button
             class="filter-chip"
             :class="{ active: !selectedCategory }"
-            @click="selectedCategory = ''; fetchArticles()"
+            @click="selectCategory('')"
           >
             全部
           </button>
@@ -16,7 +16,7 @@
             :key="cat.id"
             class="filter-chip"
             :class="{ active: selectedCategory === cat.id }"
-            @click="selectedCategory = cat.id; fetchArticles()"
+            @click="selectCategory(cat.id)"
           >
             {{ cat.name }}
           </button>
@@ -67,6 +67,17 @@
           </div>
         </div>
       </div>
+
+      <nav v-if="total > pageSize" class="archive-pagination" aria-label="文章归档分页">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          background
+          @current-change="handlePageChange"
+        />
+      </nav>
     </BlogLayout3Col>
   </div>
 </template>
@@ -76,7 +87,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { highlightText } from '@/utils/highlight'
-import type { Article } from '@/types'
+import type { Article, ArticleQuery } from '@/types'
 import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 
 const router = useRouter()
@@ -86,6 +97,9 @@ const blogStore = useBlogStore()
 const selectedCategory = ref('')
 const loading = ref(true)
 const allArticles = ref<Article[]>([])
+const currentPage = ref(1)
+const total = ref(0)
+const pageSize = 30
 
 const categories = ref<Array<{ id: string; name: string }>>([])
 
@@ -109,7 +123,19 @@ const groupedArticles = computed(() => {
 
 function clearFilters() {
   selectedCategory.value = ''
+  currentPage.value = 1
   router.push({ path: '/articles', query: {} })
+}
+
+function selectCategory(categoryId: string) {
+  selectedCategory.value = categoryId
+  currentPage.value = 1
+  void fetchArticles()
+}
+
+function handlePageChange() {
+  void fetchArticles()
+  window.scrollTo({ top: 0 })
 }
 
 function formatDate(date: string) {
@@ -124,20 +150,22 @@ function formatDate(date: string) {
 async function fetchArticles() {
   loading.value = true
   try {
-    const params: any = {
-      page: 1,
-      pageSize: 999,
+    const params: ArticleQuery = {
+      page: currentPage.value,
+      pageSize,
       sortBy: 'createTime',
       sortOrder: 'desc'
     }
     if (selectedCategory.value) params.categoryId = selectedCategory.value
     if (searchKeyword.value) params.keyword = searchKeyword.value
 
-    await blogStore.fetchArticles(params)
-    allArticles.value = blogStore.articles
+    const response = await blogStore.fetchArticles(params)
+    allArticles.value = response.list
+    total.value = response.total
   } catch (error) {
     console.error('Failed to fetch articles:', error)
     allArticles.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -159,9 +187,11 @@ onMounted(async () => {
 })
 
 watch(
-  () => route.query,
-  () => {
-    fetchArticles()
+  [() => route.query.keyword, () => route.query.categoryId],
+  ([, categoryId]) => {
+    selectedCategory.value = (categoryId as string) || ''
+    currentPage.value = 1
+    void fetchArticles()
   }
 )
 </script>
@@ -247,6 +277,12 @@ watch(
 
 .card-content {
   padding: var(--space-6);
+}
+
+.archive-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
 }
 
 .timeline-skeleton-row {
