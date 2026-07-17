@@ -256,6 +256,9 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -267,7 +270,17 @@ body {
   background: var(--bg-page);
   background-attachment: fixed;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   transition: background var(--transition-base), color var(--transition-base);
+}
+
+#app {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 // Code blocks & inline code use Source Code Pro
@@ -405,6 +418,17 @@ img.lazy-load.loaded {
   transform: translateY(-8px);
   box-shadow: var(--shadow-hover);
   border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+// Responsive content safety: shared guards for long media, prose and admin tables.
+img, video, iframe, canvas, svg { max-width: 100%; }
+.front-layout, .admin-layout, .main-content, main, section, article { min-width: 0; max-width: 100%; }
+.front-layout > *, .admin-layout > * { min-width: 0; }
+.front-layout :is(p, li, td, th, a), .admin-layout :is(p, td, th) { overflow-wrap: anywhere; }
+.admin-table-scroll { width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+.admin-table-scroll > .el-table { min-width: 680px; }
+@media (max-width: 768px) {
+  .el-dialog { width: min(92vw, 560px) !important; margin: 8vh auto !important; }
 }
 
 @media (max-width: 768px) {

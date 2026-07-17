@@ -647,4 +647,13 @@ onBeforeUnmount(() => {
     }
   }
 }
+@media (max-width: 768px) {
+  .article-editor { height: auto; min-height: 100%; flex-direction: column; }
+  .article-editor .main-editor { min-width: 0; }
+  .article-editor .editor-header { align-items: flex-start; flex-direction: column; gap: var(--space-3); }
+  .article-editor .header-actions { flex-wrap: wrap; }
+  .article-editor .editor-card { min-height: 55vh; }
+  .sidebar-settings { width: 100%; max-height: none; overflow: visible; }
+  .wang-toolbar { overflow-x: auto; }
+}
 </style>

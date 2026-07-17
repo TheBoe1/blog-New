@@ -73,7 +73,7 @@
           <div class="header-left">
             <el-icon
               class="collapse-btn"
-              @click="isCollapsed = !isCollapsed"
+              @click="toggleNavigation"
             >
               <component :is="isCollapsed ? 'Expand' : 'Fold'" />
             </el-icon>
@@ -113,12 +113,29 @@
         </el-main>
       </el-container>
     </el-container>
+
+    <el-drawer v-model="mobileDrawerOpen" class="admin-mobile-drawer" direction="ltr" size="280px" :with-header="false" append-to-body>
+      <div class="logo-area">
+        <div class="logo-icon"><img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" /><span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span></div>
+        <span class="logo-text">{{ siteSettings.adminTitle || '管理后台' }}</span>
+      </div>
+      <el-menu :default-active="activeMenu" router class="admin-menu" @select="mobileDrawerOpen = false">
+        <el-menu-item index="/admin"><el-icon><DataAnalysis /></el-icon><template #title>控制台</template></el-menu-item>
+        <el-sub-menu index="article"><template #title><el-icon><Document /></el-icon><span>文章管理</span></template><el-menu-item index="/admin/articles">文章列表</el-menu-item><el-menu-item index="/admin/article/create">新建文章</el-menu-item></el-sub-menu>
+        <el-menu-item index="/admin/categories"><el-icon><Folder /></el-icon><template #title>分类管理</template></el-menu-item>
+        <el-menu-item index="/admin/tags"><el-icon><PriceTag /></el-icon><template #title>标签管理</template></el-menu-item>
+        <el-menu-item index="/admin/settings"><el-icon><Setting /></el-icon><template #title>系统设置</template></el-menu-item>
+        <el-menu-item index="/admin/page-config"><el-icon><EditPen /></el-icon><template #title>页面配置</template></el-menu-item>
+        <el-menu-item index="/admin/visit-logs"><el-icon><View /></el-icon><template #title>访问日志</template></el-menu-item>
+      </el-menu>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useMediaQuery } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
 import { settingsApi } from '@/api/stats'
 
@@ -127,10 +144,20 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const isCollapsed = ref(false)
+const mobileDrawerOpen = ref(false)
+const isMobile = useMediaQuery('(max-width: 768px)')
 const siteSettings = ref<Record<string, string>>({})
 
 const activeMenu = computed(() => route.path)
 const currentTitle = computed(() => route.meta.title as string)
+
+function toggleNavigation() {
+  if (isMobile.value) mobileDrawerOpen.value = true
+  else isCollapsed.value = !isCollapsed.value
+}
+
+watch(() => route.fullPath, () => { mobileDrawerOpen.value = false })
+watch(isMobile, (mobile) => { if (!mobile) mobileDrawerOpen.value = false })
 
 function handleLogout() {
   userStore.logout()
@@ -294,5 +321,20 @@ onMounted(async () => {
   background: var(--bg-secondary);
   padding: var(--space-6);
   overflow-y: auto;
+}
+
+:global(.admin-mobile-drawer .el-drawer__body) {
+  padding: 0;
+  background: var(--bg-secondary);
+}
+
+@media (max-width: 768px) {
+  .admin-aside { display: none; }
+  .admin-header { height: 56px; padding: 0 var(--space-3); }
+  .admin-header .header-left { min-width: 0; gap: var(--space-2); }
+  .admin-header :deep(.el-breadcrumb) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .admin-header .header-right { gap: var(--space-1); }
+  .admin-header .username { display: none; }
+  .admin-main { padding: var(--space-4); }
 }
 </style>

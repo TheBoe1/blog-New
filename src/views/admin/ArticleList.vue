@@ -40,6 +40,7 @@
     </div>
 
     <el-card shadow="never">
+      <div class="admin-table-scroll">
       <el-table :data="filteredArticles" style="width: 100%" v-loading="loading">
         <el-table-column prop="title" label="标题" min-width="200">
           <template #default="{ row }">
@@ -104,6 +105,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-area">
         <el-pagination
@@ -277,6 +279,14 @@ onMounted(async () => {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .list-header { align-items: stretch; flex-direction: column; gap: var(--space-3); }
+    .search-area { flex-wrap: wrap; }
+    .search-area :deep(.el-input), .search-area :deep(.el-select) { flex: 1 1 140px; }
+    .search-area :deep(.el-input__wrapper), .search-area :deep(.el-select__wrapper) { width: 100%; }
+    .pagination-area { justify-content: flex-start; overflow-x: auto; }
   }
 }
 </style>

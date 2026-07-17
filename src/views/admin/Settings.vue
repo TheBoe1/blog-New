@@ -806,4 +806,12 @@ onMounted(() => {
     }
   }
 }
+@media (max-width: 768px) {
+  .settings :deep(.el-form-item) { display: block; }
+  .settings :deep(.el-form-item__label) { display: block; width: auto !important; text-align: left; line-height: 1.5; margin-bottom: var(--space-2); }
+  .settings :deep(.el-form-item__content) { margin-left: 0 !important; min-width: 0; }
+  .settings :deep(.el-dialog) { max-width: 92vw; }
+  .backup-codes-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .bind-actions, .backup-actions { flex-wrap: wrap; }
+}
 </style>

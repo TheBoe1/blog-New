@@ -1074,4 +1074,12 @@ onMounted(() => {
     }
   }
 }
+@media (max-width: 768px) {
+  .page-config-editor { height: auto; min-height: 100%; flex-direction: column; }
+  .config-sidebar, .config-preview { width: 100% !important; border: 0 !important; }
+  .config-sidebar { max-height: 42vh; }
+  .config-main { min-width: 0; padding: var(--space-4) !important; }
+  .config-preview { min-height: 280px; border-top: 1px solid var(--border-color) !important; }
+  .style-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
 </style>

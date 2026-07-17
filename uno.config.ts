@@ -70,8 +70,4 @@ export default defineConfig({
     transformerDirectives(),
     transformerVariantGroup(),
   ],
-  safelist: [
-    'i-ep-sunny',
-    'i-ep-moon',
-  ],
 })

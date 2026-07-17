@@ -9,23 +9,21 @@ import IconsResolver from 'unplugin-icons/resolver'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? "https://oss.lianlab.top/main" : "/",
+  base: process.env.NODE_ENV === 'production' ? 'https://oss.lianlab.top/main' : '/',
   plugins: [
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith('uni-')
-        }
-      }
+          isCustomElement: (tag) => tag.startsWith('uni-'),
+        },
+      },
     }),
     UnoCSS(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'],
       resolvers: [
         ElementPlusResolver(),
-        IconsResolver({
-          prefix: 'Icon',
-        }),
+        IconsResolver({ prefix: 'Icon' }),
       ],
       dts: 'src/auto-imports.d.ts',
     }),
@@ -39,9 +37,7 @@ export default defineConfig({
       ],
       dts: 'src/components.d.ts',
     }),
-    Icons({
-      autoInstall: false,
-    }),
+    Icons({ autoInstall: false }),
   ],
   css: {
     preprocessorOptions: {
@@ -75,70 +71,21 @@ export default defineConfig({
     port: 5175,
     host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
+      '/api': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
       '/login': {
         target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,
-        // 浏览器刷新/导航 GET /login（Accept: text/html）不转发后端登录接口（仅 POST），
-        // 否则后端返回 500 "Request method 'GET' not supported"。交由 Vite 返回 SPA index.html。
-        // POST /login、/login/2fa/verify、/login/2fa/backup（Accept: application/json）正常转发。
         bypass(req) {
-          if (req.headers.accept?.includes('text/html')) {
-            return '/index.html'
-          }
+          if (req.headers.accept?.includes('text/html')) return '/index.html'
         },
       },
-      '/logout': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/getInfo': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/getRouters': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/system': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/profile': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/captchaImage': {
-        target: 'http://localhost:9090',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          const normalizedId = id.replaceAll('\\', '/')
-          if (normalizedId.includes('/node_modules/echarts/')) return 'vendor-echarts'
-          if (
-            normalizedId.includes('/node_modules/vue/') ||
-            normalizedId.includes('/node_modules/vue-router/') ||
-            normalizedId.includes('/node_modules/pinia/')
-          ) return 'framework'
-          return undefined
-        },
-      },
+      '/logout': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
+      '/getInfo': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
+      '/getRouters': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
+      '/system': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
+      '/profile': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
+      '/captchaImage': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
     },
   },
 })

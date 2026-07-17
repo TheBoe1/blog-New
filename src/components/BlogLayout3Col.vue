@@ -1,10 +1,10 @@
 <template>
   <div class="columns">
-    <SidebarLeft />
+    <SidebarLeft v-if="showSidebars" />
     <main class="column column-main">
       <slot />
     </main>
-    <SidebarRight :show-default-widgets="showSidebarWidgets">
+    <SidebarRight v-if="showSidebars" :show-default-widgets="showSidebarWidgets">
       <template v-if="$slots.top" #top>
         <slot name="top" />
       </template>
@@ -15,8 +15,10 @@
 <script setup lang="ts">
 import SidebarLeft from './SidebarLeft.vue'
 import SidebarRight from './SidebarRight.vue'
+import { useMediaQuery } from '@vueuse/core'
 
 withDefaults(defineProps<{ showSidebarWidgets?: boolean }>(), { showSidebarWidgets: true })
+const showSidebars = useMediaQuery('(min-width: 769px)')
 </script>
 
 <style scoped lang="scss">
@@ -32,7 +34,7 @@ withDefaults(defineProps<{ showSidebarWidgets?: boolean }>(), { showSidebarWidge
 
 @media (min-width: 769px) {
   .columns {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 220px minmax(0, 1fr);
   }
   .column-main { order: 2; }
   .column-left { order: 1; }
@@ -41,7 +43,7 @@ withDefaults(defineProps<{ showSidebarWidgets?: boolean }>(), { showSidebarWidge
 
 @media (min-width: 1280px) {
   .columns {
-    grid-template-columns: 220px 1fr 240px;
+    grid-template-columns: 220px minmax(0, 1fr) 240px;
   }
   :deep(.column-right) { display: block; }
 }

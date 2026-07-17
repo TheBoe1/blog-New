@@ -46,6 +46,10 @@
               <i class="i-ep-calendar meta-icon" aria-hidden="true"></i>
               <time>{{ formatDate(article.createTime) }}</time>
             </span>
+            <span class="meta-item">
+              <i class="i-ep-view meta-icon" aria-hidden="true"></i>
+              {{ article.viewCount ?? 0 }} 阅读
+            </span>
             <span v-if="article.categoryName" class="meta-item">
               <router-link :to="`/category/${article.categoryId}`" class="meta-link">
                 {{ article.categoryName }}

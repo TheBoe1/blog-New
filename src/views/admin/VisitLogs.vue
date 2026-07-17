@@ -42,6 +42,7 @@
 
     <!-- 数据表格 -->
     <el-card shadow="never" class="table-card">
+      <div class="admin-table-scroll">
       <el-table
         :data="tableData"
         v-loading="loading"
@@ -126,6 +127,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <!-- 分页 -->
       <div class="pagination">
@@ -309,6 +311,12 @@ onMounted(() => {
       justify-content: flex-end;
       margin-top: 16px;
     }
+  }
+
+  @media (max-width: 768px) {
+    .filter-card .filter-bar > * { flex: 1 1 140px; }
+    .filter-card .filter-bar :deep(.el-input), .filter-card .filter-bar :deep(.el-select), .filter-card .filter-bar :deep(.el-date-editor) { width: 100% !important; }
+    .table-card .pagination { justify-content: flex-start; overflow-x: auto; }
   }
 }
 </style>
