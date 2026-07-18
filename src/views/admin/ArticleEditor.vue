@@ -3,6 +3,9 @@
     <div class="editor-header">
       <h2>{{ isEdit ? '编辑文章' : '新建文章' }}</h2>
       <div class="header-actions">
+        <span v-if="localDraftStatus" class="draft-status" role="status" aria-live="polite">
+          {{ localDraftStatus }}
+        </span>
         <el-radio-group v-model="editorType" size="small" :disabled="isEdit">
           <el-radio-button value="markdown">Markdown</el-radio-button>
           <el-radio-button value="richtext">富文本</el-radio-button>
@@ -10,11 +13,11 @@
         <el-tooltip v-if="isEdit" content="编辑模式下不可切换编辑器类型" placement="top">
           <el-icon class="edit-tip"><InfoFilled /></el-icon>
         </el-tooltip>
-        <el-button @click="handleSaveDraft">
+        <el-button :loading="loading" @click="handleSaveDraft">
           <el-icon><Document /></el-icon>
           保存草稿
         </el-button>
-        <el-button type="primary" @click="handlePublish">
+        <el-button type="primary" :loading="loading" @click="handlePublish">
           <el-icon><Upload /></el-icon>
           {{ form.isPublished ? '更新发布' : '发布文章' }}
         </el-button>
@@ -174,13 +177,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent, onMounted, onBeforeUnmount, shallowRef, markRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { ref, computed, defineAsyncComponent, nextTick, onMounted, onBeforeUnmount, shallowRef, markRaw, watch } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 import { useBlogStore } from '@/stores/blog'
+import { useUserStore } from '@/stores/user'
 import { articleApi } from '@/api/article'
 import { htmlToMarkdown, isHtmlContent } from '@/utils/markdown'
+import type { ArticleEditorForm } from '@/types'
+import {
+  createArticleDraftKey,
+  readArticleDraft,
+  removeArticleDraft,
+  writeArticleDraft,
+  type ArticleEditorDraft,
+  type ArticleEditorType
+} from '@/composables/articleDraftStorage'
 
 const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
 
@@ -197,21 +210,32 @@ const WangEditor = defineAsyncComponent(() => loadWangEditor().then(module => mo
 const route = useRoute()
 const router = useRouter()
 const blogStore = useBlogStore()
+const userStore = useUserStore()
 
 const isEdit = computed(() => !!route.params.id)
 
 const editorRef = shallowRef<IDomEditor>()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
-const editorType = ref<'markdown' | 'richtext'>('markdown')
+const editorType = ref<ArticleEditorType>('markdown')
 const editorReady = ref(!isEdit.value)
 const articleHash = ref('')
+const localDraftStatus = ref('')
+const draftStorageKey = ref('')
+const baseFingerprint = ref('')
+const draftReady = ref(false)
+const allowLeave = ref(false)
+const storageWarningShown = ref(false)
+let autosaveTimer: number | undefined
+
+const DRAFT_AUTOSAVE_DELAY = 900
+const DRAFT_MAX_AGE = 30 * 24 * 60 * 60 * 1000
 
 function generateHash(): string {
   return 'article_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
 }
 
-const form = ref({
+const form = ref<ArticleEditorForm>({
   title: '',
   content: '',
   htmlContent: '',
@@ -225,6 +249,217 @@ const form = ref({
   isTop: false,
   publishedAt: '' as string,
   contentType: 'markdown' as 'markdown' | 'html'
+})
+
+function createFingerprint(
+  formValue: ArticleEditorForm = form.value,
+  type: ArticleEditorType = editorType.value
+): string {
+  return JSON.stringify({ form: formValue, editorType: type })
+}
+
+const isDirty = computed(() => {
+  return draftReady.value && createFingerprint() !== baseFingerprint.value
+})
+
+function getDraftStorage(): Storage | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
+function isRestorableForm(value: unknown): value is ArticleEditorForm {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<ArticleEditorForm>
+  return typeof candidate.title === 'string'
+    && typeof candidate.content === 'string'
+    && typeof candidate.htmlContent === 'string'
+    && typeof candidate.markdownContent === 'string'
+    && typeof candidate.summary === 'string'
+    && typeof candidate.cover === 'string'
+    && typeof candidate.categoryId === 'string'
+    && typeof candidate.customCategory === 'string'
+    && Array.isArray(candidate.tags)
+    && candidate.tags.every(tag => typeof tag === 'string')
+    && typeof candidate.isPublished === 'boolean'
+    && typeof candidate.isTop === 'boolean'
+    && typeof candidate.publishedAt === 'string'
+    && (candidate.contentType === 'markdown' || candidate.contentType === 'html')
+}
+
+function formatDraftTime(savedAt: number): string {
+  return new Date(savedAt).toLocaleString('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function warnStorageUnavailable() {
+  localDraftStatus.value = '本机保留失败'
+  if (storageWarningShown.value) return
+  storageWarningShown.value = true
+  ElMessage.warning('无法在此浏览器保留编辑进度，请使用“保存草稿”')
+}
+
+function clearLocalDraft(): boolean {
+  const storage = getDraftStorage()
+  if (!storage || !draftStorageKey.value) return false
+  return removeArticleDraft(storage, draftStorageKey.value)
+}
+
+function flushLocalDraft(): boolean {
+  if (autosaveTimer !== undefined) {
+    window.clearTimeout(autosaveTimer)
+    autosaveTimer = undefined
+  }
+  if (!draftReady.value || !isDirty.value) return true
+
+  const storage = getDraftStorage()
+  if (!storage || !draftStorageKey.value) {
+    warnStorageUnavailable()
+    return false
+  }
+
+  const draft: ArticleEditorDraft<ArticleEditorForm> = {
+    version: 1,
+    savedAt: Date.now(),
+    articleHash: articleHash.value,
+    editorType: editorType.value,
+    baseFingerprint: baseFingerprint.value,
+    form: JSON.parse(JSON.stringify(form.value)) as ArticleEditorForm
+  }
+
+  if (!writeArticleDraft(storage, draftStorageKey.value, draft)) {
+    warnStorageUnavailable()
+    return false
+  }
+
+  localDraftStatus.value = `本机已保留 ${formatDraftTime(draft.savedAt)}`
+  return true
+}
+
+function scheduleLocalDraft() {
+  if (!draftReady.value) return
+
+  if (!isDirty.value) {
+    if (autosaveTimer !== undefined) {
+      window.clearTimeout(autosaveTimer)
+      autosaveTimer = undefined
+    }
+    clearLocalDraft()
+    localDraftStatus.value = ''
+    return
+  }
+
+  if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer)
+  autosaveTimer = window.setTimeout(flushLocalDraft, DRAFT_AUTOSAVE_DELAY)
+}
+
+async function restoreLocalDraft() {
+  const storage = getDraftStorage()
+  if (!storage || !draftStorageKey.value) return
+
+  const draft = readArticleDraft<ArticleEditorForm>(storage, draftStorageKey.value)
+  if (!draft) {
+    removeArticleDraft(storage, draftStorageKey.value)
+    return
+  }
+
+  if (Date.now() - draft.savedAt > DRAFT_MAX_AGE || !isRestorableForm(draft.form)) {
+    removeArticleDraft(storage, draftStorageKey.value)
+    return
+  }
+
+  if (createFingerprint(draft.form, draft.editorType) === baseFingerprint.value) {
+    removeArticleDraft(storage, draftStorageKey.value)
+    return
+  }
+
+  const serverChanged = draft.baseFingerprint !== baseFingerprint.value
+  const message = serverChanged
+    ? `此设备保存了 ${formatDraftTime(draft.savedAt)} 的未提交内容，但服务器版本已有变化。恢复后请检查差异。`
+    : `此设备保存了 ${formatDraftTime(draft.savedAt)} 的未提交内容，是否恢复上次进度？`
+
+  try {
+    await ElMessageBox.confirm(message, '发现未保存的编辑进度', {
+      confirmButtonText: '恢复进度',
+      cancelButtonText: '放弃本机进度',
+      type: serverChanged ? 'warning' : 'info',
+      showClose: false,
+      closeOnClickModal: false,
+      closeOnPressEscape: false
+    })
+    editorType.value = draft.editorType
+    articleHash.value = draft.articleHash || articleHash.value
+    form.value = { ...draft.form }
+    await nextTick()
+    localDraftStatus.value = `已恢复 ${formatDraftTime(draft.savedAt)} 的进度`
+  } catch {
+    removeArticleDraft(storage, draftStorageKey.value)
+    localDraftStatus.value = ''
+  }
+}
+
+function handlePageHide() {
+  flushLocalDraft()
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'hidden') flushLocalDraft()
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!isDirty.value) return
+  flushLocalDraft()
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+watch([form, editorType], scheduleLocalDraft, { deep: true })
+
+watch(isDirty, (dirty) => {
+  if (dirty) {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+  } else {
+    window.removeEventListener('beforeunload', handleBeforeUnload)
+  }
+})
+
+onBeforeRouteLeave(async () => {
+  if (allowLeave.value || !isDirty.value) return true
+
+  // 退出登录或令牌失效时不能把用户困在已失效的编辑页，尽力落本机草稿后直接离开。
+  if (!userStore.isLoggedIn) {
+    flushLocalDraft()
+    return true
+  }
+
+  if (!flushLocalDraft()) {
+    ElMessage.error('本机进度保留失败，请先手动保存草稿')
+    return false
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      '本次编辑已保留在此设备，离开后可在再次打开时恢复。',
+      '有未保存的更改',
+      {
+        confirmButtonText: '保留进度并离开',
+        cancelButtonText: '继续编辑',
+        type: 'warning',
+        showClose: false,
+        closeOnClickModal: false,
+        closeOnPressEscape: false
+      }
+    )
+    return true
+  } catch {
+    return false
+  }
 })
 
 const formRules: FormRules = {
@@ -344,8 +579,9 @@ async function handleSaveDraft() {
   }
   form.value.isPublished = false
   await saveArticle()
+  markCurrentVersionSaved()
   ElMessage.success('草稿保存成功')
-  router.push('/admin/articles')
+  await router.push('/admin/articles')
 }
 
 async function handlePublish() {
@@ -373,8 +609,20 @@ async function handlePublish() {
 
   form.value.isPublished = true
   await saveArticle()
+  markCurrentVersionSaved()
   ElMessage.success(isEdit.value ? '文章更新成功' : '文章发布成功')
-  router.push('/admin/articles')
+  await router.push('/admin/articles')
+}
+
+function markCurrentVersionSaved() {
+  if (autosaveTimer !== undefined) {
+    window.clearTimeout(autosaveTimer)
+    autosaveTimer = undefined
+  }
+  baseFingerprint.value = createFingerprint()
+  allowLeave.value = true
+  clearLocalDraft()
+  localDraftStatus.value = ''
 }
 
 async function saveArticle() {
@@ -427,7 +675,7 @@ async function loadArticle() {
           isPublished: article.isPublished || false,
           isTop: article.isTop || false,
           publishedAt: article.publishedAt ? formatDateTime(new Date(article.publishedAt)) : '',
-          contentType: (article as any).contentType || 'html'
+          contentType: article.contentType || 'html'
         }
         
         if (form.value.contentType === 'markdown' && article.markdownContent) {
@@ -459,13 +707,30 @@ onMounted(async () => {
   } else {
     articleHash.value = generateHash()
   }
+
+  const draftOwner = userStore.user?.id || userStore.user?.username || 'admin'
+  draftStorageKey.value = createArticleDraftKey(
+    isEdit.value ? route.params.id as string : undefined,
+    draftOwner
+  )
+
+  window.addEventListener('pagehide', handlePageHide)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   await Promise.all([loadData(), loadArticle()])
+  await nextTick()
+  baseFingerprint.value = createFingerprint()
+  await restoreLocalDraft()
+  draftReady.value = true
 })
 
 onBeforeUnmount(() => {
+  if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  window.removeEventListener('pagehide', handlePageHide)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+
   const editor = editorRef.value
-  if (editor == null) return
-  editor.destroy()
+  if (editor != null) editor.destroy()
 })
 </script>
 
@@ -492,6 +757,12 @@ onBeforeUnmount(() => {
     display: flex;
     gap: 12px;
     align-items: center;
+
+    .draft-status {
+      color: var(--text-secondary);
+      font-size: var(--font-size-xs);
+      white-space: nowrap;
+    }
 
     .edit-tip {
       color: var(--text-tertiary);

@@ -20,6 +20,23 @@ export interface Article {
   createTime: string
   updateTime: string
   publishedAt?: string
+  contentType?: 'markdown' | 'html'
+}
+
+export interface ArticleEditorForm {
+  title: string
+  content: string
+  htmlContent: string
+  markdownContent: string
+  summary: string
+  cover: string
+  categoryId: string
+  customCategory: string
+  tags: string[]
+  isPublished: boolean
+  isTop: boolean
+  publishedAt: string
+  contentType: 'markdown' | 'html'
 }
 
 export interface Category {
