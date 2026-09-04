@@ -40,13 +40,14 @@ function handleBackToLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-brand);
-  padding: 20px;
+  // 与登录页一致：平铺页面底色，不再使用 --gradient-brand 渐变
+  background: var(--surface-page);
+  padding: var(--space-5);
 }
 
 .unauthorized-content {
   background: var(--surface-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 60px 40px;
   max-width: 500px;
   width: 100%;
