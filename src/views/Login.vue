@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-wrap">
       <div class="login-brand">
-        <span class="logo-icon">B</span>
+        <span class="logo-icon"><IconCarbonBlog /></span>
       </div>
       <el-card shadow="never" class="login-card">
           <!-- 步骤 1：账号密码 + 图形验证码 -->
@@ -426,8 +426,8 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       color: var(--text-on-brand);
+      // 图标按 1em 渲染，字号即图标尺寸（unplugin-icons 构建期单图标内联，非全量加载）
       font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
     }
   }
 
