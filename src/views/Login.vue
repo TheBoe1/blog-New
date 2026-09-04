@@ -1,32 +1,10 @@
 <template>
   <div class="login-page">
-    <div class="login-container">
-      <div class="login-left">
-        <div class="brand">
-          <div class="logo-icon">
-            <span class="gradient-text">B</span>
-          </div>
-          <h1>个人博客</h1>
-        </div>
-        <p class="slogan">记录技术成长，分享开发经验</p>
-        <div class="features">
-          <div class="feature-item">
-            <el-icon :size="24"><Edit /></el-icon>
-            <span>富文本编辑</span>
-          </div>
-          <div class="feature-item">
-            <el-icon :size="24"><DataAnalysis /></el-icon>
-            <span>数据统计</span>
-          </div>
-          <div class="feature-item">
-            <el-icon :size="24"><Setting /></el-icon>
-            <span>可视化管理</span>
-          </div>
-        </div>
+    <div class="login-wrap">
+      <div class="login-brand">
+        <span class="logo-icon">B</span>
       </div>
-
-      <div class="login-right">
-        <el-card shadow="never" class="login-card">
+      <el-card shadow="never" class="login-card">
           <!-- 步骤 1：账号密码 + 图形验证码 -->
           <template v-if="step === 'credentials'">
             <h2>管理员登录</h2>
@@ -154,8 +132,7 @@
               <a @click="backToCredentials">← 返回登录</a>
             </div>
           </template>
-        </el-card>
-      </div>
+      </el-card>
     </div>
   </div>
 </template>
@@ -426,203 +403,153 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-brand);
-  padding: 20px;
+  // 平铺页面底色（GitHub 式安静背景），不再使用 --gradient-brand 渐变
+  background: var(--surface-page);
+  padding: var(--space-5);
 
-  .login-container {
-    display: flex;
-    background: var(--surface-card);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--shadow-hover);
-    max-width: 900px;
+  .login-wrap {
     width: 100%;
+    max-width: 360px;
   }
 
-  .login-left {
-    flex: 1;
-    background: var(--gradient-brand);
-    padding: 60px 40px;
+  .login-brand {
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    color: var(--text-on-brand);
+    margin-bottom: var(--space-6);
 
-    .brand {
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--brand-primary);
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-
-      .logo-icon {
-        width: 48px;
-        height: 48px;
-        background: color-mix(in srgb, var(--text-on-brand) 20%, transparent);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        .gradient-text {
-          font-size: 24px;
-          font-weight: bold;
-        }
-      }
-
-      h1 {
-        font-size: 24px;
-        font-weight: 600;
-        margin: 0;
-      }
-    }
-
-    .slogan {
-      font-size: 16px;
-      opacity: 0.9;
-      margin-bottom: 40px;
-    }
-
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-
-      .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 15px;
-        opacity: 0.9;
-      }
+      justify-content: center;
+      color: var(--text-on-brand);
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
     }
   }
 
-  .login-right {
-    flex: 1;
-    padding: 60px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .login-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
 
-    .login-card {
+    :deep(.el-card__body) {
+      padding: var(--space-6);
+    }
+
+    h2 {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
+      margin: 0 0 var(--space-4);
+      text-align: center;
+    }
+
+    .step-tip {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 0 0 var(--space-6);
+      line-height: 1.5;
+    }
+
+    .captcha-row {
+      display: flex;
+      gap: var(--space-3);
       width: 100%;
-      border: none;
 
-      :deep(.el-card__body) {
-        padding: 0;
+      .el-input {
+        flex: 1;
       }
 
-      h2 {
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0 0 16px;
-        text-align: center;
-      }
-
-      .step-tip {
-        font-size: 13px;
-        color: var(--text-secondary);
-        text-align: center;
-        margin: 0 0 24px;
-        line-height: 1.5;
-      }
-
-      .captcha-row {
+      .captcha-img {
+        width: 120px;
+        height: 40px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        overflow: hidden;
         display: flex;
-        gap: 12px;
-        width: 100%;
-
-        .el-input {
-          flex: 1;
-        }
-
-        .captcha-img {
-          width: 120px;
-          height: 40px;
-          border: 1px solid var(--border-color);
-          border-radius: 4px;
-          cursor: pointer;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--surface-raised);
-
-          img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-
-          .loading-icon {
-            font-size: 20px;
-            color: var(--text-muted);
-            animation: spin 1s linear infinite;
-          }
-        }
-      }
-
-      // ===== 两步验证：OTP 输入 =====
-      .otp-inputs {
-        display: flex;
-        gap: 8px;
+        align-items: center;
         justify-content: center;
+        background: var(--surface-raised);
 
-        .otp-cell {
-          width: 44px;
-          height: 52px;
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          text-align: center;
-          font-size: 22px;
-          font-weight: 600;
-          color: var(--text-primary);
-          background: var(--surface-raised);
-          transition: border-color 0.2s, box-shadow 0.2s;
-          outline: none;
-
-          &:focus {
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 20%, transparent);
-          }
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
-      }
 
-      .verify-btn {
-        width: 100%;
-        margin-top: 20px;
-      }
-
-      .switch-mode {
-        margin-top: 16px;
-        text-align: center;
-
-        a {
-          font-size: 13px;
-          color: var(--brand-primary);
-          cursor: pointer;
-          transition: opacity 0.2s;
-
-          &:hover {
-            opacity: 0.8;
-          }
-        }
-      }
-
-      .back-to-login {
-        margin-top: 24px;
-        text-align: center;
-
-        a {
-          font-size: 13px;
+        .loading-icon {
+          font-size: 20px;
           color: var(--text-muted);
-          cursor: pointer;
-          transition: color 0.2s;
+          animation: spin 1s linear infinite;
+        }
+      }
+    }
 
-          &:hover {
-            color: var(--text-primary);
-          }
+    // ===== 两步验证：OTP 输入 =====
+    .otp-inputs {
+      display: flex;
+      gap: var(--space-2);
+      justify-content: center;
+
+      .otp-cell {
+        width: 44px;
+        height: 52px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        text-align: center;
+        font-size: 22px;
+        font-weight: var(--font-weight-semibold);
+        color: var(--text-primary);
+        background: var(--surface-raised);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+
+        &:focus {
+          border-color: var(--brand-primary);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+        }
+      }
+    }
+
+    .verify-btn {
+      width: 100%;
+      margin-top: var(--space-5);
+    }
+
+    .switch-mode {
+      margin-top: var(--space-4);
+      text-align: center;
+
+      a {
+        font-size: 13px;
+        color: var(--brand-primary);
+        cursor: pointer;
+        transition: opacity var(--transition-fast);
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+
+    .back-to-login {
+      margin-top: var(--space-6);
+      text-align: center;
+
+      a {
+        font-size: 13px;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color var(--transition-fast);
+
+        &:hover {
+          color: var(--text-primary);
         }
       }
     }
@@ -640,16 +567,12 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .login-page {
-    .login-container {
-      flex-direction: column;
-    }
+    padding: var(--space-4);
 
-    .login-left {
-      padding: 40px 30px;
-    }
-
-    .login-right {
-      padding: 40px 30px;
+    .login-card {
+      :deep(.el-card__body) {
+        padding: var(--space-5);
+      }
 
       .otp-inputs .otp-cell {
         width: 38px;

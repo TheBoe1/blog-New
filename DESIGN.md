@@ -68,7 +68,7 @@ Component (Rule of Three; on-demand)
 
 ### 1.3 Component
 
-按 Rule of Three 抽取。现有：`--gradient-brand`（`linear-gradient(135deg, --brand-500, --secondary-500)`，Login + Unauthorized 复用）。
+按 Rule of Three 抽取。现有：`--gradient-brand`（`linear-gradient(135deg, --brand-500, --secondary-500)`，文章标题强调条 + 文章表格表头 + md-editor 表头复用）。2026-09-04 起 Login / Unauthorized 改用 `--surface-page` 平铺背景，不再消费此 token。
 
 ---
 
