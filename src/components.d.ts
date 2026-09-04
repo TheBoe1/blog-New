@@ -60,6 +60,7 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     GlobalLoading: typeof import('./components/GlobalLoading.vue')['default']
+    IconCarbonBlog: typeof import('~icons/carbon/blog')['default']
     IconMdiEmail: typeof import('~icons/mdi/email')['default']
     IconMdiGithub: typeof import('~icons/mdi/github')['default']
     IconMdiRss: typeof import('~icons/mdi/rss')['default']
