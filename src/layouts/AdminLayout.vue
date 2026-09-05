@@ -56,11 +56,6 @@
             <template #title>系统设置</template>
           </el-menu-item>
 
-          <el-menu-item index="/admin/page-config">
-            <el-icon><EditPen /></el-icon>
-            <template #title>页面配置</template>
-          </el-menu-item>
-
           <el-menu-item index="/admin/visit-logs">
             <el-icon><View /></el-icon>
             <template #title>访问日志</template>
@@ -125,7 +120,6 @@
         <el-menu-item index="/admin/categories"><el-icon><Folder /></el-icon><template #title>分类管理</template></el-menu-item>
         <el-menu-item index="/admin/tags"><el-icon><PriceTag /></el-icon><template #title>标签管理</template></el-menu-item>
         <el-menu-item index="/admin/settings"><el-icon><Setting /></el-icon><template #title>系统设置</template></el-menu-item>
-        <el-menu-item index="/admin/page-config"><el-icon><EditPen /></el-icon><template #title>页面配置</template></el-menu-item>
         <el-menu-item index="/admin/visit-logs"><el-icon><View /></el-icon><template #title>访问日志</template></el-menu-item>
       </el-menu>
     </el-drawer>
