@@ -141,14 +141,14 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 │   └── 管理端接口401错误修复指南.md # 401 鉴权排查手册
 ├── deploy.sh / deploy.bat / deploy_oss.py
 └── src/
-    ├── api/                # request.ts 封装 axios；article/auth/stats/pageConfig
+    ├── api/                # request.ts 封装 axios；article/auth/stats
     ├── components/         # 全局组件（unplugin-vue-components 自动导入）
-    ├── composables/        # useEntranceAnim / usePageConfig
+    ├── composables/        # useEntranceAnim
     ├── data/               # 静态数据 (projects.ts)
     ├── directives/         # 自定义指令
     ├── layouts/            # FrontLayout.vue / AdminLayout.vue
     ├── router/index.ts     # 路由 + beforeEach 鉴权守卫
-    ├── stores/             # Pinia: user / blog / pageConfig / loading
+    ├── stores/             # Pinia: user / blog / loading
     ├── styles/             # variables.scss / index.scss
     ├── types/              # TS 接口（index.ts）
     ├── utils/              # markdown.ts / highlight.ts
@@ -165,7 +165,7 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 ### 路由分层（`src/router/index.ts`）
 
 - `/` → **FrontLayout**：Home / Articles / ArticleDetail / Category / About / Projects / ProjectDetail
-- `/admin` → **AdminLayout**（`meta.requiresAuth: true`）：Dashboard / ArticleList / ArticleEditor / CategoryList / TagList / Settings / PageConfigEditor
+- `/admin` → **AdminLayout**（`meta.requiresAuth: true`）：Dashboard / ArticleList / ArticleEditor / CategoryList / TagList / Settings
 - `/login`、`/unauthorized`、`/:pathMatch(.*)*`（NotFound）独立路由
 
 鉴权守卫：`router.beforeEach` 检查 `meta.requiresAuth` + `useUserStore().isLoggedIn`；`/login` 已登录且为 admin 时跳 `/admin`。
@@ -187,7 +187,6 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 
 - `useUserStore`：token（persisted）、userInfo、`login` / `logout` / `fetchUserInfo` / `isAdmin`
 - `useBlogStore`：文章 / 分类 / 标签缓存
-- `usePageConfigStore`：动态页面配置
 - `useLoadingStore`：全局 loading overlay
 
 ### 自动导入（`vite.config.ts`）

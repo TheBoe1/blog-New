@@ -31,6 +31,10 @@ Thumbs.db
 .ai/
 .impeccable/
 .qoder/
+.agents/
+
+# AI 操作记忆（本地保留，不上传）
+memory/
 
 # Python 缓存
 __pycache__/

@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import pinia from './stores'
 import {
   ArrowDown, ArrowLeft, ArrowUp, Calendar, DataAnalysis, Delete, Document,
-  Edit, EditPen, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
+  Edit, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
   Plus, PriceTag, Rank, Refresh, Setting, Share, Star, Upload, User, View,
 } from '@element-plus/icons-vue'
 import 'virtual:uno.css'
@@ -34,7 +34,7 @@ const app = createApp(App)
 
 const icons = {
   ArrowDown, ArrowLeft, ArrowUp, Calendar, DataAnalysis, Delete, Document,
-  Edit, EditPen, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
+  Edit, Folder, FolderOpened, InfoFilled, Link, Loading, Lock,
   Plus, PriceTag, Rank, Refresh, Setting, Share, Star, Upload, User, View,
 }
 for (const [name, component] of Object.entries(icons)) {
