@@ -168,6 +168,7 @@ import {
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsCoreOption as EChartsOption } from 'echarts/core'
+import { buildLabelInk } from '@/utils/chartColor'
 
 echarts.use([
   LineChart,
@@ -224,6 +225,28 @@ let locationRenderTimer: number | null = null
 
 const seriesColors: Record<string, string> = { pv: '#667eea', uv: '#14b8a6', ip: '#f59e0b' }
 const CHINA_MAP_NAME = 'chinaVisitorMap'
+/** 散点 series 的固定 id：缩放时只按 id 局部更新这个系列，避免整图重绘把 geo 的漫游状态冲掉 */
+const MAP_SERIES_ID = 'visitorLocation'
+/** 地图初始缩放，同时作为散点尺寸缩放的基准（散点随缩放同步变化，基准必须是同一个常量） */
+const MAP_BASE_ZOOM = 1.16
+
+/**
+ * 访问量分档配色。
+ * dot  —— 右侧排行榜小圆点用，饱和度高，小块面积上要够醒目；
+ * area —— 地图区块用，带透明度、呈粉彩色，给上面的地名文字留出对比空间。
+ * 两者分开是为了不让"区块颜色"和"地名文字颜色"抢同一个色域。
+ */
+const PROVINCE_LEVELS = [
+  { minRatio: 0.75, dot: '#ef4444', area: 'rgba(239, 68, 68, 0.58)' },
+  { minRatio: 0.45, dot: '#f59e0b', area: 'rgba(245, 158, 11, 0.58)' },
+  { minRatio: 0.2, dot: '#14b8a6', area: 'rgba(20, 184, 166, 0.54)' },
+  { minRatio: 0, dot: '#667eea', area: 'rgba(102, 126, 234, 0.48)' }
+]
+
+function getProvinceLevel(count: number) {
+  const ratio = Math.min(count / maxProvinceCount.value, 1)
+  return PROVINCE_LEVELS.find(level => ratio >= level.minRatio) ?? PROVINCE_LEVELS[PROVINCE_LEVELS.length - 1]
+}
 
 function resolvePublicAsset(path: string): string {
   const base = import.meta.env.BASE_URL || '/'
@@ -269,7 +292,9 @@ const provinceCoordinates: Record<string, [number, number]> = {
   台湾: [121.56, 25.04]
 }
 let visitorMapRegistered = false
-let locationMapZoom = 1.16
+let locationMapZoom = MAP_BASE_ZOOM
+/** 用户拖动后的地图中心，回写进 option，保证后续整图重绘不会把视野弹回初始位置 */
+let locationMapCenter: [number, number] | null = null
 
 function buildChartOption(): EChartsOption {
   const mk = (key: 'pv' | 'uv' | 'ip', label: string) => ({
@@ -366,6 +391,61 @@ function handleResize() {
   scheduleLocationRender()
 }
 
+function readGeoOption(): any {
+  if (!locationChart) return null
+  const option = locationChart.getOption() as any
+  const geo = Array.isArray(option?.geo) ? option.geo[0] : option?.geo
+  return geo || null
+}
+
+/**
+ * 读取并记录 geo 当前的漫游状态（缩放 + 中心）。
+ * 返回值表示 zoom 是否变化 —— 只有 zoom 变了才需要重算散点尺寸。
+ */
+function syncGeoRoamState(): boolean {
+  const geo = readGeoOption()
+  if (!geo) return false
+
+  let zoomChanged = false
+  const zoom = Number(geo.zoom)
+  if (Number.isFinite(zoom) && zoom > 0 && Math.abs(zoom - locationMapZoom) > 1e-4) {
+    locationMapZoom = zoom
+    zoomChanged = true
+  }
+
+  const center = geo.center
+  if (Array.isArray(center) && center.length === 2) {
+    const lng = Number(center[0])
+    const lat = Number(center[1])
+    if (Number.isFinite(lng) && Number.isFinite(lat)) {
+      locationMapCenter = [lng, lat]
+    }
+  }
+
+  return zoomChanged
+}
+
+/**
+ * 同步刷新散点尺寸：只按 id 局部 merge series，不碰 geo。
+ *
+ * 原实现是 `georoam -> 80ms 定时器 -> setOption(整图, notMerge)`，两个问题：
+ *   1. 异步：滚轮连滚时地图已经换了缩放矩阵，散点还按旧矩阵画，于是"小蓝点偏移"；
+ *   2. notMerge 全量重绘会重建 geo 的漫游状态（尤其 center），来回拉扯进一步放大偏移。
+ * 改成同步 + 局部 merge 后，地图与散点由 ECharts 在同一次渲染里一起更新，天然对齐。
+ */
+function applyGeoScatterScale() {
+  if (!locationChart) return
+  locationChart.setOption({
+    series: [{ id: MAP_SERIES_ID, symbolSize: getProvinceSymbolSize }]
+  })
+}
+
+function handleGeoRoam() {
+  if (syncGeoRoamState()) {
+    applyGeoScatterScale()
+  }
+}
+
 function toggleChartView() {
   chartView.value = chartView.value === 'trend' ? 'map' : 'trend'
   nextTick(() => {
@@ -435,18 +515,18 @@ const topProvinceStats = computed(() => provinceStats.value.slice(0, 6))
 const maxProvinceCount = computed(() => Math.max(...provinceStats.value.map(item => item.count), 1))
 
 function getProvinceColor(count: number): string {
-  const ratio = Math.min(count / maxProvinceCount.value, 1)
-  if (ratio >= 0.75) return '#ef4444'
-  if (ratio >= 0.45) return '#f59e0b'
-  if (ratio >= 0.2) return '#14b8a6'
-  return '#667eea'
+  return getProvinceLevel(count).dot
+}
+
+function getProvinceAreaColor(count: number): string {
+  return getProvinceLevel(count).area
 }
 
 function getProvinceSymbolSize(value: number[]): number {
   const count = Math.max(Number(value?.[2]) || 0, 0)
   const maxCount = maxProvinceCount.value
   const normalized = maxCount > 0 ? Math.sqrt(count / maxCount) : 0
-  const zoomFactor = Math.min(Math.max(locationMapZoom / 1.16, 0.82), 1.35)
+  const zoomFactor = Math.min(Math.max(locationMapZoom / MAP_BASE_ZOOM, 0.82), 1.35)
   return Math.round((5 + normalized * 7) * zoomFactor)
 }
 
@@ -467,10 +547,13 @@ async function ensureVisitorMapRegistered() {
 }
 
 function buildLocationOption(): EChartsOption {
+  // Canvas 渲染器读不了 CSS 变量，这里统一解析成真实色值 + 一圈反差描边 + 投影，
+  // 让地名压在任何区块颜色上都清晰，不会和地图底色糊在一起。
+  const labelInk = buildLabelInk('--text-primary', 3)
   const regions = provinceStats.value.map(stat => ({
       name: getMapProvinceName(stat.province),
       itemStyle: {
-        areaColor: getProvinceColor(stat.count)
+        areaColor: getProvinceAreaColor(stat.count)
       }
     }))
   const points = provinceStats.value.map(item => ({
@@ -493,13 +576,15 @@ function buildLocationOption(): EChartsOption {
       map: CHINA_MAP_NAME,
       roam: true,
       zoom: locationMapZoom,
+      // 漫游后的中心回写，避免 resize / 切周期重绘时视野被重置
+      ...(locationMapCenter ? { center: locationMapCenter } : {}),
       scaleLimit: { min: 0.9, max: 6 },
       top: 8,
       bottom: 4,
       label: {
         show: false,
         fontSize: 10,
-        color: 'var(--text-secondary)'
+        ...labelInk
       },
       itemStyle: {
         areaColor: 'rgba(102, 126, 234, 0.10)',
@@ -509,7 +594,9 @@ function buildLocationOption(): EChartsOption {
       emphasis: {
         label: {
           show: true,
-          color: 'var(--text-primary)',
+          fontSize: 11,
+          fontWeight: 'bold',
+          ...labelInk,
           formatter: (params: any) => normalizeMapProvinceName(params.name)
         },
         itemStyle: { areaColor: 'rgba(102, 126, 234, 0.42)' }
@@ -518,9 +605,11 @@ function buildLocationOption(): EChartsOption {
     },
     series: [
       {
+        id: MAP_SERIES_ID,
         name: 'IP 属地',
         type: 'effectScatter',
         coordinateSystem: 'geo',
+        geoIndex: 0,
         data: points,
         symbolSize: getProvinceSymbolSize,
         rippleEffect: {
@@ -533,18 +622,23 @@ function buildLocationOption(): EChartsOption {
           shadowBlur: 6,
           shadowColor: 'rgba(14, 165, 233, 0.28)'
         },
+        // 只标有访问量的省份，数量有限，不会糊成一片
+        labelLayout: { hideOverlap: true },
         emphasis: {
           scale: 1.25,
           label: {
-            show: true
+            show: true,
+            fontWeight: 'bold'
           }
         },
         label: {
-          show: false,
+          show: true,
           formatter: '{b}',
           position: 'right',
+          distance: 6,
           fontSize: 11,
-          color: 'var(--text-primary)'
+          fontWeight: 600,
+          ...labelInk
         }
       }
     ]
@@ -756,15 +850,7 @@ onMounted(() => {
     }
     if (locationChartRef.value) {
       locationChart = echarts.init(locationChartRef.value)
-      locationChart.on('georoam', () => {
-        const option = locationChart?.getOption()
-        const geoOption = Array.isArray(option?.geo) ? option.geo[0] : option?.geo
-        const zoom = Number((geoOption as any)?.zoom)
-        if (Number.isFinite(zoom) && zoom > 0) {
-          locationMapZoom = zoom
-          scheduleLocationRender()
-        }
-      })
+      locationChart.on('georoam', handleGeoRoam)
       locationResizeObserver = new ResizeObserver(scheduleLocationRender)
       locationResizeObserver.observe(locationChartRef.value)
       scheduleLocationRender()
