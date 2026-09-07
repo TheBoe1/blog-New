@@ -20,13 +20,30 @@
           <el-card shadow="never" class="chart-card">
             <template #header>
               <div class="card-header">
-                <span>访问趋势</span>
+                <div class="header-title">
+                  <span>访问趋势</span>
+                  <span class="range-text">{{ rangeText }} · {{ granularityText }}</span>
+                </div>
                 <div class="chart-actions">
                   <el-radio-group v-model="chartPeriod" size="small" @change="handlePeriodChange">
                     <el-radio-button value="week">本周</el-radio-button>
                     <el-radio-button value="month">本月</el-radio-button>
                     <el-radio-button value="year">本年</el-radio-button>
                   </el-radio-group>
+                  <el-date-picker
+                    v-model="pickerValue"
+                    :type="granularity === 'month' ? 'monthrange' : 'daterange'"
+                    size="small"
+                    unlink-panels
+                    range-separator="至"
+                    value-format="YYYY-MM-DD"
+                    :start-placeholder="granularity === 'month' ? '开始月份' : '开始日期'"
+                    :end-placeholder="granularity === 'month' ? '结束月份' : '结束日期'"
+                    :disabled-date="disableFutureDate"
+                    :clearable="false"
+                    :editable="false"
+                    class="range-picker"
+                  />
                   <el-button size="small" @click="toggleChartView">
                     {{ chartView === 'trend' ? '地图视图' : '折线图' }}
                   </el-button>
@@ -48,11 +65,33 @@
                       <div class="summary-value">{{ blogStore.trendSummary?.[m.totalKey] ?? 0 }}</div>
                       <div class="summary-meta">
                         <span class="summary-growth" :class="growthClass(m.growthKey)">{{ growthText(m.growthKey) }}</span>
-                        <span class="summary-avg">日均 {{ blogStore.trendSummary?.[m.avgKey] ?? 0 }}</span>
+                        <span class="summary-avg">{{ avgLabel }} {{ blogStore.trendSummary?.[m.avgKey] ?? 0 }}</span>
                       </div>
                     </div>
                   </div>
-                  <div ref="trendChartRef" class="trend-chart"></div>
+                  <div class="trend-chart-wrap">
+                    <el-button
+                      class="range-nav range-nav-prev"
+                      size="small"
+                      circle
+                      :title="stepLabel(-1)"
+                      :disabled="trendLoading"
+                      @click="shiftRange(-1)"
+                    >
+                      <el-icon><ArrowLeft /></el-icon>
+                    </el-button>
+                    <div ref="trendChartRef" class="trend-chart"></div>
+                    <el-button
+                      class="range-nav range-nav-next"
+                      size="small"
+                      circle
+                      :title="stepLabel(1)"
+                      :disabled="trendLoading || !canGoNext"
+                      @click="shiftRange(1)"
+                    >
+                      <el-icon><ArrowRight /></el-icon>
+                    </el-button>
+                  </div>
                   <el-empty v-if="trendData.length === 0" description="暂无访问数据" />
                 </div>
               </transition>
@@ -155,6 +194,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import dayjs from 'dayjs'
+import type { ManipulateType } from 'dayjs'
 import { useBlogStore } from '@/stores/blog'
 import { statsApi } from '@/api/stats'
 import * as echarts from 'echarts/core'
@@ -168,7 +209,7 @@ import {
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsCoreOption as EChartsOption } from 'echarts/core'
-import { buildLabelInk } from '@/utils/chartColor'
+import { buildLabelInk, resolveThemeColor } from '@/utils/chartColor'
 
 echarts.use([
   LineChart,
@@ -186,18 +227,112 @@ const router = useRouter()
 const blogStore = useBlogStore()
 
 const loading = ref(true)
-const chartPeriod = ref('week')
+const chartPeriod = ref<PeriodPreset>('week')
 const trendData = ref<VisitTrend[]>([])
 const chartMetric = ref<'pv' | 'uv' | 'ip'>('pv')
 const chartView = ref<'trend' | 'map'>('trend')
 const locationLogs = ref<VisitLog[]>([])
 const mapLoading = ref(false)
+const trendLoading = ref(false)
+
+/**
+ * 日期范围模型：图表的一切取数都落在这个区间上，而不是"本周/本月/本年"这种一次性常量。
+ *
+ * 原来 getDateRange() 用「今天往前推 N 天」算区间，于是"本月"实际是滚动 30 天（会跨到上个月）、
+ * "本年"是滚动 365 天（会跨到去年）——x 轴自然就出现了用户以为不该出现的月份和重复的月份号。
+ * 现在改成「自然周期 + 可平移」：预设只决定起点和步长，< > 按步长整体平移，粒度始终跟随区间跨度。
+ */
+type PeriodPreset = 'week' | 'month' | 'year'
+type Granularity = 'day' | 'month'
+type RangeStep = { value: number; unit: ManipulateType }
+const DATE_FMT = 'YYYY-MM-DD'
+/** 跨度超过这个天数就改用月粒度，否则一天一个点会密到没法看 */
+const MONTH_GRANULARITY_DAYS = 92
+
+const PERIODS: Record<PeriodPreset, {
+  granularity: Granularity
+  step: RangeStep
+  startOf: (today: dayjs.Dayjs) => dayjs.Dayjs
+  shiftName: string
+}> = {
+  week: { granularity: 'day', step: { value: 7, unit: 'day' }, startOf: t => t.subtract(6, 'day'), shiftName: '周' },
+  month: { granularity: 'day', step: { value: 1, unit: 'month' }, startOf: t => t.startOf('month'), shiftName: '月' },
+  year: { granularity: 'month', step: { value: 1, unit: 'year' }, startOf: t => t.startOf('year'), shiftName: '年' }
+}
+
+const granularity = ref<Granularity>('day')
+const rangeStart = ref('')
+const rangeEnd = ref('')
+const rangeStep = ref<RangeStep>(PERIODS.week.step)
+/** 自定义范围时失去"周/月/年"语义，< > 与文案退化成"区间" */
+const isCustomRange = ref(false)
+
+const granularityText = computed(() => (granularity.value === 'month' ? '按月' : '按天'))
+const avgLabel = computed(() => (granularity.value === 'month' ? '月均' : '日均'))
+const rangeText = computed(() => `${rangeStart.value} ~ ${rangeEnd.value}`)
+/** 未来没有数据，右箭头到"今天"为止 */
+const canGoNext = computed(() => dayjs(rangeEnd.value).isBefore(dayjs(), 'day'))
+
+function stepLabel(dir: -1 | 1): string {
+  const dirName = dir < 0 ? '上' : '下'
+  if (isCustomRange.value) return `${dirName}一区间`
+  return `${dirName}一${PERIODS[chartPeriod.value].shiftName}`
+}
+
+function disableFutureDate(date: Date): boolean {
+  return dayjs(date).isAfter(dayjs(), 'day')
+}
+
+const pickerValue = computed<string[]>({
+  get: () => (rangeStart.value ? [rangeStart.value, rangeEnd.value] : []),
+  set: value => {
+    if (!Array.isArray(value) || value.length !== 2 || !value[0] || !value[1]) return
+    applyCustomRange(dayjs(value[0]), dayjs(value[1]))
+  }
+})
+
+function setPresetRange(preset: PeriodPreset) {
+  const today = dayjs().startOf('day')
+  const conf = PERIODS[preset]
+  granularity.value = conf.granularity
+  rangeStart.value = conf.startOf(today).format(DATE_FMT)
+  rangeEnd.value = today.format(DATE_FMT)
+  rangeStep.value = conf.step
+  isCustomRange.value = false
+}
+
+function applyCustomRange(start: dayjs.Dayjs, end: dayjs.Dayjs) {
+  const today = dayjs().startOf('day')
+  let s = start.startOf('day')
+  let e = end.startOf('day')
+  const useMonth = e.diff(s, 'day') + 1 > MONTH_GRANULARITY_DAYS
+  if (useMonth) {
+    s = s.startOf('month')
+    e = e.endOf('month')
+  }
+  if (e.isAfter(today)) e = today
+  if (s.isAfter(e)) s = e
+
+  granularity.value = useMonth ? 'month' : 'day'
+  rangeStart.value = s.format(DATE_FMT)
+  rangeEnd.value = e.format(DATE_FMT)
+  // 自定义区间的平移量就是它自己的跨度，单位与粒度一致：日粒度按天挪，月粒度按月挪
+  rangeStep.value = useMonth
+    ? { value: Math.max(e.diff(s, 'month') + 1, 1), unit: 'month' }
+    : { value: Math.max(e.diff(s, 'day') + 1, 1), unit: 'day' }
+  isCustomRange.value = true
+  fetchTrend()
+}
 
 const trendMetrics = [
   { key: 'pv' as const, label: '浏览量', totalKey: 'totalPV', avgKey: 'avgDailyPV', growthKey: 'pvGrowth' },
   { key: 'uv' as const, label: '访客数', totalKey: 'totalUV', avgKey: 'avgDailyUV', growthKey: 'uvGrowth' },
   { key: 'ip' as const, label: 'IP 数', totalKey: 'totalIP', avgKey: 'avgDailyIP', growthKey: 'ipGrowth' }
 ]
+
+const currentMetricLabel = computed(
+  () => trendMetrics.find(m => m.key === chartMetric.value)?.label ?? '浏览量'
+)
 
 function growthClass(key: string): string {
   const val = blogStore.trendComparison?.[key] ?? 0
@@ -307,19 +442,22 @@ function buildChartOption(): EChartsOption {
   })
   // 数据是离散桶(日/月),用 category 轴让标签与数据点一一对齐;
   // time 轴会在数据点之间任意取刻度,产生幽灵月份/乱序标签,且切换周期后需交互才重排
-  const isYear = chartPeriod.value === 'year'
+  const isMonth = granularity.value === 'month'
+  // 区间跨年时月份号/月日会重复,轴标签补上年份消歧
+  const crossYear = new Set(trendData.value.map(d => d.date.slice(0, 4))).size > 1
   const axisLabels = trendData.value.map(d => {
-    const [, month, day] = d.date.split('-').map(Number)
-    return isYear ? `${month}月` : `${month}/${day}`
+    const point = dayjs(d.date)
+    if (isMonth) return crossYear ? point.format('YY年M月') : point.format('M月')
+    return crossYear ? point.format('YY/M/D') : point.format('M/D')
   })
-  // 本年时间窗覆盖约 13 个自然月,首尾月份号会重复;tooltip 用完整标签消歧
-  const fullLabels = trendData.value.map(d => {
-    const [year, month, day] = d.date.split('-').map(Number)
-    return isYear ? `${year}年${month}月` : `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  })
+  // tooltip 永远给完整日期,轴标签为了密度被压缩的信息在这里补齐
+  const fullLabels = trendData.value.map(d =>
+    isMonth ? dayjs(d.date).format('YYYY年M月') : dayjs(d.date).format(DATE_FMT)
+  )
   return {
     tooltip: {
       trigger: 'axis',
+      axisPointer: { type: 'line' },
       formatter: (params: any) => {
         const p = Array.isArray(params) ? params : [params]
         let html = `${fullLabels[p[0]?.dataIndex] ?? p[0]?.axisValueLabel ?? ''}`
@@ -335,15 +473,51 @@ function buildChartOption(): EChartsOption {
       left: 'center',
       textStyle: { fontSize: 12 }
     },
-    grid: { left: 40, right: 20, top: 44, bottom: 20 },
+    // 左右留出 < > 导航钮的位置,避免按钮压住首尾数据点
+    grid: { left: 52, right: 56, top: 44, bottom: 24, containLabel: true },
     xAxis: {
       type: 'category',
       data: axisLabels,
+      boundaryGap: false,
+      axisTick: { alignWithLabel: true },
+      axisLabel: { fontSize: 11, hideOverlap: true }
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      minInterval: 1,
+      // 轴名跟着当前指标走:三条线共用一根 y 轴,不标名字根本看不出在数什么
+      name: `${currentMetricLabel.value}（次）`,
+      nameLocation: 'end',
+      nameGap: 10,
+      nameTextStyle: {
+        fontSize: 11,
+        color: resolveThemeColor('--text-tertiary'),
+        align: 'left'
+      },
       axisLabel: { fontSize: 11 }
     },
-    yAxis: { type: 'value', min: 0, minInterval: 1, axisLabel: { fontSize: 11 } },
     series: [mk('pv', '浏览量'), mk('uv', '访客数'), mk('ip', 'IP 数')]
   }
+}
+
+/**
+ * 月粒度补齐空缺月份。
+ * 后端 selectMonthlyStats 直接 group by 有数据的月份,没有数据的月份整条不返回,
+ * x 轴就会"跳过"那几个月——既少了点,也让相邻月份在视觉上被当成连续区间。
+ */
+function fillMonthlyBuckets(rows: VisitTrend[]): VisitTrend[] {
+  const byMonth = new Map(rows.map(row => [row.date.slice(0, 7), row]))
+  const buckets: VisitTrend[] = []
+  const last = dayjs(rangeEnd.value).startOf('month')
+  let cursor = dayjs(rangeStart.value).startOf('month')
+  while (!cursor.isAfter(last)) {
+    const key = cursor.format('YYYY-MM')
+    const hit = byMonth.get(key)
+    buckets.push(hit ?? { date: cursor.format(DATE_FMT), pv: 0, uv: 0, ip: 0 })
+    cursor = cursor.add(1, 'month')
+  }
+  return buckets
 }
 
 function hasUsableChartSize(el: HTMLElement | null): el is HTMLElement {
@@ -762,13 +936,6 @@ function formatDate(date: string) {
   })
 }
 
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 function handleViewArticle(id: string) {
   router.push(`/admin/article/edit/${id}`)
 }
@@ -777,39 +944,37 @@ function handleAction(path: string) {
   router.push(path)
 }
 
-function getDateRange(period: string): { startDate: string; endDate: string } {
-  const now = new Date()
-  const endDate = formatLocalDate(now)
-  let startDate = ''
-  
-  if (period === 'week') {
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    startDate = formatLocalDate(weekAgo)
-  } else if (period === 'month') {
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    startDate = formatLocalDate(monthAgo)
-  } else {
-    const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-    startDate = formatLocalDate(yearAgo)
-  }
-  
-  return { startDate, endDate }
-}
-
-async function handlePeriodChange() {
-  const { startDate, endDate } = getDateRange(chartPeriod.value)
-  const granularity = chartPeriod.value === 'year' ? 'month' : 'day'
-
+async function fetchTrend() {
+  trendLoading.value = true
   try {
     const [data] = await Promise.all([
-      blogStore.fetchVisitTrend(startDate, endDate, granularity),
-      fetchLocationLogs(startDate, endDate)
+      blogStore.fetchVisitTrend(rangeStart.value, rangeEnd.value, granularity.value),
+      fetchLocationLogs(rangeStart.value, rangeEnd.value)
     ])
-    trendData.value = data
+    // 取数失败时 data 是空数组,这时不要补零——补了会把"没数据"画成一条真实的 0 线
+    trendData.value = granularity.value === 'month' && data.length ? fillMonthlyBuckets(data) : data
   } catch (error) {
     console.error('Failed to fetch trend data:', error)
     trendData.value = []
+  } finally {
+    trendLoading.value = false
   }
+}
+
+function handlePeriodChange(preset: string | number | boolean | undefined) {
+  setPresetRange((preset as PeriodPreset) || 'week')
+  fetchTrend()
+}
+
+/** < > 平移：步长由当前周期决定（周→7 天，月→1 月，年→1 年，自定义→自身跨度），粒度始终保持不变 */
+function shiftRange(dir: -1 | 1) {
+  const { value, unit } = rangeStep.value
+  const start = dayjs(rangeStart.value).add(dir * value, unit)
+  const end = dayjs(rangeEnd.value).add(dir * value, unit)
+  if (end.isAfter(dayjs(), 'day')) return
+  rangeStart.value = start.format(DATE_FMT)
+  rangeEnd.value = end.format(DATE_FMT)
+  fetchTrend()
 }
 
 async function fetchLocationLogs(startDate: string, endDate: string) {
@@ -824,17 +989,14 @@ async function fetchLocationLogs(startDate: string, endDate: string) {
 
 async function loadDashboardData() {
   loading.value = true
+  setPresetRange(chartPeriod.value)
   try {
-    const { startDate, endDate } = getDateRange(chartPeriod.value)
-    const granularity = chartPeriod.value === 'year' ? 'month' : 'day'
-    const results = await Promise.all([
+    await Promise.all([
       blogStore.fetchDashboardStats(),
       blogStore.fetchArticles({}),
       blogStore.fetchCategories(),
-      blogStore.fetchVisitTrend(startDate, endDate, granularity),
-      fetchLocationLogs(startDate, endDate)
+      fetchTrend()
     ])
-    trendData.value = results[3] || []
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
   } finally {
@@ -938,12 +1100,33 @@ watch(provinceStats, () => {
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    /* 周期按钮只表达"跨度",< > 和日期选择器改的是真实区间,所以这里必须把区间原文显示出来 */
+    .range-text {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
     }
 
     .chart-actions {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .range-picker {
+      width: 250px;
+      flex: 0 0 auto;
     }
 
     .chart-viewport {
@@ -1032,10 +1215,32 @@ watch(provinceStats, () => {
       }
     }
 
-    .trend-chart {
+    .trend-chart-wrap {
+      position: relative;
       flex: 1;
       min-height: 0;
+    }
+
+    .trend-chart {
+      height: 100%;
       width: 100%;
+    }
+
+    /* < > 贴在图表左右两侧,常驻但低对比,hover 才提亮;grid 已预留左右留白,不会压住数据点 */
+    .range-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      opacity: 0.55;
+      transition: opacity 0.2s ease, background 0.2s ease;
+
+      &:hover:not(.is-disabled) {
+        opacity: 1;
+      }
+
+      &.range-nav-prev { left: 0; }
+      &.range-nav-next { right: 0; }
     }
 
     .location-meta {
