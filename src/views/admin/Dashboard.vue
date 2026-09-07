@@ -301,19 +301,30 @@ function buildChartOption(): EChartsOption {
     name: label,
     type: 'line' as const,
     smooth: true,
-    data: trendData.value.map(d => [d.date, d[key]]),
+    data: trendData.value.map(d => d[key]),
     itemStyle: { color: seriesColors[key] },
     lineStyle: { width: chartMetric.value === key ? 3 : 2, opacity: chartMetric.value === key ? 1 : 0.45 }
+  })
+  // 数据是离散桶(日/月),用 category 轴让标签与数据点一一对齐;
+  // time 轴会在数据点之间任意取刻度,产生幽灵月份/乱序标签,且切换周期后需交互才重排
+  const isYear = chartPeriod.value === 'year'
+  const axisLabels = trendData.value.map(d => {
+    const [, month, day] = d.date.split('-').map(Number)
+    return isYear ? `${month}月` : `${month}/${day}`
+  })
+  // 本年时间窗覆盖约 13 个自然月,首尾月份号会重复;tooltip 用完整标签消歧
+  const fullLabels = trendData.value.map(d => {
+    const [year, month, day] = d.date.split('-').map(Number)
+    return isYear ? `${year}年${month}月` : `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   })
   return {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
         const p = Array.isArray(params) ? params : [params]
-        const date = p[0]?.value?.[0] ?? ''
-        let html = `${date}`
+        let html = `${fullLabels[p[0]?.dataIndex] ?? p[0]?.axisValueLabel ?? ''}`
         p.forEach((item: any) => {
-          html += `<br/>${item.seriesName}: ${item.value[1]}`
+          html += `<br/>${item.seriesName}: ${item.value}`
         })
         return html
       }
@@ -326,18 +337,11 @@ function buildChartOption(): EChartsOption {
     },
     grid: { left: 40, right: 20, top: 44, bottom: 20 },
     xAxis: {
-      type: 'time',
-      axisLabel: {
-        fontSize: 11,
-        hideOverlap: true,
-        formatter: (value: number) => {
-          const d = new Date(value)
-          if (chartPeriod.value === 'year') return `${d.getMonth() + 1}月`
-          return `${d.getMonth() + 1}/${d.getDate()}`
-        }
-      }
+      type: 'category',
+      data: axisLabels,
+      axisLabel: { fontSize: 11 }
     },
-    yAxis: { type: 'value', minInterval: 1, axisLabel: { fontSize: 11 } },
+    yAxis: { type: 'value', min: 0, minInterval: 1, axisLabel: { fontSize: 11 } },
     series: [mk('pv', '浏览量'), mk('uv', '访客数'), mk('ip', 'IP 数')]
   }
 }
