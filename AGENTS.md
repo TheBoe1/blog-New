@@ -1,7 +1,7 @@
 # AGENTS.md
 > 给 AI Coding Agent 的项目指令。地图而非手册——核心信息在此，细节看链接。
 
-> **Workflow Principle**：Design System 是所有 UI 决策的唯一事实来源。工程实现 Design System，不重新定义它。详见 `DESIGN.md`。
+> **Workflow Principle**：Design System 是所有 UI 决策的唯一事实来源。工程实现 Design System，不重新定义它。详见 `docs/design.md`。
 
 ## 0. 工作流（自动触发，无需用户手动指定）
 
@@ -50,27 +50,27 @@ ls -lt .ai/memory/ .ai/knowledge/ | head -5   # 最近产出时间戳
 ```
 
 > 如果 AI 的回复中**没有签名块**，说"你漏了引用清单"。
-> 与 `CLAUDE.md` 内容等价，已通过软链/同步保持一致。
+> 本文是唯一事实源，`CLAUDE.md` 通过 `@AGENTS.md` 引用本文，无需双份维护。
 
 ## 0.5 Design System 治理（UI 任务前置）
 
-项目采用**双阶段 Workflow**：Stage 1 Design Foundation（已冻结，见 `DESIGN.md`）→ Stage 2 Engineering Workflow（即 §0 日常流程）。Stage 1 的三层 token 体系（Primitive → Semantic → Component）已落地在 `src/styles/index.scss`。
+项目采用**双阶段 Workflow**：Stage 1 Design Foundation（已冻结，见 `docs/design.md`）→ Stage 2 Engineering Workflow（即 §0 日常流程）。Stage 1 的三层 token 体系（Primitive → Semantic → Component）已落地在 `src/styles/index.scss`。
 
 ### Token 铁律（硬性）
 
 1. **业务组件禁止直接消费 Primitive Token**。用 Semantic（`var(--brand-primary)`），不用 Primitive（`var(--brand-600)`）或 raw hex（`#2563eb`）。
 2. **`--text-*` 专属颜色**；字号用 `--font-size-*`，行高 `--line-height-*`，字重 `--font-weight-*`。
-3. **新 UI 需要新 token/组件时，先更 `DESIGN.md` + `styles/index.scss`，再改组件，最后业务页**（Governance flow，见 `DESIGN.md` §5）。
+3. **新 UI 需要新 token/组件时，先更 `docs/design.md` + `styles/index.scss`，再改组件，最后业务页**（Governance flow，见 `docs/design.md` §5）。
 4. **Semantic Token 是公开 API，不重命名**（Stable API Principle）。确需改名要强理由 + 全仓 sweep + 文档说明。
 
 ### UI 任务 Review Matrix
 
-UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍（详见 `DESIGN.md` §8）：
+UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍（详见 `docs/design.md` §8）：
 
 | 项 | 检查 |
 |---|---|
-| Product Identity | 符合 `PRODUCT.md` |
-| Design Principles | 符合 `PRODUCT.md` |
+| Product Identity | 符合 `docs/product.md` |
+| Design Principles | 符合 `docs/product.md` |
 | Semantic Token | 用 Semantic，没直连 Primitive / 写 hex |
 | Foundation | spacing/radius/shadow/motion 用 scale，无 magic number |
 | Component | 复用现成组件，不重造 |
@@ -81,7 +81,7 @@ UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍
 
 ### Third-party Integration Check（涉及第三方组件时必过，ADR-003）
 
-把 `DESIGN.md` §7 变成可执行检查项——第三方组件接入前逐条确认：
+把 `docs/design.md` §7 变成可执行检查项——第三方组件接入前逐条确认：
 
 - [ ] Visual Inventory 已完成（列出组件视觉对象，与实现无关）
 - [ ] Visual Object → Semantic Domain 映射已完成（我方设计语言，不提第三方）
@@ -95,11 +95,11 @@ UI / Theme / Component / Style 类任务，在"调查"后、"实现"前过一遍
 
 - **Rule of Three**：第三次重复才抽 Component Token，不预建。
 - 新增 Semantic 需 ≥2 组件用；新增 Component 需 ≥2 状态共享；废弃走 deprecate。
-- 详见 `DESIGN.md` §6。
+- 详见 `docs/design.md` §6。
 
 ## 1. 项目概述
 
-个人博客系统，**前后端分离单仓**：本仓为前端（Vue 3 + TS + Vite），后端为独立 Go 服务（不在本仓中，dev 阶段通过 Vite 代理访问 `http://localhost:9090`）。
+个人博客系统，**前后端分离单仓**：本仓为前端（Vue 3 + TS + Vite），后端为独立 carbon 服务（Spring Boot/Java，不在本仓中，dev 阶段通过 Vite 代理访问 `http://localhost:9090`）。
 
 - **前端技术栈**：Vue 3.3 (Composition API) + TypeScript 5.2 + Vite 4.5
 - **UI**：Element Plus 2.4 + UnoCSS 0.57 + SCSS
@@ -123,7 +123,7 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 - **类型检查**：`npx vue-tsc --noEmit`（构建未串联 type-check，需手动跑）。
 - **环境变量**：`.env`（gitignored）配置 `VITE_API_BASE_URL`；未设置时走相对路径，由 Vite proxy 兜底。
 - **生产 base**：`https://oss.lianlab.top/main`（见 `vite.config.ts:12`，构建时静态资源前缀）。
-- **部署**：见 `DEPLOY.md` 与 `deploy.sh` / `deploy.bat` / `deploy_oss.py`。
+- **部署**：见 `docs/deploy.md` 与 `deploy.sh` / `deploy.bat` / `deploy_oss.py`。
 
 ## 3. 仓库结构
 
@@ -134,21 +134,19 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 ├── uno.config.ts           # UnoCSS shortcuts / theme / safelist
 ├── tsconfig.json
 ├── package.json
-├── DEPLOY.md               # 部署指南
-├── DESIGN.md / PRODUCT.md  # 设计与产品文档
-├── docs/
+├── docs/                  # design.md / product.md / deploy.md / API开发手册.md 等
 │   ├── API开发手册.md            # 后端接口约定（响应格式、错误码、端点）
 │   └── 管理端接口401错误修复指南.md # 401 鉴权排查手册
-├── deploy.sh / deploy.bat / deploy_oss.py
+├── scripts/cdn_refresh.py # CDN 刷新脚本（deploy workflow 调用）
 └── src/
-    ├── api/                # request.ts 封装 axios；article/auth/stats
+    ├── api/                # request.ts 封装 axios；article/auth/stats/pageConfig
     ├── components/         # 全局组件（unplugin-vue-components 自动导入）
-    ├── composables/        # useEntranceAnim
+    ├── composables/        # useEntranceAnim / usePageConfig
     ├── data/               # 静态数据 (projects.ts)
     ├── directives/         # 自定义指令
     ├── layouts/            # FrontLayout.vue / AdminLayout.vue
     ├── router/index.ts     # 路由 + beforeEach 鉴权守卫
-    ├── stores/             # Pinia: user / blog / loading
+    ├── stores/             # Pinia: user / blog / pageConfig / loading
     ├── styles/             # variables.scss / index.scss
     ├── types/              # TS 接口（index.ts）
     ├── utils/              # markdown.ts / highlight.ts
@@ -165,7 +163,7 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 ### 路由分层（`src/router/index.ts`）
 
 - `/` → **FrontLayout**：Home / Articles / ArticleDetail / Category / About / Projects / ProjectDetail
-- `/admin` → **AdminLayout**（`meta.requiresAuth: true`）：Dashboard / ArticleList / ArticleEditor / CategoryList / TagList / Settings
+- `/admin` → **AdminLayout**（`meta.requiresAuth: true`）：Dashboard / ArticleList / ArticleEditor / CategoryList / TagList / Settings / PageConfigEditor
 - `/login`、`/unauthorized`、`/:pathMatch(.*)*`（NotFound）独立路由
 
 鉴权守卫：`router.beforeEach` 检查 `meta.requiresAuth` + `useUserStore().isLoggedIn`；`/login` 已登录且为 admin 时跳 `/admin`。
@@ -187,6 +185,7 @@ npm run lint     # ESLint --fix（.vue/.js/.ts/.tsx 等）
 
 - `useUserStore`：token（persisted）、userInfo、`login` / `logout` / `fetchUserInfo` / `isAdmin`
 - `useBlogStore`：文章 / 分类 / 标签缓存
+- `usePageConfigStore`：动态页面配置
 - `useLoadingStore`：全局 loading overlay
 
 ### 自动导入（`vite.config.ts`）
@@ -222,7 +221,7 @@ npm install        # 首次
 npm run dev        # http://localhost:5175
 ```
 
-前置依赖：**后端 Go 服务必须在 `localhost:9090` 运行**，否则所有 `/api/*` 请求 502/网络错误。后端不在本仓，需独立启动。
+前置依赖：**后端 carbon 服务（Spring Boot）必须在 `localhost:9090` 运行**，否则所有 `/api/*` 请求 502/网络错误。后端不在本仓，需独立启动。
 
 ### 验证清单
 
@@ -264,7 +263,7 @@ curl -s http://localhost:9090/api/admin/articles \
 
 ## 8. 参考项目约定
 
-本仓为纯前端，**后端 Go 服务不在本仓**。需要后端上下文时：
+本仓为纯前端，**后端 carbon 服务（Spring Boot）不在本仓**。需要后端上下文时：
 
 - 接口契约：`docs/API开发手册.md`
 - 鉴权细节：`docs/管理端接口401错误修复指南.md`
@@ -274,10 +273,10 @@ curl -s http://localhost:9090/api/admin/articles \
 
 | 文档 | 用途 |
 |---|---|
-| `CLAUDE.md` | Claude Code 入口（本文件镜像，`cat AGENTS.md \| sed "1s/AGENTS.md/CLAUDE.md/" > CLAUDE.md` 同步） |
-| `PRODUCT.md` | 产品需求与功能说明：目标用户、品牌定位、设计原则 |
-| `DESIGN.md` | UI/UX 设计系统：颜色调色板、字体层级、组件规范、Do/Don't |
-| `DEPLOY.md` | 部署流程与安全最佳实践 |
+| `CLAUDE.md` | Claude Code 入口（内容为 `@AGENTS.md` 引用，单一事实源） |
+| `docs/product.md` | 产品需求与功能说明：目标用户、品牌定位、设计原则 |
+| `docs/design.md` | UI/UX 设计系统：颜色调色板、字体层级、组件规范、Do/Don't |
+| `docs/deploy.md` | 部署流程与安全最佳实践 |
 | `docs/API开发手册.md` | 后端接口契约（响应格式、错误码、端点） |
 | `docs/管理端接口401错误修复指南.md` | 401 鉴权排查手册 |
 | `.ai/capabilities/` | AI 开发流水线（8 个能力定义，按编号执行） |
@@ -294,4 +293,4 @@ curl -s http://localhost:9090/api/admin/articles \
 - **地图而非手册**：~200 行以内，细节放链接文档，避免上下文膨胀稀释关键规则。
 - **Bad case 驱动**：AI 每犯一次错，判断是否补一条规则到此或子文档。
 - **改这里 vs 改 docs/**：违反会写出错误代码 → 改本文；只是写得不够好 → 改 docs/。
-- **同步**：本文与 `CLAUDE.md` 保持内容等价，改一处同步另一处（或用软链 `ln -s AGENTS.md CLAUDE.md`）。
+- **同步**：`CLAUDE.md` 只含 `@AGENTS.md` 引用，本文是唯一事实源，无需镜像同步。

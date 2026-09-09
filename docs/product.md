@@ -41,7 +41,7 @@ brand
 
 品牌色是项目事实（Single Source of Truth）：`CLAUDE.md` / `uno.config.ts` / `src/styles/index.scss` `--brand-*` 三处必须一致。换品牌色相只改 Primitive 值，Semantic / 组件不动（ADR-001 §7）。
 
-**Brand Only for Interaction**——只用于链接、按钮、focus、active、selection，不用于标题 / 正文 / 大面积装饰（详见 `DESIGN.md`）。
+**Brand Only for Interaction**——只用于链接、按钮、focus、active、selection，不用于标题 / 正文 / 大面积装饰（详见 `design.md`）。
 
 ## Anti-references
 

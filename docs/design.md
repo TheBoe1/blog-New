@@ -46,7 +46,7 @@ Component (Rule of Three; on-demand)
 
 ### 1.1 Primitive
 
-- **Brand** `--brand-50..900`（periwinkle `#667eea` 系，`--brand-500` = primary；见 `PRODUCT.md` Brand 节 — Single Source of Truth）
+- **Brand** `--brand-50..900`（periwinkle `#667eea` 系，`--brand-500` = primary；见 `product.md` Brand 节 — Single Source of Truth）
 - **Secondary** `--secondary-500`（`#764ba2`；full palette TBD）
 - **Neutral** `--neutral-0..950`（含半步 150/450/650/825/850；亮色 surface + 亮色 text）
 - **Ink** `--ink-50..950`（cool indigo-gray，暗色专用；亮色暂不用，palette 完整超前建设）
@@ -68,7 +68,7 @@ Component (Rule of Three; on-demand)
 
 ### 1.3 Component
 
-按 Rule of Three 抽取。现有：`--gradient-brand`（`linear-gradient(135deg, --brand-500, --secondary-500)`，文章标题强调条 + 文章表格表头 + md-editor 表头复用）。2026-09-04 起 Login / Unauthorized 改用 `--surface-page` 平铺背景，不再消费此 token。
+按 Rule of Three 抽取。现有：`--gradient-brand`（`linear-gradient(135deg, --brand-500, --secondary-500)`，Login + Unauthorized 复用）。
 
 ---
 
@@ -179,7 +179,7 @@ Theme 只改 atmosphere，不改 structure（ADR-002 §4）。
        ↓ NO
        有现成 Component? → 用
        ↓ NO
-       更新 DESIGN.md + styles/index.scss → 改/建 Component → 业务页
+       更新本文件 + styles/index.scss → 改/建 Component → 业务页
 ```
 
 **禁止**：业务页写 `#ffffff` / `18px` / 新颜色 / 新阴影。先回 Design System。
@@ -241,8 +241,8 @@ UI / Theme / Component / Style 类任务，实现前过一遍：
 
 | 项 | 检查 |
 |---|---|
-| Product Identity | 符合 `PRODUCT.md` |
-| Design Principles | 符合 `PRODUCT.md` |
+| Product Identity | 符合 `product.md` |
+| Design Principles | 符合 `product.md` |
 | Semantic Token | 用 Semantic，没直连 Primitive / 写 hex |
 | Foundation | spacing / radius / shadow / motion 用 scale，无 magic number |
 | Component | 复用现成组件，不重造 |
