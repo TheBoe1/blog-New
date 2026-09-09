@@ -70,6 +70,7 @@
                     </div>
                   </div>
                   <div class="trend-chart-wrap">
+                    <div class="trend-range-hint">{{ rangeText }} · {{ granularityText }}</div>
                     <el-button
                       class="range-nav range-nav-prev"
                       size="small"
@@ -255,7 +256,14 @@ const PERIODS: Record<PeriodPreset, {
   startOf: (today: dayjs.Dayjs) => dayjs.Dayjs
   shiftName: string
 }> = {
-  week: { granularity: 'day', step: { value: 7, unit: 'day' }, startOf: t => t.subtract(6, 'day'), shiftName: '周' },
+  week: {
+    granularity: 'day',
+    step: { value: 7, unit: 'day' },
+    // 自然周从周一开始;dayjs 默认 locale 的 startOf('week') 是周日,手动对齐周一。
+    // 之前是 subtract(6,'day') 滚动窗口,周二时"本周"会跨到上周,与月/年的自然周期语义不一致
+    startOf: t => t.subtract((t.day() + 6) % 7, 'day'),
+    shiftName: '周'
+  },
   month: { granularity: 'day', step: { value: 1, unit: 'month' }, startOf: t => t.startOf('month'), shiftName: '月' },
   year: { granularity: 'month', step: { value: 1, unit: 'year' }, startOf: t => t.startOf('year'), shiftName: '年' }
 }
@@ -474,7 +482,8 @@ function buildChartOption(): EChartsOption {
       textStyle: { fontSize: 12 }
     },
     // 左右留出 < > 导航钮的位置,避免按钮压住首尾数据点
-    grid: { left: 52, right: 56, top: 44, bottom: 24, containLabel: true },
+    // 固定边距 + 不用 containLabel:y 轴数字位数随周期变(周个位数/年上千),containLabel 按标签实测宽度挪绘图区,切周期时整图左右漂移
+    grid: { left: 84, right: 56, top: 60, bottom: 30 },
     xAxis: {
       type: 'category',
       data: axisLabels,
@@ -1226,21 +1235,42 @@ watch(provinceStats, () => {
       width: 100%;
     }
 
-    /* < > 贴在图表左右两侧,常驻但低对比,hover 才提亮;grid 已预留左右留白,不会压住数据点 */
+    /* 图例下方的区间提示:头部 range-text 离图太远,看图时目光不该来回跳 */
+    .trend-range-hint {
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* < > 贴在图表左右两侧;grid 已预留左右留白,不会压住数据点。
+       白卡上白按钮天然低对比,必须靠描边+投影撑出层次,否则用户根本发现不了可以平移 */
     .range-nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
       z-index: 2;
-      opacity: 0.55;
-      transition: opacity 0.2s ease, background 0.2s ease;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+      transition: all 0.2s ease;
 
       &:hover:not(.is-disabled) {
-        opacity: 1;
+        color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        background: var(--brand-tint);
+        transform: translateY(-50%) scale(1.06);
       }
 
-      &.range-nav-prev { left: 0; }
-      &.range-nav-next { right: 0; }
+      &.range-nav-prev { left: 4px; }
+      &.range-nav-next { right: 4px; }
     }
 
     .location-meta {
