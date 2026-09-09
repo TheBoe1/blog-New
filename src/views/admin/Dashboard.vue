@@ -92,8 +92,8 @@
                     >
                       <el-icon><ArrowRight /></el-icon>
                     </el-button>
+                    <el-empty v-if="trendData.length === 0" class="trend-empty" description="暂无访问数据" />
                   </div>
-                  <el-empty v-if="trendData.length === 0" description="暂无访问数据" />
                 </div>
               </transition>
               <transition name="chart-view-fade">
@@ -1248,25 +1248,43 @@ watch(provinceStats, () => {
       pointer-events: none;
     }
 
+    /* 空状态浮在图表区内,不参与 flex 占位。
+       放在 wrap 外面时,el-empty 一出现就会挤压 flex:1 的图表区,
+       top:50% 的 < > 按钮跟着从"左侧居中"跑到"左上角" */
+    .trend-empty {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-primary);
+      pointer-events: none;
+    }
+
     /* < > 贴在图表左右两侧;grid 已预留左右留白,不会压住数据点。
        白卡上白按钮天然低对比,必须靠描边+投影撑出层次,否则用户根本发现不了可以平移 */
     .range-nav {
       position: absolute;
       top: 50%;
-      transform: translateY(-50%);
+      /* 用独立 translate 属性做垂直居中,与 transform 解耦:
+         hover 只写 scale 即可,不必重复 translateY(-50%),
+         任何规则覆盖 transform 都不会破坏居中 */
+      translate: 0 -50%;
       z-index: 2;
       width: 34px;
       height: 34px;
       border: 1px solid var(--border-color);
       color: var(--text-secondary);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
-      transition: all 0.2s ease;
+      /* 不用 transition: all:会把 left/right/top 一起过渡,容器尺寸变化时按钮会"滑行" */
+      transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 
       &:hover:not(.is-disabled) {
         color: var(--brand-primary);
         border-color: var(--brand-primary);
         background: var(--brand-tint);
-        transform: translateY(-50%) scale(1.06);
+        transform: scale(1.06);
       }
 
       &.range-nav-prev { left: 4px; }
