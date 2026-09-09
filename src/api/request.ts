@@ -35,7 +35,12 @@ const TOKEN_FREE_API_PREFIXES = [
 ]
 
 function isWhiteListUrl(url: string): boolean {
-  return WHITE_LIST.some(whiteUrl => url.startsWith(whiteUrl))
+  return WHITE_LIST.some(whiteUrl =>
+    // /api/* 是资源族,子路径要一起命中(如 /api/articles/123);
+    // /login 这类是动作端点,必须精确匹配 —— 否则 /login/2fa/verify(两步验证)
+    // 会被当成 /login 的子路径吞进白名单,就拿不到全局 loading 了
+    whiteUrl.startsWith('/api/') ? matchesApiPrefix(url, whiteUrl) : url === whiteUrl
+  )
 }
 
 function matchesApiPrefix(url: string, prefix: string): boolean {
