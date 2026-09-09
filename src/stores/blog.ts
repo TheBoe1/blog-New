@@ -15,6 +15,8 @@ export const useBlogStore = defineStore('blog', () => {
   const visitTrend = ref<VisitTrend[]>([])
   const trendSummary = ref<any>(null)
   const trendComparison = ref<any>(null)
+  let categoriesLoaded = false
+  let tagsLoaded = false
 
   const articleCount = computed(() => total.value || articles.value.length)
   const categoryCount = computed(() => categories.value.length)
@@ -124,6 +126,8 @@ export const useBlogStore = defineStore('blog', () => {
       const newArticle = await request.post('/api/admin/articles', article)
       articles.value.unshift(newArticle)
       total.value++
+      categoriesLoaded = false
+      tagsLoaded = false
       return newArticle
     } catch (error) {
       console.error('Failed to create article:', error)
@@ -141,6 +145,8 @@ export const useBlogStore = defineStore('blog', () => {
       if (index !== -1) {
         articles.value[index] = updatedArticle
       }
+      categoriesLoaded = false
+      tagsLoaded = false
       return updatedArticle
     } catch (error) {
       console.error('Failed to update article:', error)
@@ -156,6 +162,8 @@ export const useBlogStore = defineStore('blog', () => {
       await request.delete(`/api/admin/articles/${id}`)
       articles.value = articles.value.filter(a => a.id !== id)
       total.value--
+      categoriesLoaded = false
+      tagsLoaded = false
     } catch (error) {
       console.error('Failed to delete article:', error)
       throw error
@@ -164,14 +172,19 @@ export const useBlogStore = defineStore('blog', () => {
     }
   }
 
-  async function fetchCategories(): Promise<Category[]> {
+  async function fetchCategories(force: boolean = false): Promise<Category[]> {
+    if (!force && categoriesLoaded) {
+      return categories.value
+    }
     loading.value = true
     try {
       categories.value = await categoryApi.getList()
+      categoriesLoaded = true
       return categories.value
     } catch (error) {
       console.error('Failed to fetch categories:', error)
       categories.value = []
+      categoriesLoaded = false
       return []
     } finally {
       loading.value = false
@@ -213,14 +226,19 @@ export const useBlogStore = defineStore('blog', () => {
     }
   }
 
-  async function fetchTags(): Promise<Tag[]> {
+  async function fetchTags(force: boolean = false): Promise<Tag[]> {
+    if (!force && tagsLoaded) {
+      return tags.value
+    }
     loading.value = true
     try {
       tags.value = await tagApi.getList()
+      tagsLoaded = true
       return tags.value
     } catch (error) {
       console.error('Failed to fetch tags:', error)
       tags.value = []
+      tagsLoaded = false
       return []
     } finally {
       loading.value = false

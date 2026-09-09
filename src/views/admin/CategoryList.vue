@@ -173,7 +173,7 @@ async function handleDelete(id: string) {
   try {
     await blogStore.deleteCategory(id)
     // 刷新分类列表
-    await blogStore.fetchCategories()
+    await blogStore.fetchCategories(true)
     // 更新本地分类列表
     localCategories.value = [...categories.value]
     ElMessage.success('分类已删除')
@@ -208,7 +208,7 @@ async function handleSubmit() {
       ElMessage.success('分类已创建')
     }
     // 刷新分类列表
-    await blogStore.fetchCategories()
+    await blogStore.fetchCategories(true)
     // 更新本地分类列表
     localCategories.value = [...categories.value]
     dialogVisible.value = false

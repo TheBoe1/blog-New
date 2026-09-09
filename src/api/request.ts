@@ -25,8 +25,28 @@ const WHITE_LIST = [
   '/api/page-config'
 ]
 
+const TOKEN_FREE_API_PREFIXES = [
+  '/api/articles',
+  '/api/categories',
+  '/api/tags',
+  '/api/settings',
+  '/api/stats/visit',
+  '/api/stats/summary'
+]
+
 function isWhiteListUrl(url: string): boolean {
   return WHITE_LIST.some(whiteUrl => url.startsWith(whiteUrl))
+}
+
+function matchesApiPrefix(url: string, prefix: string): boolean {
+  return url === prefix || url.startsWith(`${prefix}/`) || url.startsWith(`${prefix}?`)
+}
+
+function isTokenFreeRequest(url: string, method: string): boolean {
+  if (TOKEN_FREE_API_PREFIXES.some(prefix => matchesApiPrefix(url, prefix))) {
+    return true
+  }
+  return method.toLowerCase() === 'get' && matchesApiPrefix(url, '/api/page-config')
 }
 
 function shouldSilentError(url: string, method: string): boolean {
@@ -49,9 +69,6 @@ let isRedirecting = false
 const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 instance.interceptors.request.use(
@@ -60,6 +77,9 @@ instance.interceptors.request.use(
     const loadingStore = useLoadingStore()
     const loadingConfig = config as typeof config & LoadingAwareRequestConfig
     const token = userStore.token
+    const requestUrl = config.url || ''
+    const requestMethod = config.method || 'get'
+    const shouldAttachToken = !!token && !isTokenFreeRequest(requestUrl, requestMethod)
 
     const isAdminApi = config.url?.startsWith('/api/admin')
 
@@ -69,13 +89,13 @@ instance.interceptors.request.use(
       loadingConfig.globalLoadingStarted = true
     }
     
-    if (token) {
+    if (shouldAttachToken) {
       config.headers.Authorization = `Bearer ${token}`
     }
     
     if (import.meta.env.DEV) {
       console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, {
-        hasToken: !!token,
+        hasToken: shouldAttachToken,
         isAdminApi,
       })
       

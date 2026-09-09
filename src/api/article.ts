@@ -3,7 +3,13 @@ import type { Article, ArticleQuery, PaginatedResponse, Category, Tag } from '@/
 
 export const articleApi = {
   getList(params: ArticleQuery): Promise<PaginatedResponse<Article>> {
-    return request.get('/api/articles', { params })
+    const { page, ...query } = params
+    return request.get('/api/articles', {
+      params: {
+        ...query,
+        pageNum: page ?? 1,
+      }
+    })
   },
 
   getById(id: string): Promise<Article> {

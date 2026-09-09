@@ -136,7 +136,7 @@ async function handleDelete(id: string) {
     await blogStore.deleteTag(id)
     // 刷新标签列表和文章列表，确保数据同步
     await Promise.all([
-      blogStore.fetchTags(),
+      blogStore.fetchTags(true),
       blogStore.fetchAdminArticles({})
     ])
     ElMessage.success('标签已删除')
@@ -171,7 +171,7 @@ async function handleSubmit() {
     }
     // 刷新标签列表和文章列表，确保数据同步
     await Promise.all([
-      blogStore.fetchTags(),
+      blogStore.fetchTags(true),
       blogStore.fetchAdminArticles({})
     ])
     dialogVisible.value = false
