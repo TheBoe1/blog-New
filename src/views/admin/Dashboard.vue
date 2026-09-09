@@ -975,12 +975,26 @@ function handlePeriodChange(preset: string | number | boolean | undefined) {
   fetchTrend()
 }
 
-/** < > 平移：步长由当前周期决定（周→7 天，月→1 月，年→1 年，自定义→自身跨度），粒度始终保持不变 */
+/**
+ * < > 平移：步长由当前周期决定（周→7 天，月→1 月，年→1 年，自定义→自身跨度），粒度始终保持不变。
+ *
+ * 预设周期平移后要把终点重算成该周期的自然终点（上周=完整 7 天、上月=整个月、上年=整年），
+ * 不能把 rangeEnd 原样平移——rangeEnd 是"今天"，本周期只过了几天就被一起挪回去，
+ * 过往周期会被截成同样的几天（周三看"上周"只剩 3 天）。只有落在当前周期时才截断到今天。
+ * 自定义区间保持"整体平移自身跨度"（Google Analytics 的 previous period 同款语义）。
+ */
 function shiftRange(dir: -1 | 1) {
   const { value, unit } = rangeStep.value
+  const today = dayjs().startOf('day')
   const start = dayjs(rangeStart.value).add(dir * value, unit)
-  const end = dayjs(rangeEnd.value).add(dir * value, unit)
-  if (end.isAfter(dayjs(), 'day')) return
+  let end: dayjs.Dayjs
+  if (isCustomRange.value) {
+    end = dayjs(rangeEnd.value).add(dir * value, unit)
+  } else {
+    end = start.add(value, unit).subtract(1, 'day')
+  }
+  if (end.isAfter(today)) end = today
+  if (start.isAfter(end)) return
   rangeStart.value = start.format(DATE_FMT)
   rangeEnd.value = end.format(DATE_FMT)
   fetchTrend()

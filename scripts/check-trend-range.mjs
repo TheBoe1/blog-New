@@ -7,7 +7,7 @@ const DATE_FMT = 'YYYY-MM-DD'
 const MONTH_GRANULARITY_DAYS = 92
 
 const PERIODS = {
-  week: { granularity: 'day', step: { value: 7, unit: 'day' }, startOf: t => t.subtract(6, 'day') },
+  week: { granularity: 'day', step: { value: 7, unit: 'day' }, startOf: t => t.subtract((t.day() + 6) % 7, 'day') },
   month: { granularity: 'day', step: { value: 1, unit: 'month' }, startOf: t => t.startOf('month') },
   year: { granularity: 'month', step: { value: 1, unit: 'year' }, startOf: t => t.startOf('year') }
 }
@@ -16,6 +16,7 @@ function setPresetRange(preset, today = dayjs()) {
   const t = dayjs(today).startOf('day')
   const conf = PERIODS[preset]
   return {
+    isCustom: false,
     granularity: conf.granularity,
     start: conf.startOf(t).format(DATE_FMT),
     end: t.format(DATE_FMT),
@@ -23,13 +24,21 @@ function setPresetRange(preset, today = dayjs()) {
   }
 }
 
-function shift(range, dir) {
+// 与 Dashboard.vue 的 shiftRange 同逻辑：预设周期平移后终点取自然周期终点，
+// 只有当前周期截断到今天；自定义区间按自身跨度整体平移
+function shift(range, dir, today = dayjs()) {
   const { value, unit } = range.step
-  return {
-    ...range,
-    start: dayjs(range.start).add(dir * value, unit).format(DATE_FMT),
-    end: dayjs(range.end).add(dir * value, unit).format(DATE_FMT)
+  const t = dayjs(today).startOf('day')
+  const start = dayjs(range.start).add(dir * value, unit)
+  let end
+  if (range.isCustom) {
+    end = dayjs(range.end).add(dir * value, unit)
+  } else {
+    end = start.add(value, unit).subtract(1, 'day')
   }
+  if (end.isAfter(t)) end = t
+  if (start.isAfter(end)) return null
+  return { ...range, start: start.format(DATE_FMT), end: end.format(DATE_FMT) }
 }
 
 function applyCustomRange(start, end, today = dayjs()) {
@@ -44,6 +53,7 @@ function applyCustomRange(start, end, today = dayjs()) {
   if (e.isAfter(t)) e = t
   if (s.isAfter(e)) s = e
   return {
+    isCustom: true,
     granularity: useMonth ? 'month' : 'day',
     start: s.format(DATE_FMT),
     end: e.format(DATE_FMT),
@@ -67,23 +77,25 @@ assert.equal(year.start, '2026-01-01')
 assert.equal(year.end, '2026-09-07')
 assert.equal(year.granularity, 'month')
 
-// 3. 本周是含今天在内的 7 天
+// 3. 本周从周一开始（2026-09-07 是周一，本周只过了 1 天）
 const week = setPresetRange('week', today)
-assert.equal(week.start, '2026-09-01')
+assert.equal(week.start, '2026-09-07')
 assert.equal(week.end, '2026-09-07')
 
-// 4. < > 步长与粒度对应：周按 7 天、月按 1 月、年按 1 年
-assert.deepEqual([shift(week, -1).start, shift(week, -1).end], ['2026-08-25', '2026-08-31'])
-assert.deepEqual([shift(month, -1).start, shift(month, -1).end], ['2026-08-01', '2026-08-07'])
-assert.deepEqual([shift(year, -1).start, shift(year, -1).end], ['2025-01-01', '2025-09-07'])
+// 4. < > 步长与粒度对应：周按 7 天、月按 1 月、年按 1 年；
+//    且平移后终点是自然周期终点——上周是完整 7 天、上月是整个月、上年是整年，
+//    不再继承"今天"的截断（否则周一只过了 1 天，上周也会被截成 1 天）
+assert.deepEqual([shift(week, -1, today).start, shift(week, -1, today).end], ['2026-08-31', '2026-09-06'])
+assert.deepEqual([shift(month, -1, today).start, shift(month, -1, today).end], ['2026-08-01', '2026-08-31'])
+assert.deepEqual([shift(year, -1, today).start, shift(year, -1, today).end], ['2025-01-01', '2025-12-31'])
 
-// 5. 月末溢出：3/31 往前一个月不能被 dayjs 弹到 3 月
+// 5. 月末溢出：3/31 往前一个月不能被 dayjs 弹到 3 月，且 2 月取自然终点 2/28
 const leap = setPresetRange('month', dayjs('2026-03-31'))
-assert.deepEqual([shift(leap, -1).start, shift(leap, -1).end], ['2026-02-01', '2026-02-28'])
+assert.deepEqual([shift(leap, -1, '2026-03-31').start, shift(leap, -1, '2026-03-31').end], ['2026-02-01', '2026-02-28'])
 
 // 6. 平移不改变粒度（图的点数结构保持稳定）
-assert.equal(shift(month, -1).granularity, month.granularity)
-assert.equal(shift(year, -1).granularity, year.granularity)
+assert.equal(shift(month, -1, today).granularity, month.granularity)
+assert.equal(shift(year, -1, today).granularity, year.granularity)
 
 // 7. 自定义区间：跨度 > 92 天自动切月粒度，平移量等于自身跨度
 const long = applyCustomRange('2026-01-05', '2026-06-20', today)
@@ -94,6 +106,26 @@ assert.deepEqual(long.step, { value: 6, unit: 'month' })
 const short = applyCustomRange('2026-08-01', '2026-08-10', today)
 assert.equal(short.granularity, 'day')
 assert.deepEqual(short.step, { value: 10, unit: 'day' })
+
+// 7.1 自定义区间平移按自身跨度整体平移（GA previous period 语义），不做自然周期对齐
+assert.deepEqual(
+  [shift(long, -1, today).start, shift(long, -1, today).end],
+  ['2025-07-01', '2025-12-30']
+)
+
+// 10. 缺陷场景：周三看"上周"必须还是完整 7 天（2026-09-09 是周三，本周只过了 3 天）
+const wednesday = dayjs('2026-09-09')
+const week3 = setPresetRange('week', wednesday)
+assert.deepEqual([week3.start, week3.end], ['2026-09-07', '2026-09-09'])
+const prevWeek = shift(week3, -1, wednesday)
+assert.deepEqual([prevWeek.start, prevWeek.end], ['2026-08-31', '2026-09-06'])
+assert.equal(dayjs(prevWeek.end).diff(dayjs(prevWeek.start), 'day') + 1, 7)
+
+// 11. 向前平移落回当前周期时终点截断到今天；再往前（未来）则不动
+const backToNow = shift(prevWeek, 1, wednesday)
+assert.deepEqual([backToNow.start, backToNow.end], ['2026-09-07', '2026-09-09'])
+assert.equal(shift(backToNow, 1, wednesday), null)
+assert.equal(shift(backToNow, -1, wednesday).start, '2026-08-31')
 
 // 8. 未来日期被收敛到今天
 const future = applyCustomRange('2026-09-01', '2026-12-31', today)
