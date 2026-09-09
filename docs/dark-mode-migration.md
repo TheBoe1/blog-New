@@ -14,11 +14,11 @@
 
 | Phase | 内容 | 产出 |
 |---|---|---|
-| **1 Foundation** | `index.scss` 新 Token + Theme Mapping；`DESIGN.md` 同步镜像 | token 系统 + 文档一致 |
+| **1 Foundation** | `index.scss` 新 Token + Theme Mapping；`docs/design.md` 同步镜像 | token 系统 + 文档一致 |
 | **2 Migration** | 逐组件替换硬编码（照 §3 audit） | 组件零 hex |
 | **3 Validation** | build + WCAG 实测 + 亮暗浏览器对比 + Regression Checklist | 验收通过 |
 
-> **顺序原则**：`index.scss` → `DESIGN.md`（同步，防 drift）→ 组件迁移 → 浏览器 review。DESIGN.md 是 styles 的镜像，两者必须同步，不允许短暂 drift 窗口。
+> **顺序原则**：`index.scss` → `docs/design.md`（同步，防 drift）→ 组件迁移 → 浏览器 review。docs/design.md 是 styles 的镜像，两者必须同步，不允许短暂 drift 窗口。
 >
 > **每 Batch 必 review**：Foundation → review → Batch A → review → Batch B → review → Batch C → review。**不堆积到最后**——否则发现问题无法定位是哪批造成。
 
@@ -149,7 +149,7 @@ Phase 1 必须补的 token：
 6. **Component**：`--gradient-brand`（135deg brand → secondary）
 7. **暗色 `[data-theme='dark']`**：Surface → Ink，Text → 暗色最终色，Border → 白 alpha
 
-### 5.2 `DESIGN.md`（同步镜像，改完 index.scss 立即同步）
+### 5.2 `docs/design.md`（同步镜像，改完 index.scss 立即同步）
 
 - §1 重写为 v3 架构：Primitive / Semantic Domains（Background ⊃ Surface）/ Content（Inline/Block）
 - §3 暗色映射表更新

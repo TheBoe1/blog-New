@@ -119,4 +119,4 @@ ADR-002 落地后，接入 md-editor 时两次犯错：
 - `ADR-001` — 三层 Token Architecture
 - `ADR-002` — Theme Architecture（§5 Component Agnostic 本 ADR 的前置）
 - `src/styles/adapters/md-editor.scss` — 首个 adapter（范本）
-- `DESIGN.md` — Design System 镜像（将按本 ADR 加 Adapter 层 + 5-Question Review Matrix）
+- `docs/design.md` — Design System 镜像（将按本 ADR 加 Adapter 层 + 5-Question Review Matrix）

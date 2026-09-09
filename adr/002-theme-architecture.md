@@ -107,7 +107,7 @@ WCAG 是 **Architecture Constraint**，不是「以后再说」。任何 token �
 | Interactive text / icon | ≥ 4.5:1 | AA |
 | Focus Ring | **Always Visible** | 不靠颜色单独传达语义 |
 
-> PRODUCT.md 底线 AA；本 ADR 把 Primary 提到 AAA（≥7:1），契合「编辑式专业 / 阅读优先」。`--text-muted` 仅用于非关键大字，**不用于正文**——避免「靠纯灰文字做优雅」反模式。
+> docs/product.md 底线 AA；本 ADR 把 Primary 提到 AAA（≥7:1），契合「编辑式专业 / 阅读优先」。`--text-muted` 仅用于非关键大字，**不用于正文**——避免「靠纯灰文字做优雅」反模式。
 
 ### 9. Design Governance
 
@@ -132,10 +132,10 @@ WCAG 是 **Architecture Constraint**，不是「以后再说」。任何 token �
 ADR-001 落地三层架构后，Dark Mode 暴露三个问题：
 
 1. 暗色 surface 纯灰（`#1a1a1a` / `#232323` / `#2a2a2a`），无冷色温、无层级感，等同「黑+灰+白」。
-2. 代码块硬编码 `#1e1e1e`（`src/views/ArticleDetail.vue:555`）、`#d4d4d4`（`:563`），亮暗同色——暗色下与 card 几乎无分层；违反 DESIGN.md §2.1「禁止组件写 hex」。
+2. 代码块硬编码 `#1e1e1e`（`src/views/ArticleDetail.vue:555`）、`#d4d4d4`（`:563`），亮暗同色——暗色下与 card 几乎无分层；违反 docs/design.md §2.1「禁止组件写 hex」。
 3. Border 暗色 `#363636` 实色偏重；Text `#f5f5f5` ≈96% 偏亮，长读疲劳。
 
-讨论从「怎么做 Dark Mode」升级到「怎么设计 Theme Architecture」。参考 GitHub Dark 的**设计思想**（非颜色）：Surface hierarchy、never pure black/white、brand sparse、code independent、quiet borders、reading before decoration。结合 `PRODUCT.md`「编辑式专业」定位（正文主角，代码不抢），定出本架构。
+讨论从「怎么做 Dark Mode」升级到「怎么设计 Theme Architecture」。参考 GitHub Dark 的**设计思想**（非颜色）：Surface hierarchy、never pure black/white、brand sparse、code independent、quiet borders、reading before decoration。结合 `docs/product.md`「编辑式专业」定位（正文主角，代码不抢），定出本架构。
 
 v2→v3 修订：Surface 从并列 Domain 改为 Background 域子系统（维度一致性：空间层级 vs 信息层级）；新增 Theme Budget（scope guardrail）；Theme Mapping 锁定 data-driven 长期方向；Manifesto 加「A theme changes perception, never structure」。v3 freeze 后补：Manifesto 增 supreme principle「Every visual decision should improve readability, hierarchy, or interaction」（governance guardrail，非架构变更，照 Phase 0 checklist 落地）。
 
@@ -184,13 +184,13 @@ v2→v3 修订：Surface 从并列 Domain 改为 Background 域子系统（维�
   - Theme Budget（§4）：只改 atmosphere 不改 structure
   - WCAG（§8）不可突破
 - **分阶段**：
-  - **Phase 1**：Ink 全 palette、Background/Surface 域、Content Domain、`--bg-*` 路由、Border opacity、Text final color、Chrome、ArticleDetail 修硬编码、DESIGN.md §1 重写 + manifesto。
+  - **Phase 1**：Ink 全 palette、Background/Surface 域、Content Domain、`--bg-*` 路由、Border opacity、Text final color、Chrome、ArticleDetail 修硬编码、docs/design.md §1 重写 + manifesto。
   - **Phase 2**：shadow / blur 路由 `--surface-*`（统一 bg + elevation + blur）；`--content-mark` / `--content-kbd` / `--content-table` / `--content-math` / `--content-diagram` 按用例出现再建；Theme data-driven（`theme/*.ts` → CSS）；多主题（Dracula / Solarized 等）按需加 mapping。
 
 ## References
 
 - `ADR-001` — 三层 Token Architecture（本 ADR 扩展其 Semantic 层）
-- `DESIGN.md` — Design System 描述镜像（§1 将按本 ADR 重写）
+- `docs/design.md` — Design System 描述镜像（§1 将按本 ADR 重写）
 - `src/styles/index.scss` — Token 实现（Phase 1 落地）
-- `PRODUCT.md` — 「编辑式专业」定位
+- `docs/product.md` — 「编辑式专业」定位
 - `AGENTS.md` / `CLAUDE.md` §0.5 — Design System 治理

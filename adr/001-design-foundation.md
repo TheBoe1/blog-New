@@ -17,7 +17,7 @@
 项目已有 83 个 CSS 变量（`src/styles/index.scss`），但为一层结构——Semantic 直接持有 raw hex，无 Primitive 层、无 Component 层。存在三个问题：
 
 1. 品牌换色相时，Semantic 里的 raw hex 要逐处改。
-2. DESIGN.md 用 `editorial-blue` / `ink` / `paper`，代码用 `--brand-primary` / `--text-primary` / `--bg-primary`——文档与实现 drift。
+2. docs/design.md 用 `editorial-blue` / `ink` / `paper`，代码用 `--brand-primary` / `--text-primary` / `--bg-primary`——文档与实现 drift。
 3. Typography 的 `--text-xs`（字号）与 `--text-primary`（颜色）重名，语义混乱。
 
 ## Alternatives Considered
@@ -42,10 +42,10 @@
 
 - **正向**：暗色模式只换 Semantic 指向，组件代码零改动；品牌换色相只改 Primitive 值，token 名不变；Typography `--text-*` 专属颜色，字号用 `--font-size-*`，消解重名。
 - **代价**：neutral 色阶含半步（150/450/650/825）以保历史精确值，色阶不完全均匀——可后续整理。
-- **约束**：业务组件禁止直连 Primitive；新增 Token 走 Governance（DESIGN.md §5）；新增 Design Rule 需解决真实出现过 ≥2 次的问题（避免规范膨胀）。
+- **约束**：业务组件禁止直连 Primitive；新增 Token 走 Governance（docs/design.md §5）；新增 Design Rule 需解决真实出现过 ≥2 次的问题（避免规范膨胀）。
 
 ## References
 
-- `DESIGN.md` — Design System 描述镜像
+- `docs/design.md` — Design System 描述镜像
 - `src/styles/index.scss` — Token 实现
 - `AGENTS.md` / `CLAUDE.md` §0.5 — Design System 治理（Token 铁律 + Review Matrix）
