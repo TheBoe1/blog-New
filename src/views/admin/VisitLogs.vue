@@ -126,6 +126,22 @@
             </el-tag>
           </template>
         </el-table-column>
+
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-tag v-if="bannedIps.has(row.ip)" type="danger" size="small">已拉黑</el-tag>
+            <el-button
+              v-else
+              type="danger"
+              size="small"
+              plain
+              :loading="banningIp === row.ip"
+              @click="handleBanIp(row)"
+            >
+              拉黑
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       </div>
 
@@ -148,7 +164,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { statsApi } from '@/api/stats'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { statsApi, blacklistApi } from '@/api/stats'
 import type { VisitLog } from '@/types'
 
 const loading = ref(false)
@@ -156,6 +173,10 @@ const tableData = ref<VisitLog[]>([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
+
+/** 本会话内已确认拉黑的 IP 集合(本页面内的乐观状态,刷新后由后端 isBlocked 决定) */
+const bannedIps = ref<Set<string>>(new Set())
+const banningIp = ref<string | null>(null)
 
 const filters = reactive({
   ip: '',
@@ -225,6 +246,30 @@ function formatDuration(sec: number): string {
   const m = Math.floor(sec / 60)
   const s = sec % 60
   return `${m}m${s > 0 ? s + 's' : ''}`
+}
+
+async function handleBanIp(row: VisitLog) {
+  if (!row.ip || bannedIps.value.has(row.ip)) return
+  try {
+    const { value: reason } = await ElMessageBox.prompt('请输入拉黑原因(可选)', '拉黑 IP', {
+      inputPlaceholder: '例如:恶意爬虫 / 频繁 404',
+      inputValue: '人工拉黑',
+      confirmButtonText: '确认拉黑',
+      cancelButtonText: '取消',
+      inputValidator: (val) => (val && val.length > 100 ? '原因过长(≤100 字)' : true)
+    })
+    banningIp.value = row.ip
+    await blacklistApi.add({ ip: row.ip, reason: reason || '人工拉黑' })
+    bannedIps.value.add(row.ip)
+    ElMessage.success(`已拉黑 ${row.ip}`)
+  } catch (err: any) {
+    // 用户取消或接口失败:仅在非取消时提示
+    if (err !== 'cancel' && err?.message) {
+      ElMessage.error(err.message || '拉黑失败')
+    }
+  } finally {
+    banningIp.value = null
+  }
 }
 
 function deviceLabel(type: string): string {

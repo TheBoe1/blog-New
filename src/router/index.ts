@@ -135,8 +135,14 @@ const router = createRouter({
   }
 })
 
-// 访问统计:停留时长追踪(离开页面时上报,fire-and-forget)
+// 访问统计:停留时长追踪
+// - beforeunload:用 fetch + keepalive(关闭/刷新时上报,不丢)
+// - 路由切换:走原 fetch(已被 beforeEach 调用)
+// - 周期上报:每 60 秒把当前 session 时长同步给后端,覆盖"长时间停留不动"场景
+const STAY_DURATION_PING_MS = 60_000
+
 let currentSession: { sessionId: string; enterTime: number } | null = null
+
 function reportDuration() {
   if (currentSession) {
     const duration = Math.round((Date.now() - currentSession.enterTime) / 1000)
@@ -146,7 +152,38 @@ function reportDuration() {
     currentSession = null
   }
 }
-window.addEventListener('beforeunload', reportDuration)
+
+// 关闭/刷新时:用 fetch keepalive,确保请求在 unload 后仍能到达
+function reportDurationKeepalive() {
+  if (!currentSession) return
+  const { sessionId, enterTime } = currentSession
+  const duration = Math.round((Date.now() - enterTime) / 1000)
+  if (duration <= 0) return
+  currentSession = null
+  try {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+    fetch(`${baseURL}/api/stats/visit/duration`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, duration }),
+      keepalive: true
+    }).catch(() => {})
+  } catch {
+    /* ignore */
+  }
+}
+window.addEventListener('beforeunload', reportDurationKeepalive)
+
+// 周期上报:长时间停留不动时也能更新 stay_duration
+const pingTimer = window.setInterval(() => {
+  if (!currentSession) return
+  const { sessionId, enterTime } = currentSession
+  const duration = Math.round((Date.now() - enterTime) / 1000)
+  if (duration <= 0) return
+  // 推进 enterTime,避免下次 ping 重复累计
+  currentSession = { sessionId, enterTime: Date.now() }
+  statsApi.updateDuration({ sessionId, duration }).catch(() => {})
+}, STAY_DURATION_PING_MS)
 
 router.beforeEach((to, _from, next) => {
   reportDuration()
