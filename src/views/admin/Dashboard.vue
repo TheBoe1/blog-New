@@ -487,7 +487,9 @@ function buildChartOption(): EChartsOption {
     xAxis: {
       type: 'category',
       data: axisLabels,
-      boundaryGap: false,
+      // boundaryGap:true(默认)让首尾数据点居中在自己的槽里,两侧留出半个槽位;
+      // false 会把第一个点顶到左边缘、最后一个点顶到右边缘,首尾标签被裁掉一半,整图像"偏移"了
+      boundaryGap: true,
       axisTick: { alignWithLabel: true },
       axisLabel: { fontSize: 11, hideOverlap: true }
     },
