@@ -175,7 +175,8 @@ function reportDurationKeepalive() {
 window.addEventListener('beforeunload', reportDurationKeepalive)
 
 // 周期上报:长时间停留不动时也能更新 stay_duration
-const pingTimer = window.setInterval(() => {
+// 定时器随页面存亡,无需保存句柄清除
+window.setInterval(() => {
   if (!currentSession) return
   const { sessionId, enterTime } = currentSession
   const duration = Math.round((Date.now() - enterTime) / 1000)
