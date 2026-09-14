@@ -92,8 +92,9 @@
         </div>
       </div>
 
-      <nav v-if="hasMore" class="pagination stagger-item">
-        <router-link to="/articles" class="pagination-next">下一页 →</router-link>
+      <nav v-if="page > 1 || hasMore" class="pagination stagger-item">
+        <button v-if="page > 1" type="button" class="pagination-btn" @click="goPage(page - 1)">← 上一页</button>
+        <button v-if="hasMore" type="button" class="pagination-btn" @click="goPage(page + 1)">下一页 →</button>
       </nav>
     </BlogLayout3Col>
   </div>
@@ -107,7 +108,11 @@ import BlogLayout3Col from '@/components/BlogLayout3Col.vue'
 const blogStore = useBlogStore()
 
 const recentArticles = computed(() => blogStore.recentArticles)
-const hasMore = computed(() => blogStore.articles.length >= 6)
+
+const pageSize = 5
+const page = ref(1)
+const total = ref(0)
+const hasMore = computed(() => page.value * pageSize < total.value)
 
 // 首屏列表加载态：独立于 store.loading（后者在 categories/tags 请求间会反复跳变）
 const loading = ref(true)
@@ -127,17 +132,29 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(text.length / 500))
 }
 
+async function fetchPage(p: number) {
+  loading.value = true
+  try {
+    const response = await blogStore.fetchArticles({ page: p, pageSize, sortBy: 'createTime', sortOrder: 'desc' })
+    total.value = response.total
+  } finally {
+    loading.value = false
+  }
+}
+
+function goPage(p: number) {
+  page.value = p
+  void fetchPage(p)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 onMounted(async () => {
   // 辅助数据（分类/标签）与文章列表并行，不阻塞首屏骨架→内容的切换
   const auxiliary = Promise.allSettled([
     blogStore.fetchCategories(),
     blogStore.fetchTags()
   ])
-  try {
-    await blogStore.fetchArticles({ page: 1, pageSize: 6, sortBy: 'createTime', sortOrder: 'desc' })
-  } finally {
-    loading.value = false
-  }
+  await fetchPage(1)
   await auxiliary
 })
 </script>
@@ -393,15 +410,20 @@ onMounted(async () => {
 .pagination {
   margin-top: var(--space-6);
   text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
 
-  .pagination-next {
+  .pagination-btn {
     display: inline-block;
     padding: 6px 16px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
+    font: inherit;
     color: var(--text-secondary);
     text-decoration: none;
+    cursor: pointer;
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
 
@@ -429,7 +451,7 @@ onMounted(async () => {
   .article-more,
   .article-more::before,
   .article-more i,
-  .pagination-next {
+  .pagination-btn {
     transition: none !important;
     transform: none !important;
     animation: none !important;
