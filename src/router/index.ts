@@ -94,6 +94,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '系统设置' }
       },
       {
+        path: 'operation-logs',
+        name: 'AdminOperationLogs',
+        component: () => import('@/views/admin/OperationLogs.vue'),
+        meta: { title: '操作日志', requiresAuth: true }
+      },
+      {
         path: 'visit-logs',
         name: 'AdminVisitLogs',
         component: () => import('@/views/admin/VisitLogs.vue'),
