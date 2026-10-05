@@ -171,7 +171,7 @@ jobs:
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
-          CDN_URL: "https://lianlab.top/\nhttps://lianlab.top/index.html\nhttps://lianlab.top/admin\nhttps://lianlab.top/admin/\nhttps://lianlab.top/admin/operation-logs\nhttps://lianlab.top/admin/server-logs\nhttps://lianlab.top/login\nhttps://lianlab.top/unauthorized"
+          CDN_URL: "https://lianlab.top/\nhttps://lianlab.top/index.html\nhttps://lianlab.top/admin\nhttps://lianlab.top/admin/\nhttps://lianlab.top/admin/operation-logs\nhttps://lianlab.top/admin/server-logs\nhttps://lianlab.top/admin/ecs-logs\nhttps://lianlab.top/admin/maintenance\nhttps://lianlab.top/login\nhttps://lianlab.top/unauthorized"
         run: |
           resp=$(python3 scripts/cdn_refresh.py)
           echo "$resp"

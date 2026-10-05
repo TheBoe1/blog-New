@@ -10,6 +10,7 @@ ExecStart=/usr/bin/python3 /usr/local/lib/blog-server-logs/agent.py --bind 172.2
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true
+SupplementaryGroups=adm
 ProtectSystem=strict
 ProtectHome=read-only
 PrivateTmp=true

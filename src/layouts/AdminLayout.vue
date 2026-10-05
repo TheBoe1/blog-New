@@ -24,6 +24,7 @@
           :default-active="activeMenu"
           :collapse="isCollapsed"
           :collapse-transition="false"
+          :default-openeds="['logs']"
           router
           class="admin-menu"
         >
@@ -56,20 +57,14 @@
             <template #title>系统设置</template>
           </el-menu-item>
 
-          <el-menu-item index="/admin/operation-logs">
-            <el-icon><Document /></el-icon>
-            <template #title>操作日志</template>
-          </el-menu-item>
-
-          <el-menu-item index="/admin/server-logs">
-            <el-icon><Document /></el-icon>
-            <template #title>服务器日志</template>
-          </el-menu-item>
-
-          <el-menu-item index="/admin/visit-logs">
-            <el-icon><View /></el-icon>
-            <template #title>访问日志</template>
-          </el-menu-item>
+          <el-sub-menu index="logs">
+            <template #title><el-icon><Document /></el-icon><span>日志管理</span></template>
+            <el-menu-item index="/admin/operation-logs">操作日志</el-menu-item>
+            <el-menu-item index="/admin/server-logs">服务器日志</el-menu-item>
+            <el-menu-item index="/admin/ecs-logs">ECS 系统日志</el-menu-item>
+            <el-menu-item index="/admin/visit-logs">访问日志</el-menu-item>
+            <el-menu-item index="/admin/maintenance">MySQL 备份与定时任务</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
 
@@ -124,15 +119,20 @@
         <div class="logo-icon"><img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" /><span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span></div>
         <span class="logo-text">{{ siteSettings.adminTitle || '管理后台' }}</span>
       </div>
-      <el-menu :default-active="activeMenu" router class="admin-menu" @select="mobileDrawerOpen = false">
+      <el-menu :default-active="activeMenu" :default-openeds="['logs']" router class="admin-menu" @select="mobileDrawerOpen = false">
         <el-menu-item index="/admin"><el-icon><DataAnalysis /></el-icon><template #title>控制台</template></el-menu-item>
         <el-sub-menu index="article"><template #title><el-icon><Document /></el-icon><span>文章管理</span></template><el-menu-item index="/admin/articles">文章列表</el-menu-item><el-menu-item index="/admin/article/create">新建文章</el-menu-item></el-sub-menu>
         <el-menu-item index="/admin/categories"><el-icon><Folder /></el-icon><template #title>分类管理</template></el-menu-item>
         <el-menu-item index="/admin/tags"><el-icon><PriceTag /></el-icon><template #title>标签管理</template></el-menu-item>
         <el-menu-item index="/admin/settings"><el-icon><Setting /></el-icon><template #title>系统设置</template></el-menu-item>
-        <el-menu-item index="/admin/operation-logs"><el-icon><Document /></el-icon><template #title>操作日志</template></el-menu-item>
-        <el-menu-item index="/admin/server-logs"><el-icon><Document /></el-icon><template #title>服务器日志</template></el-menu-item>
-        <el-menu-item index="/admin/visit-logs"><el-icon><View /></el-icon><template #title>访问日志</template></el-menu-item>
+        <el-sub-menu index="logs">
+          <template #title><el-icon><Document /></el-icon><span>日志管理</span></template>
+          <el-menu-item index="/admin/operation-logs">操作日志</el-menu-item>
+          <el-menu-item index="/admin/server-logs">服务器日志</el-menu-item>
+          <el-menu-item index="/admin/ecs-logs">ECS 系统日志</el-menu-item>
+          <el-menu-item index="/admin/visit-logs">访问日志</el-menu-item>
+          <el-menu-item index="/admin/maintenance">MySQL 备份与定时任务</el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-drawer>
   </div>

@@ -3,6 +3,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import sys
 import threading
 from types import SimpleNamespace
 import unittest
@@ -85,6 +86,111 @@ class ReaderTests(unittest.TestCase):
             # Timeout still waits/closes the pipe (cleanup always executes).
             popen.return_value.wait.assert_called()
             popen.return_value.stdout.close.assert_called_once()
+
+    def test_mysql_uses_only_fixed_container_command(self):
+        with patch.object(agent, 'command_tail', return_value=(b'safe\n', False)) as reader:
+            self.assertEqual(agent.read_source('mysql', 100)['lines'], ['safe'])
+            self.assertEqual(reader.call_args.args[0], ['/usr/bin/docker', 'logs', '--timestamps', '--tail', '100', 'main-mysql'])
+        with self.assertRaises(agent.LogError):
+            agent.docker_tail(100, 'unapproved-container')
+
+    def test_docker_and_cron_filter_bounded_syslog_without_commands(self):
+        fixture = b'host dockerd[123]: Docker event\nhost CRON[456]: cron event\nhost other[7]: irrelevant\n'
+        with patch.object(agent, 'file_tail', return_value=(fixture, True)) as reader, patch.object(agent, 'command_tail') as command:
+            self.assertEqual(agent.read_source('ecs-docker', 100)['lines'], ['host dockerd[123]: Docker event'])
+            result = agent.read_source('cron', 200)
+            self.assertEqual(result['lines'], ['host CRON[456]: cron event'])
+            self.assertTrue(result['truncated'])
+            self.assertTrue(all(call.args[0] == '/var/log/syslog' for call in reader.call_args_list))
+            command.assert_not_called()
+
+    def test_empty_kernel_file_uses_only_fixed_previous_rotation(self):
+        with patch.object(agent, 'file_tail', side_effect=[(b'', False), (b'previous kernel entry\n', False)]) as reader:
+            self.assertEqual(agent.read_source('ecs-kernel', 100)['lines'], ['previous kernel entry'])
+            self.assertEqual([call.args[0] for call in reader.call_args_list], ['/var/log/kern.log', '/var/log/kern.log.1'])
+
+    def test_command_reader_caps_output(self):
+        content, truncated = agent.command_tail([sys.executable, '-c', 'print("x" * 700000); print("last-line")'], 'fixture failed')
+        self.assertTrue(truncated)
+        self.assertLessEqual(len(content), agent.MAX_BYTES)
+        self.assertTrue(content.endswith(b'last-line\n'))
+
+
+class MaintenanceTests(unittest.TestCase):
+    def test_cron_parses_only_actual_whitelisted_script_execution(self):
+        text = ('# 0 3 * * * /root/ops/backup_mysql.sh\n'
+                '0 3 * * * /root/ops/backup_mysql.sh >> /var/log/log 2>&1\n'
+                '@weekly /bin/bash /root/ops/backup_mysql.sh\n'
+                '0 4 * * * echo /root/ops/backup_mysql.sh\n'
+                'broken /root/ops/backup_mysql.sh\n'
+                '@invalid /root/ops/backup_mysql.sh\n')
+        self.assertEqual(agent.cron_schedules(text, '/root/ops/backup_mysql.sh'), ['0 3 * * *', '@weekly'])
+        self.assertEqual(agent.cron_schedules('51 5 * * * "/root/.acme.sh"/acme.sh --cron', '/root/.acme.sh/acme.sh'), ['51 5 * * *'])
+
+    def test_backup_records_only_stat_whitelisted_regular_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'carbon_20261005_030001.sql.gz').write_bytes(b'fixture-only')
+            (root / 'carbon_20261005_030002.sql.gz.partial').write_bytes(b'partial')
+            (root / 'private-password.sql').write_text('never return this content')
+            (root / 'carbon_20261005_030003.sql.gz').symlink_to('/etc/passwd')
+            with patch.object(agent, 'BACKUP_DIR', str(root)), patch('builtins.open', side_effect=AssertionError('must not read SQL')):
+                records, limited, available = agent.backup_records()
+            self.assertTrue(available)
+            self.assertFalse(limited)
+            self.assertEqual(len(records), 2)
+            self.assertTrue(any(record['partial'] for record in records))
+            self.assertNotIn('never return this content', str(records))
+
+    def test_missing_or_symlink_backup_directory_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            linked = Path(directory) / 'link'
+            linked.symlink_to(directory)
+            for path in (str(linked), str(linked) + '-missing'):
+                with patch.object(agent, 'BACKUP_DIR', path):
+                    self.assertEqual(agent.backup_records(), ([], False, False))
+
+    def test_small_metadata_files_are_bounded_and_no_symlinks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'large'
+            path.write_text('x' * 40000)
+            linked = root / 'linked'
+            linked.symlink_to(path)
+            for candidate in (path, linked):
+                with self.assertRaises(OSError):
+                    agent.read_small(str(candidate))
+
+    def test_overview_preserves_configuration_and_redacts_outcome(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            script = root / 'backup.sh'
+            script.write_text('LOCAL_RETENTION_DAYS=7\nOSS_BUCKET=fixture-bucket\nOSS_PREFIX=database/carbon\nPASSWORD=private-value\n# --storage-class Archive\n')
+            script.chmod(0o700)
+            cron = root / 'crontab'
+            cron.write_text('0 3 * * * ' + str(script) + '\nUNRELATED_SECRET=never-return\n')
+            log = root / 'backup.log'
+            log.write_text('[2026-10-05 03:00:00] OK: complete\n[2026-10-05 03:01:00] ERROR: password=private-outcome\n')
+            cert = root / 'cert.log'
+            cert.write_text('{"Code":"CdnServiceSuspended"}\n')
+            tasks = [('mysql-backup', 'Backup', str(script), 'mysql-backup'), ('cert-sync', 'Certificate', str(script), 'cert-sync')]
+            with patch.multiple(agent, CRONTAB=str(cron), BACKUP_SCRIPT=str(script), BACKUP_DIR=str(root), TASKS=tasks), patch.dict(agent.SOURCES, {'mysql-backup': str(log), 'cert-sync': str(cert)}), patch.object(agent.subprocess, 'Popen') as process:
+                result = agent.read_maintenance()
+                process.assert_not_called()  # Must never execute cron, backup or MySQL commands.
+            self.assertEqual(result['backup']['latestOutcome']['status'], 'failed')
+            self.assertEqual(result['backup']['localRetentionDays'], 7)
+            self.assertEqual(result['backup']['destination']['bucket'], 'fixture-bucket')
+            self.assertEqual(result['tasks'][0]['schedules'], ['0 3 * * *'])
+            self.assertIn('CdnServiceSuspended', result['tasks'][1]['logWarning'])
+            for secret in ('private-value', 'private-outcome', 'never-return'):
+                self.assertNotIn(secret, json.dumps(result))
+
+    def test_unavailable_configuration_never_implies_success(self):
+        with patch.object(agent, 'read_small', side_effect=OSError), patch.object(agent, 'file_tail', side_effect=OSError), patch.object(agent, 'backup_records', return_value=([], False, False)):
+            result = agent.read_maintenance()
+        self.assertFalse(result['cronAvailable'])
+        self.assertTrue(all(not task['configured'] for task in result['tasks']))
+        self.assertEqual(result['backup']['latestOutcome']['status'], 'unknown')
 
 
 class AuthTests(unittest.TestCase):
@@ -173,6 +279,20 @@ class EndpointTests(unittest.TestCase):
             with patch.object(agent, 'verify_admin', side_effect=agent.LogError(status, 'denied')), patch.object(agent, 'read_source') as reader:
                 self.assertEqual(self.request('/api/admin/server-logs/tail?source=carbon&lines=100')[0], status)
                 reader.assert_not_called()
+
+    def test_maintenance_requires_admin_and_rejects_command_parameters(self):
+        with patch.object(agent, 'read_maintenance') as reader:
+            self.assertEqual(self.request('/api/admin/server-logs/maintenance')[0], 401)
+            reader.assert_not_called()
+        with patch.object(agent, 'verify_admin'), patch.object(agent, 'read_maintenance', return_value={'tasks': []}) as reader:
+            status, headers, data = self.request('/api/admin/server-logs/maintenance')
+            self.assertEqual(status, 200)
+            self.assertEqual(data['data']['tasks'], [])
+            self.assertIn('no-store', headers['Cache-Control'])
+            self.assertEqual(self.request('/api/admin/server-logs/maintenance?command=backup')[0], 400)
+            self.assertEqual(self.request('/api/admin/server-logs/maintenance?path=/etc/passwd')[0], 400)
+            self.assertEqual(self.request('/api/admin/server-logs/maintenance', method='POST')[0], 405)
+            reader.assert_called_once()
 
 
 class DeployTests(unittest.TestCase):

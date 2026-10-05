@@ -1,5 +1,5 @@
 import { request } from './request'
-import type { OperationLogPage, OperationLogQuery, ServerLogLineLimit, ServerLogSnapshot, ServerLogSource } from '@/types/logs'
+import type { MaintenanceSnapshot, OperationLogPage, OperationLogQuery, ServerLogLineLimit, ServerLogSnapshot, ServerLogSource } from '@/types/logs'
 
 export const logsApi = {
   getOperations(params: OperationLogQuery): Promise<OperationLogPage> {
@@ -16,6 +16,13 @@ export const logsApi = {
     return request.get<ServerLogSnapshot>('/api/admin/server-logs/tail', {
       baseURL: '',
       params: { source, lines },
+      timeout: 10000,
+      showGlobalLoading: false
+    })
+  },
+  getMaintenance(): Promise<MaintenanceSnapshot> {
+    return request.get<MaintenanceSnapshot>('/api/admin/server-logs/maintenance', {
+      baseURL: '',
       timeout: 10000,
       showGlobalLoading: false
     })

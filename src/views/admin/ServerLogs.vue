@@ -1,15 +1,17 @@
 <template>
   <div class="server-logs">
     <header class="page-heading">
-      <h1>服务器日志</h1>
-      <p>只读查看后端运行日志与 Nginx 请求、错误日志，保留原始行与异常堆栈。</p>
+      <h1>{{ pageTitle }}</h1>
+      <p>{{ pageDescription }}</p>
     </header>
 
     <el-card shadow="never">
       <el-form class="filter-form" label-position="top" @submit.prevent="loadData">
         <el-form-item label="日志来源">
           <el-select v-model="source" aria-label="日志来源">
-            <el-option v-for="item in sources" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option-group v-for="group in sourceGroups" :key="group.label" :label="group.label">
+              <el-option v-for="item in group.items" :key="item.value" :label="item.label" :value="item.value" />
+            </el-option-group>
           </el-select>
         </el-form-item>
         <el-form-item label="最近行数">
@@ -26,6 +28,7 @@
         </div>
       </el-form>
       <p class="hint">关键词仅匹配本次读取的最近日志，不搜索全部历史。常见敏感字段已脱敏；此页面不提供删除或执行命令。</p>
+      <p v-if="props.scope === 'ecs'" class="hint">Docker / cron 从 syslog 最近 512 KiB 片段筛选；内核读取当前文件，空文件时读取上一轮日志。不代表完整历史。</p>
     </el-card>
 
     <el-card shadow="never" v-loading="loading" class="log-card">
@@ -48,23 +51,43 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { logsApi } from '@/api/logs'
 import type { ServerLogLineLimit, ServerLogSnapshot, ServerLogSource } from '@/types/logs'
 
-const sources: { value: ServerLogSource; label: string }[] = [
-  { value: 'carbon', label: '后端运行日志' },
-  { value: 'nginx-access', label: 'Nginx 访问日志' },
-  { value: 'nginx-error', label: 'Nginx 错误日志' }
+const props = withDefaults(defineProps<{ scope?: 'services' | 'ecs' }>(), { scope: 'services' })
+const route = useRoute()
+const groups: { label: string; scope: 'services' | 'ecs'; items: { value: ServerLogSource; label: string }[] }[] = [
+  { label: '服务运行', scope: 'services', items: [
+    { value: 'carbon', label: '后端运行日志' }, { value: 'nginx-access', label: 'Nginx 访问日志' },
+    { value: 'nginx-error', label: 'Nginx 错误日志' }, { value: 'mysql', label: 'MySQL 运行日志' }
+  ] },
+  { label: '定时任务', scope: 'services', items: [
+    { value: 'mysql-backup', label: 'MySQL 备份执行日志' }, { value: 'docker-cleanup', label: 'Docker 日志清理任务' },
+    { value: 'cert-sync', label: '证书同步任务' }
+  ] },
+  { label: 'ECS 主机', scope: 'ecs', items: [
+    { value: 'ecs-system', label: '系统日志（syslog）' }, { value: 'ecs-auth', label: 'SSH / 认证日志' },
+    { value: 'ecs-kernel', label: '内核日志（当前 / 上一轮）' }, { value: 'ecs-docker', label: 'Docker 引擎（近期 syslog）' },
+    { value: 'cron', label: 'cron 调度（近期 syslog）' }
+  ] }
 ]
+const sourceGroups = computed(() => groups.filter(group => group.scope === props.scope))
+const sources = computed(() => sourceGroups.value.flatMap(group => group.items))
+const pageTitle = computed(() => props.scope === 'ecs' ? 'ECS 系统日志' : '服务器日志')
+const pageDescription = computed(() => props.scope === 'ecs'
+  ? '查看 ECS 主机的系统、SSH 认证、内核、Docker 引擎与 cron 调度日志。'
+  : '只读查看应用、MySQL 与现有备份、清理、证书同步脚本的执行日志。')
 const lineLimits: ServerLogLineLimit[] = [100, 200, 500, 1000]
-const source = ref<ServerLogSource>('carbon')
+const initialSource = sources.value.find(item => item.value === route.query.source)?.value || sources.value[0].value
+const source = ref<ServerLogSource>(initialSource)
 const lineLimit = ref<ServerLogLineLimit>(200)
 const keyword = ref('')
 const autoRefresh = ref(false)
 const loading = ref(false)
 const loadError = ref('')
 const snapshot = ref<ServerLogSnapshot | null>(null)
-const sourceLabel = computed(() => sources.find(item => item.value === source.value)?.label || '')
+const sourceLabel = computed(() => sources.value.find(item => item.value === source.value)?.label || '')
 const filteredLines = computed(() => {
   const needle = keyword.value.trim().toLowerCase()
   return (snapshot.value?.lines || []).filter(line => !needle || line.toLowerCase().includes(needle))

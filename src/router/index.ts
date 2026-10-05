@@ -106,6 +106,19 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '服务器日志', requiresAuth: true }
       },
       {
+        path: 'ecs-logs',
+        name: 'AdminEcsLogs',
+        component: () => import('@/views/admin/ServerLogs.vue'),
+        props: { scope: 'ecs' },
+        meta: { title: 'ECS 系统日志', requiresAuth: true }
+      },
+      {
+        path: 'maintenance',
+        name: 'AdminMaintenance',
+        component: () => import('@/views/admin/Maintenance.vue'),
+        meta: { title: 'MySQL 备份与定时任务', requiresAuth: true }
+      },
+      {
         path: 'visit-logs',
         name: 'AdminVisitLogs',
         component: () => import('@/views/admin/VisitLogs.vue'),
