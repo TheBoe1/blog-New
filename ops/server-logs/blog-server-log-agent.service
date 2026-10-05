@@ -1,0 +1,27 @@
+[Unit]
+Description=Blog read-only server log agent
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/lib/blog-server-logs/agent.py --bind 172.20.0.1 --port 9126
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_UNIX
+MemoryMax=96M
+TasksMax=32
+CPUQuota=20%
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

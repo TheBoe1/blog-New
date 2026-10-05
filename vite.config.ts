@@ -71,6 +71,7 @@ export default defineConfig({
     port: 5175,
     host: true,
     proxy: {
+      '/api/admin/server-logs': { target: 'http://127.0.0.1:9126', changeOrigin: true },
       '/prod-api': { target: 'http://localhost:9090', changeOrigin: true, secure: false, rewrite: (path) => path.replace(/^\/prod-api/, '') },
       '/api': { target: 'http://localhost:9090', changeOrigin: true, secure: false },
       '/login': {

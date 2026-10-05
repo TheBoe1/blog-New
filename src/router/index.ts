@@ -100,6 +100,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '操作日志', requiresAuth: true }
       },
       {
+        path: 'server-logs',
+        name: 'AdminServerLogs',
+        component: () => import('@/views/admin/ServerLogs.vue'),
+        meta: { title: '服务器日志', requiresAuth: true }
+      },
+      {
         path: 'visit-logs',
         name: 'AdminVisitLogs',
         component: () => import('@/views/admin/VisitLogs.vue'),

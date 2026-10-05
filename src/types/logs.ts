@@ -31,3 +31,13 @@ export interface OperationLogPage {
   rows: OperationLog[]
   total: number
 }
+
+export type ServerLogSource = 'carbon' | 'nginx-access' | 'nginx-error'
+export type ServerLogLineLimit = 100 | 200 | 500 | 1000
+
+export interface ServerLogSnapshot {
+  source: ServerLogSource
+  lines: string[]
+  fetchedAt: string
+  truncated: boolean
+}

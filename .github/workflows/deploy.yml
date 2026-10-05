@@ -25,10 +25,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test server log reader
+        run: python3 -m unittest discover -s ops/server-logs -p 'test_*.py' -v
+
       - name: Build
         env:
           VITE_API_BASE_URL: https://api.lianlab.top
         run: npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: Deploy read-only server log reader
+        # Validate/install before modifying OSS. This step never restarts Carbon.
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" 'mkdir -p /root/ops/server-logs'
+          scp -i ~/.ssh/id_ed25519 ops/server-logs/agent.py ops/server-logs/deploy.py ops/server-logs/blog-server-log-agent.service "$SSH_USER@$SSH_HOST:/root/ops/server-logs/"
+          ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" 'python3 /root/ops/server-logs/deploy.py'
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
 
       - name: Install ossutil
         run: |
@@ -134,16 +157,6 @@ jobs:
             -e oss-cn-beijing.aliyuncs.com \
             --meta "Cache-Control:no-cache,max-age=0"
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-
       - name: Sync index.html to ECS
         run: |
           scp -i ~/.ssh/id_ed25519 dist/index.html "$SSH_USER@$SSH_HOST:/root/nginx/html/main/index.html"
@@ -158,7 +171,7 @@ jobs:
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
-          CDN_URL: "https://lianlab.top/\nhttps://lianlab.top/index.html\nhttps://lianlab.top/admin\nhttps://lianlab.top/admin/\nhttps://lianlab.top/admin/operation-logs\nhttps://lianlab.top/login\nhttps://lianlab.top/unauthorized"
+          CDN_URL: "https://lianlab.top/\nhttps://lianlab.top/index.html\nhttps://lianlab.top/admin\nhttps://lianlab.top/admin/\nhttps://lianlab.top/admin/operation-logs\nhttps://lianlab.top/admin/server-logs\nhttps://lianlab.top/login\nhttps://lianlab.top/unauthorized"
         run: |
           resp=$(python3 scripts/cdn_refresh.py)
           echo "$resp"

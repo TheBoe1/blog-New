@@ -1,5 +1,5 @@
 import { request } from './request'
-import type { OperationLogPage, OperationLogQuery } from '@/types/logs'
+import type { OperationLogPage, OperationLogQuery, ServerLogLineLimit, ServerLogSnapshot, ServerLogSource } from '@/types/logs'
 
 export const logsApi = {
   getOperations(params: OperationLogQuery): Promise<OperationLogPage> {
@@ -8,6 +8,15 @@ export const logsApi = {
     return request.get<OperationLogPage>('/prod-api/monitor/operlog/list', {
       baseURL: '',
       params,
+      showGlobalLoading: false
+    })
+  },
+  getServerTail(source: ServerLogSource, lines: ServerLogLineLimit): Promise<ServerLogSnapshot> {
+    // 日志读取器仅由主站 nginx 转发；仍使用统一请求层的管理员 token 和过期处理。
+    return request.get<ServerLogSnapshot>('/api/admin/server-logs/tail', {
+      baseURL: '',
+      params: { source, lines },
+      timeout: 10000,
       showGlobalLoading: false
     })
   }
