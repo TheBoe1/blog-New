@@ -21,10 +21,10 @@
         </div>
 
         <el-menu
+          ref="desktopMenu"
           :default-active="activeMenu"
           :collapse="isCollapsed"
           :collapse-transition="false"
-          :default-openeds="['logs']"
           router
           class="admin-menu"
         >
@@ -119,7 +119,7 @@
         <div class="logo-icon"><img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" /><span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span></div>
         <span class="logo-text">{{ siteSettings.adminTitle || '管理后台' }}</span>
       </div>
-      <el-menu :default-active="activeMenu" :default-openeds="['logs']" router class="admin-menu" @select="mobileDrawerOpen = false">
+      <el-menu ref="mobileMenu" :default-active="activeMenu" router class="admin-menu" @select="mobileDrawerOpen = false">
         <el-menu-item index="/admin"><el-icon><DataAnalysis /></el-icon><template #title>控制台</template></el-menu-item>
         <el-sub-menu index="article"><template #title><el-icon><Document /></el-icon><span>文章管理</span></template><el-menu-item index="/admin/articles">文章列表</el-menu-item><el-menu-item index="/admin/article/create">新建文章</el-menu-item></el-sub-menu>
         <el-menu-item index="/admin/categories"><el-icon><Folder /></el-icon><template #title>分类管理</template></el-menu-item>
@@ -139,7 +139,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import type { MenuInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
@@ -153,6 +154,17 @@ const isCollapsed = ref(false)
 const mobileDrawerOpen = ref(false)
 const isMobile = useMediaQuery('(max-width: 768px)')
 const siteSettings = ref<Record<string, string>>({})
+const desktopMenu = ref<MenuInstance>()
+const mobileMenu = ref<MenuInstance>()
+
+// Element Plus opens the active item's parent during initialization. Close only
+// on mount so log routes start folded without overriding manual navigation.
+for (const menuRef of [desktopMenu, mobileMenu]) {
+  watch(menuRef, async (menu) => {
+    await nextTick()
+    menu?.close('logs')
+  })
+}
 
 const activeMenu = computed(() => route.path)
 const currentTitle = computed(() => route.meta.title as string)
