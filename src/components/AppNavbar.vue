@@ -19,7 +19,7 @@
         type="button"
         :aria-expanded="mobileMenuOpen"
         aria-controls="mobile-navigation"
-        aria-label="打开导航菜单"
+        :aria-label="mobileMenuOpen ? '关闭导航菜单' : '打开导航菜单'"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
         <span class="mobile-menu-toggle__glyph" aria-hidden="true">{{ mobileMenuOpen ? '×' : '☰' }}</span>
@@ -59,11 +59,14 @@
             :class="{ 'is-active': isProjectsActive }"
             @mouseenter="isProjectsActive = true"
             @mouseleave="isProjectsActive = false"
+            @focusin="isProjectsActive = true"
+            @focusout="handleProjectsBlur"
+            @keydown.esc.stop="isProjectsActive = false"
           >
-            <a class="navbar-link" :class="{ 'is-active': isProjectsActive }">
+            <button type="button" class="navbar-link" :class="{ 'is-active': isProjectsActive }" :aria-expanded="isProjectsActive" aria-controls="desktop-project-list" @click="isProjectsActive = true">
               项目
-            </a>
-            <div class="navbar-dropdown">
+            </button>
+            <div id="desktop-project-list" class="navbar-dropdown">
               <router-link
                 v-for="project in projects"
                 :key="project.id"
@@ -83,9 +86,9 @@
 
         <div class="navbar-end">
           <ThemeToggle />
-          <a class="navbar-item search" title="搜索" @click="showSearch = true">
+          <button type="button" class="navbar-item search" title="搜索" aria-label="搜索文章" @click="showSearch = true">
             <i class="i-ep-search" aria-hidden="true"></i>
-          </a>
+          </button>
           <router-link
             v-if="!userStore.isLoggedIn"
             to="/login"
@@ -107,10 +110,8 @@
     </div>
   </nav>
 
-  <Teleport to="body">
-    <Transition name="mobile-menu">
-      <div v-if="mobileMenuOpen" id="mobile-navigation" class="mobile-navigation" @click.self="mobileMenuOpen = false">
-        <div class="mobile-navigation__panel">
+  <el-drawer v-model="mobileMenuOpen" class="front-mobile-drawer" title="网站导航" direction="ltr" size="min(88vw, 320px)" append-to-body>
+        <div id="mobile-navigation" class="mobile-navigation__panel">
           <router-link
             v-for="item in navItems"
             :key="item.path"
@@ -145,27 +146,24 @@
             </div>
           </Transition>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+  </el-drawer>
 
   <!-- Search modal -->
-  <Teleport to="body">
-    <div v-if="showSearch" class="search-modal" @click.self="showSearch = false">
-      <div class="search-modal-box">
+  <el-dialog v-model="showSearch" title="搜索文章" width="min(92vw, 480px)" append-to-body @opened="searchInputRef?.focus()">
+      <form class="search-form" @submit.prevent="handleSearch">
+        <label for="article-search" class="search-label">文章标题或关键词</label>
         <input
+          id="article-search"
           ref="searchInputRef"
           v-model="searchKeyword"
           class="search-modal-input"
+          type="search"
+          enterkeyhint="search"
           :placeholder="searchPlaceholder"
-          @keyup.enter="handleSearch"
         />
-        <button class="search-modal-close" @click="showSearch = false">
-          <i class="i-ep-close" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-  </Teleport>
+        <el-button native-type="submit" type="primary" :disabled="!searchKeyword.trim()">搜索</el-button>
+      </form>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -174,6 +172,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { projects as projectList } from '@/data/projects'
 import ThemeToggle from './ThemeToggle.vue'
+import { useMediaQuery } from '@vueuse/core'
 
 const props = defineProps<{ siteSettings?: Record<string, string> }>()
 
@@ -186,6 +185,7 @@ const scrolled = ref(false)
 const showSearch = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileProjectsOpen = ref(false)
+const isMobile = useMediaQuery('(max-width: 768px)')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 let ticking = false
 
@@ -207,10 +207,14 @@ function isActive(path: string) {
   return route.path.startsWith(path)
 }
 
+function handleProjectsBlur(event: FocusEvent) {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) isProjectsActive.value = false
+}
+
 function handleSearch() {
   if (searchKeyword.value.trim()) {
     showSearch.value = false
-    router.push({ path: '/articles', query: { keyword: searchKeyword.value } })
+    router.push({ path: '/articles', query: { keyword: searchKeyword.value.trim() } })
     searchKeyword.value = ''
   }
 }
@@ -232,9 +236,14 @@ function onSearchKeydown(e: KeyboardEvent) {
 }
 
 watch(() => route.fullPath, () => {
+  showSearch.value = false
+  isProjectsActive.value = false
   mobileMenuOpen.value = false
   mobileProjectsOpen.value = false
 })
+
+watch(isMobile, (mobile) => { if (!mobile) mobileMenuOpen.value = false })
+watch(showSearch, (open) => { if (open) mobileMenuOpen.value = false })
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -323,6 +332,9 @@ onUnmounted(() => {
 
   // Text nav items — flat, large padding, animated center underline (lexburner signature)
   .navbar-item {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
     display: flex;
     align-items: center;
     padding: 1.25rem 0.75rem;
@@ -389,6 +401,10 @@ onUnmounted(() => {
 
   // Dropdown trigger label
   .navbar-link {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
     display: flex;
     align-items: center;
     color: var(--text-secondary);
@@ -488,7 +504,6 @@ onUnmounted(() => {
     }
 
     // Show on hover or .is-active (keyboard/touch)
-    &:hover .navbar-dropdown,
     &.is-active .navbar-dropdown {
       opacity: 1;
       visibility: visible;
@@ -498,63 +513,31 @@ onUnmounted(() => {
 }
 
 // ─── Search Modal ──────────────────────────────────────
-.search-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: var(--bg-overlay);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 20vh;
-  backdrop-filter: blur(4px);
-}
-
-.search-modal-box {
-  background: var(--bg-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  width: 480px;
-  max-width: 90vw;
-  display: flex;
+.search-form {
+  display: grid;
   gap: var(--space-3);
-  box-shadow: var(--shadow-hover);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:focus-within {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-hover);
-  }
 }
+
+.search-label { color: var(--text-primary); font-size: var(--font-size-base); }
 
 .search-modal-input {
-  flex: 1;
-  border: none;
-  outline: none;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--space-12);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-lg);
   font-family: 'Ubuntu', 'PingFang SC', sans-serif;
   color: var(--text-primary);
   background: transparent;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
 
   &::placeholder {
-    color: var(--text-tertiary);
+    color: var(--text-placeholder);
   }
 }
 
-.search-modal-close {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  padding: 0 var(--space-2);
-  transition: color var(--transition-fast);
-
-  &:hover {
-    color: var(--text-primary);
-  }
-}
+.search-modal-input:focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset); }
 
 // ─── Responsive ───────────────────────────────────────
 @media (max-width: 768px) {
@@ -568,10 +551,10 @@ onUnmounted(() => {
   }
 
   .navbar .navbar-brand {
-    position: absolute;
-    left: 50%;
+    position: static;
+    margin-right: auto;
+    margin-left: var(--space-16);
     min-height: 3.75rem;
-    transform: translateX(-50%);
   }
 
   .navbar .navbar-brand .navbar-logo {
@@ -597,9 +580,9 @@ onUnmounted(() => {
     left: var(--space-3);
     display: inline-grid;
     place-items: center;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: var(--space-12);
+    min-width: var(--space-12);
+    height: var(--space-12);
     padding: 0;
     border: 1px solid var(--border-color);
     border-radius: 50%;
@@ -632,8 +615,8 @@ onUnmounted(() => {
   .mobile-navbar-actions > a {
     display: inline-grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: var(--space-12);
+    height: var(--space-12);
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -648,6 +631,8 @@ onUnmounted(() => {
     height: 25px;
     flex-basis: 25px;
   }
+
+  .mobile-navbar-actions :deep(.theme-toggle) { width: var(--space-12); height: var(--space-12); padding: 0; }
 
   .mobile-navbar-actions > button:active,
   .mobile-navbar-actions > a:active {
@@ -669,29 +654,16 @@ onUnmounted(() => {
 
 @media (min-width: 769px) { .mobile-menu-toggle, .mobile-navbar-actions { display: none; } }
 
-.mobile-navigation {
-  position: fixed;
-  inset: 60px 0 0;
-  z-index: 99;
-  width: 100%;
-  max-width: 100vw;
-  padding: var(--space-3);
-  overflow-x: hidden;
-  overflow-y: auto;
-  background: color-mix(in srgb, var(--bg-page) 68%, transparent);
-  backdrop-filter: blur(8px);
-}
 .mobile-navigation__panel {
   display: grid;
   gap: 2px;
   width: min(100%, 560px);
   min-width: 0;
   margin: 0 auto;
-  padding: var(--space-3);
-  border: 1px solid var(--border-color);
+  padding: 0;
+  border: 0;
   border-radius: var(--radius-lg);
-  background: var(--bg-primary);
-  box-shadow: var(--shadow-hover);
+  background: transparent;
 }
 .mobile-navigation__link {
   display: flex;
@@ -713,13 +685,6 @@ onUnmounted(() => {
 .mobile-navigation__project strong { overflow: hidden; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-overflow: ellipsis; white-space: nowrap; }
 .mobile-navigation__project span { overflow: hidden; color: var(--text-tertiary); font-size: var(--font-size-xs); text-overflow: ellipsis; white-space: nowrap; }
 .mobile-navigation__project:active { color: var(--brand-primary); border-left-color: var(--brand-primary); background: var(--brand-tint); }
-
-.mobile-menu-enter-active, .mobile-menu-leave-active { transition: opacity var(--motion-normal) var(--ease-standard); }
-.mobile-menu-enter-active .mobile-navigation__panel,
-.mobile-menu-leave-active .mobile-navigation__panel { transition: opacity var(--motion-normal) var(--ease-standard), transform var(--motion-normal) var(--ease-standard); transform-origin: top center; }
-.mobile-menu-enter-from, .mobile-menu-leave-to { opacity: 0; }
-.mobile-menu-enter-from .mobile-navigation__panel,
-.mobile-menu-leave-to .mobile-navigation__panel { opacity: 0; transform: translateY(-14px) scale(0.985); }
 
 .mobile-submenu-enter-active, .mobile-submenu-leave-active {
   will-change: transform, opacity;

@@ -2,6 +2,13 @@ import { request } from './request'
 import type { Article, ArticleQuery, PaginatedResponse, Category, Tag } from '@/types'
 
 export const articleApi = {
+  getAdminList(params: ArticleQuery): Promise<PaginatedResponse<Article>> {
+    const { page, keyword, ...query } = params
+    return request.get<PaginatedResponse<Article>>('/api/admin/articles', {
+      params: { ...query, pageNum: page ?? 1, title: keyword || undefined }
+    })
+  },
+
   getList(params: ArticleQuery): Promise<PaginatedResponse<Article>> {
     const { page, ...query } = params
     return request.get('/api/articles', {

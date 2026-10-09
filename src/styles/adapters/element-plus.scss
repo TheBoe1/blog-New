@@ -116,3 +116,16 @@
   // ── Button disabled ──
   --el-button-disabled-text-color: var(--text-muted);
 }
+
+// Motion adapter: vendor enter/leave transitions must also honor reduced motion.
+@media (prefers-reduced-motion: reduce) {
+  .el-tag,
+  .el-overlay,
+  .el-dialog,
+  .el-drawer,
+  .el-zoom-in-center-enter-active,
+  .el-zoom-in-center-leave-active {
+    animation: none !important;
+    transition: none !important;
+  }
+}

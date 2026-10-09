@@ -68,15 +68,18 @@
         </el-menu>
       </el-aside>
 
-      <el-container>
+      <el-container class="admin-workspace">
         <el-header class="admin-header">
           <div class="header-left">
-            <el-icon
+            <button
+              type="button"
               class="collapse-btn"
+              :aria-label="isMobile ? '打开管理导航' : (isCollapsed ? '展开管理导航' : '收起管理导航')"
+              :aria-expanded="isMobile ? mobileDrawerOpen : !isCollapsed"
               @click="toggleNavigation"
             >
-              <component :is="isCollapsed ? 'Expand' : 'Fold'" />
-            </el-icon>
+              <el-icon aria-hidden="true"><component :is="isMobile || isCollapsed ? Expand : Fold" /></el-icon>
+            </button>
             <el-breadcrumb separator="/">
               <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
               <el-breadcrumb-item v-if="currentTitle">
@@ -88,12 +91,12 @@
           <div class="header-right">
             <ThemeToggle />
             <el-dropdown trigger="click">
-              <div class="user-info">
+              <button type="button" class="user-info" aria-label="打开账户菜单">
                 <el-avatar :size="32" :src="userStore.user?.avatar">
                   {{ userStore.user?.nickname?.charAt(0) }}
                 </el-avatar>
                 <span class="username">{{ userStore.user?.nickname || userStore.user?.username }}</span>
-              </div>
+              </button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="router.push('/')">
@@ -114,7 +117,7 @@
       </el-container>
     </el-container>
 
-    <el-drawer v-model="mobileDrawerOpen" class="admin-mobile-drawer" direction="ltr" size="280px" :with-header="false" append-to-body>
+    <el-drawer v-model="mobileDrawerOpen" class="admin-mobile-drawer" title="管理导航" direction="ltr" size="min(88vw, 320px)" append-to-body>
       <div class="logo-area">
         <div class="logo-icon"><img v-if="siteSettings.siteLogo" :src="siteSettings.siteLogo" alt="Logo" class="logo-img" /><span v-else>{{ siteSettings.siteName?.charAt(0) || 'B' }}</span></div>
         <span class="logo-text">{{ siteSettings.adminTitle || '管理后台' }}</span>
@@ -141,6 +144,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import type { MenuInstance } from 'element-plus'
+import { Expand, Fold } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
@@ -198,8 +202,11 @@ onMounted(async () => {
 <style scoped lang="scss">
 .admin-layout {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
+
+.admin-workspace { min-width: 0; }
 
 .admin-container {
   height: 100%;
@@ -209,6 +216,7 @@ onMounted(async () => {
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   transition: width var(--transition-base);
+}
 
   .logo-area {
     height: var(--header-height);
@@ -249,7 +257,6 @@ onMounted(async () => {
       white-space: nowrap;
     }
   }
-}
 
 .admin-menu {
   border-right: none;
@@ -295,6 +302,14 @@ onMounted(async () => {
     gap: var(--space-4);
 
     .collapse-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      min-width: var(--space-12);
+      min-height: var(--space-12);
+      border: 0;
+      background: transparent;
       font-size: var(--font-size-lg);
       cursor: pointer;
       color: var(--text-secondary);
@@ -315,6 +330,10 @@ onMounted(async () => {
     gap: var(--space-3);
 
     .user-info {
+      border: 0;
+      background: transparent;
+      font: inherit;
+      min-height: var(--space-12);
       display: flex;
       align-items: center;
       gap: var(--space-3);
@@ -336,9 +355,11 @@ onMounted(async () => {
 }
 
 .admin-main {
+  min-width: 0;
   background: var(--bg-secondary);
   padding: var(--space-6);
   overflow-y: auto;
+  padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
 }
 
 :global(.admin-mobile-drawer .el-drawer__body) {
@@ -353,6 +374,12 @@ onMounted(async () => {
   .admin-header :deep(.el-breadcrumb) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .admin-header .header-right { gap: var(--space-1); }
   .admin-header .username { display: none; }
-  .admin-main { padding: var(--space-4); }
+  .admin-main { padding: var(--space-4); padding-bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
+}
+
+.collapse-btn:focus-visible,
+.user-info:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 </style>

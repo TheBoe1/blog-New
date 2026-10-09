@@ -269,6 +269,15 @@ UI / Theme / Component / Style 类任务，实现前过一遍：
 
 > Every abstraction should pay for itself.
 
+### Mobile interaction baseline
+
+- 以 768px 为既有移动断点；检查 320/375/768px、横屏及桌面，不通过隐藏溢出来掩盖问题。
+- 手机主操作点击区域使用现有 `--space-12`（48px）；表单输入至少 `--font-size-base`，避免仅依赖 hover。
+- 主操作、导航、关闭入口必须是可聚焦的按钮/链接；复用 Element Plus Dialog/Drawer 的焦点圈定、Escape、关闭与滚动锁定能力。现有 adapter 负责 Surface/Text/Border 颜色映射，不增加 vendor palette。
+- 手机文章管理用卡片顺序阅读，桌面保留表格；共用分页、请求与编辑/预览/删除处理，不复制业务逻辑。
+- 加载、失败、空数据和无筛选结果是不同状态；失败给重试，筛选空结果给重置，首次空数据给创建入口。
+- 使用 `dvh` 并保留 `vh` 回退，底部内容考虑 safe-area；浅色、深色、减少动画分别验收。
+
 ### Manifesto（ADR-002 §10）
 
 > **Dark Mode is not Light Mode with inverted colors.** It has its own hierarchy, surface model, and reading rhythm — while sharing the same semantic API.
